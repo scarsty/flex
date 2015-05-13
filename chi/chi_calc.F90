@@ -12,15 +12,15 @@ subroutine chi_calc(rank, t, chi, g, g_mtau, delta_chi, &
 
   INTEGER rank
   REAL t
-  COMPLEX chi(0:16*nb*nb-1,0:16*nb*nb-1,0:mp1,0:nc1)
-  COMPLEX, dimension (0:4*nb-1,0:4*nb-1,0:mp1,0:nc1) :: g, g_mtau
-  COMPLEX, dimension (0:16*nb*nb-1,0:16*nb*nb-1,0:nc1) :: delta_chi, &
+  COMPLEX chi(0:nb*nb-1,0:nb*nb-1,0:mp1,0:nc1)
+  COMPLEX, dimension (0:nb-1,0:nb-1,0:mp1,0:nc1) :: g, g_mtau
+  COMPLEX, dimension (0:nb*nb-1,0:nb*nb-1,0:nc1) :: delta_chi, &
        delta_chi_prime
-  COMPLEX gamma_ph(0:16*nb*nb-1, 0:16*nb*nb-1)
+  COMPLEX gamma_ph(0:nb*nb-1, 0:nb*nb-1)
 
   REAL delta_tau
   COMPLEX product
-  COMPLEX matrix_product(0:16*nb*nb-1, 0:16*nb*nb-1)
+  COMPLEX matrix_product(0:nb*nb-1, 0:nb*nb-1)
   COMPLEX chi_mtau(0:2)
   COMPLEX chi_prime_plus, chi_prime_minus
 
