@@ -1,5 +1,5 @@
 #include "../convert.F90"
-
+! 初始化一些环境不涉及核心
 subroutine init_environ(rank, size, starttime)
 
   USE CONSTANTS

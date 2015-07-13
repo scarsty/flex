@@ -12,6 +12,7 @@ program multiband_flex_dca
 #endif /* USE_MPI */
 
 #include "main_defs.F90"
+! 主要定义
 
   call init_environ(rank, size, start_time)
 

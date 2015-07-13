@@ -35,7 +35,7 @@
 
   !     Dispersion and bare vertex
   REAL ek_min
-  COMPLEX gamma0_ph(0:16*nb*nb-1, 0:16*nb*nb-1)
+  COMPLEX gamma0_ph(0:nb*nb-1, 0:nb*nb-1)
 
   ! Time and frequency arrays
 #ifdef SECOND_ORDER
@@ -54,12 +54,12 @@
 
 
   ! Self-energy arrays
-  COMPLEX, dimension (0:4*nb-1,0:4*nb-1) :: sigma1, & 
+  COMPLEX, dimension (0:nb-1,0:nb-1) :: sigma1, &
        sigma1_old, delta_sigma1, delta_sigma1_old
 #ifdef SECOND_ORDER
-  COMPLEX, dimension (0:4*nb-1,0:4*nb-1,0:mp-1,0:nc-1) :: sigma, sigma_old
-  COMPLEX chi(0:16*nb*nb-1,0:16*nb*nb-1,0:mp1,0:nc1)
-  COMPLEX delta_sigma_e0_old(0:4*nb-1,0:4*nb-1,0:nc1)
+  COMPLEX, dimension (0:nb-1,0:nb-1,0:mp-1,0:nc-1) :: sigma, sigma_old
+  COMPLEX chi(0:nb*nb-1,0:nb*nb-1,0:mp1,0:nc1)
+  COMPLEX delta_sigma_e0_old(0:nb-1,0:nb-1,0:nc1)
 #endif
 
   !     Chemical potential, density, and interaction strength
@@ -77,14 +77,14 @@
   ! Green function and related
   COMPLEX psi(0:2*nb-1, 0:2*nb-1, 0:nl-1)
 
-  COMPLEX g_tau0(0:4*nb-1,0:4*nb-1,0:nl-1)
-  COMPLEX g_tau0_local(0:4*nb-1,0:4*nb-1)
+  COMPLEX g_tau0(0:nb-1,0:nb-1,0:nl-1)
+  COMPLEX g_tau0_local(0:nb-1,0:nb-1)
 #ifdef SECOND_ORDER
-  COMPLEX, dimension (0:4*nb-1,0:4*nb-1,0:mp1,0:nc1) :: g, g_mtau
-  COMPLEX, dimension (0:4*nb-1,0:4*nb-1,0:nc-1) :: &
+  COMPLEX, dimension (0:nb-1,0:nb-1,0:mp1,0:nc1) :: g, g_mtau
+  COMPLEX, dimension (0:nb-1,0:nb-1,0:nc-1) :: &
        delta_g_r, delta_g_k, delta_gp_r, delta_gp_k
-  COMPLEX c_r(0:1,0:1,0:4*nb-1,0:4*nb-1,0:nc-1)
-  COMPLEX dominant_chi_eigenvector(0:16*nb*nb-1)
+  COMPLEX c_r(0:1,0:1,0:nb-1,0:nb-1,0:nc-1)
+  COMPLEX dominant_chi_eigenvector(0:nb*nb-1)
   REAL overall_eigenvalue_max
   INTEGER dominant_chi_index(0:1)
 #endif
@@ -101,7 +101,7 @@
   COMPLEX so_energy, glocal
 #ifdef SECOND_ORDER
   COMPLEX tr_sig_g
-  COMPLEX d_r(0:1,0:1,0:16*nb*nb-1,0:16*nb*nb-1,0:nc1)
+  COMPLEX d_r(0:1,0:1,0:nb*nb-1,0:nb*nb-1,0:nc1)
 #endif /* SECOND_ORDER */
 
 #ifdef USE_MPI
