@@ -1,3 +1,5 @@
+! 此文件偷懒专用, include文本包含, 本身不参与编译
+
 ! MPI variables
 INTEGER rank, size
 ! Timing variables
@@ -6,19 +8,19 @@ Real last_it_time, this_it_time
 
 ! 格林函数, 反常格林函数
 ! 自能函数, 反常自能函数
-complex dimension (nb, nb, nk, nomega) :: G, F, sigma, delta
+complex, dimension (nb, nb, nk, nomega) :: G, F, sigma, delta
 
 ! 极化率, susceptibilities, effective interactions
-complex dimension (nb*nb, nb*nb, nk, nomega) :: chi, chi_s, chi_c, V, V_s
+complex, dimension (nb*nb, nb*nb, nk, nomega) :: chi, chi_s, chi_c, V, V_s
 
 ! 交换能
-real dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu
+real, dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu
 
 ! 化学势, 占据数
 real mu, n_density
 
 ! H0
-complex dimension (-2:2, -2:2;, nb, nb) :: h0_r
+complex, dimension (-2:2, -2:2, nb, nb) :: h0_r
 
 ! 目标占据数, 收敛误差
 REAL target_density, density_tol
