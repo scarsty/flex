@@ -2,11 +2,11 @@
 program flex_m
     use Constants
     implicit none
-    include "main_defs.f90"
+    include "parameters.F90"
 
     call readin(T, target_density, density_tol, mu, &
         h1_U, h1_Up, h1_J, h1_Jp, &
-        read_input, sigma_input_file, write_output, &
+        sigma_input, sigma_input_file, sigma_output, &
         sigma_output_file, sigma_tol, max_it, &
         alpha, alpha_scheme, h0_r)
 

@@ -3,9 +3,8 @@ module mpi_functions
     include 'mpif.h'
 #endif
 contains
-    function mpi_rank()
+    integer function mpi_rank()
         IMPLICIT NONE
-        integer mpi_rank
         integer rank
         real ierr
 #ifdef USE_MPI

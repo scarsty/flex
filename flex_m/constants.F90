@@ -5,9 +5,9 @@ MODULE Constants
     integer, parameter :: nb=5 ! number of bands
 
     ! Lattice and frequency grid parameters. (all must be 2^n!)
-    ! ËÉÔ­ÆµÂÊµÄn
+    ! æ¾åŸé¢‘ç‡çš„n
     integer, parameter :: nomega=512
-    ! kµã
+    ! kç‚¹
     integer, parameter :: kx = 32   ! lattice dimension >=lcx
     integer, parameter :: ky = 32
     integer, parameter :: kz = 1
@@ -23,8 +23,8 @@ MODULE Constants
     !integer, parameter :: m1 = m - 1
 
     ! Mathematical and physical constants
-    REAL, parameter :: kb = 8.61734315d-05  ! eV/K, ²¨¶û×ÈÂü³£Êı
-    REAL, parameter :: mub = 5.788381755d-5 ! eV/T, ÔİÊ±²»ÖªµÀ
+    REAL, parameter :: kb = 8.61734315d-05  ! eV/K, æ³¢å°”å…¹æ›¼å¸¸æ•°
+    REAL, parameter :: mub = 5.788381755d-5 ! eV/T, æš‚æ—¶ä¸çŸ¥é“
     REAL, parameter :: gs = 2.002319
 
 END MODULE CONSTANTS

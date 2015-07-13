@@ -1,4 +1,4 @@
-! ´ËÎÄ¼şÍµÀÁ×¨ÓÃ, includeÎÄ±¾°üº¬, ±¾Éí²»²ÎÓë±àÒë
+! æ­¤æ–‡ä»¶å·æ‡’ä¸“ç”¨, includeæ–‡æœ¬åŒ…å«, æœ¬èº«ä¸å‚ä¸ç¼–è¯‘
 
 ! MPI variables
 INTEGER rank, size
@@ -6,36 +6,36 @@ INTEGER rank, size
 Real start_time, end_time
 Real last_it_time, this_it_time
 
-! ¸ñÁÖº¯Êı, ·´³£¸ñÁÖº¯Êı
-! ×ÔÄÜº¯Êı, ·´³£×ÔÄÜº¯Êı
+! æ ¼æ—å‡½æ•°, åå¸¸æ ¼æ—å‡½æ•°
+! è‡ªèƒ½å‡½æ•°, åå¸¸è‡ªèƒ½å‡½æ•°
 complex, dimension (nb, nb, nk, nomega) :: G, F, sigma, delta
 
-! ¼«»¯ÂÊ, susceptibilities, effective interactions
+! æåŒ–ç‡, susceptibilities, effective interactions
 complex, dimension (nb*nb, nb*nb, nk, nomega) :: chi, chi_s, chi_c, V, V_s
 
-! ½»»»ÄÜ
+! äº¤æ¢èƒ½
 real, dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu
 
-! »¯Ñ§ÊÆ, Õ¼¾İÊı
+! åŒ–å­¦åŠ¿, å æ®æ•°
 real mu, n_density
 
 ! H0
 complex, dimension (-2:2, -2:2, nb, nb) :: h0_r
 
-! Ä¿±êÕ¼¾İÊı, ÊÕÁ²Îó²î
+! ç›®æ ‡å æ®æ•°, æ”¶æ•›è¯¯å·®
 REAL target_density, density_tol
 
 ! U, U', J, J' for H1
 REAL h1_U, h1_Up, h1_J, h1_Jp
 
-! ÎÂ¶È
+! æ¸©åº¦
 real T
 
-! ±£´æµÄ×ÔÄÜº¯Êı
-LOGICAL read_input, write_output
+! ä¿å­˜çš„è‡ªèƒ½å‡½æ•°
+LOGICAL sigma_input, sigma_output
 CHARACTER*128 sigma_input_file, sigma_output_file
 
-! ×ÔÄÜº¯ÊıÊÕÁ²ÅĞ¾İ
+! è‡ªèƒ½å‡½æ•°æ”¶æ•›åˆ¤æ®
 REAL sigma_tol
 INTEGER max_it
 REAL alpha
