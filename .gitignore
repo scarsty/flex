@@ -2,3 +2,5 @@
 .project
 *.layout
 *.cbp
+flex_m/obj/
+*.depend

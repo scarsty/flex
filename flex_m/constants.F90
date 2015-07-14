@@ -2,6 +2,7 @@ MODULE Constants
 
     implicit none
 
+    public
     integer, parameter :: nb=5 ! number of bands
 
     ! Lattice and frequency grid parameters. (all must be 2^n!)
@@ -27,4 +28,10 @@ MODULE Constants
     REAL, parameter :: mub = 5.788381755d-5 ! eV/T, 暂时不知道
     REAL, parameter :: gs = 2.002319
 
+    real, parameter, public    :: pi=3.141592653589793238462643383279
+    real, parameter, public    :: two_pi = 2*pi
+    complex, parameter, public :: cmplx_i = (0.0,1.0)
+    complex, parameter, public :: cmplx_0 = (0.0,0.0)
+    complex, parameter, public :: cmplx_1 = (1.0,0.0)
+    real, parameter, public::real_error = 1d-5
 END MODULE CONSTANTS
