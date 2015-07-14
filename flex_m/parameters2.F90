@@ -1,18 +1,20 @@
-!Êı×é×¨ÓÃ
+!æ•°ç»„ä¸“ç”¨
 
-! ¸ñÁÖº¯Êı, ·´³£¸ñÁÖº¯Êı
-! ×ÔÄÜº¯Êı, ·´³£×ÔÄÜº¯Êı
+! æ ¼æ—å‡½æ•°, åå¸¸æ ¼æ—å‡½æ•°
+! è‡ªèƒ½å‡½æ•°, åå¸¸è‡ªèƒ½å‡½æ•°
 complex, dimension (nb, nb, nk, nomega) :: G, F, sigma, delta, G0
 
-! ¼«»¯ÂÊ, susceptibilities, effective interactions
+! æåŒ–ç‡, susceptibilities, effective interactions
 complex, dimension (nb*nb, nb*nb, nk, nomega) :: chi, chi_s, chi_c, V, V_s
 
-! ½»»»ÄÜ
+! äº¤æ¢èƒ½
 real, dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu
 
 ! H0
 complex, dimension (nb, nb, -2:2, -2:2) :: h0_r
 complex, dimension (nb, nb, nk):: h0_k
 
-! k¿Õ¼ä¶ÔÓ¦
+! kç©ºé—´å¯¹åº”
 real, dimension (nk, 2) :: k
+! ä¸¤ä¸ªkçš„å·®å¯¹åº”çš„k
+integer, dimension (nk, nk) :: k_minus

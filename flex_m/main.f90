@@ -3,11 +3,12 @@
 
 program flex_m
     use Constants
+    use myfunctions
     implicit none
     include "parameters.F90"
     include "parameters2.F90"
 
-    integer ix, iy, iz, count_k, zero_k, ib1, ib2, ik, iomega
+    integer ix, iy, iz, count_k, zero_k, ib1, ib2, ik, iomega, ix1, ix2, ix3, ix4
     real rdotk, fac, temp(2)
 
     call readin(T, target_density, density_tol, mu, &
@@ -34,6 +35,27 @@ program flex_m
         enddo
     enddo
 
+    ! U
+    ! 能带下标ab, cd -> (a+(b-1)*5, c+(d-1)*5)
+    ! real, dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu
+    U_ud = 0d0
+    U_uu = 0d0
+    do ix=1,nb
+        do iy=1,nb
+            if (ix==iy) then
+                U_ud(sub_g2chi(ix,iy), sub_g2chi(ix,iy))=h1_U
+            else
+                U_ud(sub_g2chi(ix,ix), sub_g2chi(iy,iy))=h1_Up
+                U_ud(sub_g2chi(ix,iy), sub_g2chi(ix,iy))=h1_J
+                U_ud(sub_g2chi(ix,iy), sub_g2chi(iy,ix))=h1_Jp
+                U_uu(sub_g2chi(ix,ix), sub_g2chi(iy,iy))=h1_Up-h1_J
+                U_uu(sub_g2chi(ix,iy), sub_g2chi(ix,iy))=-h1_Up+h1_J
+            endif
+        enddo
+    enddo
+    U_s = U_ud-U_uu
+    U_c = U_ud+u_uu
+
     ! 反傅里叶变换h0到k空间
     h0_k = cmplx_0
     do ik=1,nk
@@ -49,15 +71,21 @@ program flex_m
     enddo
     ! 好像没归一化? h0_k=h0_k/?
 
-    ! 构造G0
+    ! G0
+    ! 费米频率 pi*(2n-1)
+    G0=cmplx_0
     do ik=1,nk
         do iomega=1,nomega
-            G0(:,:,ik, iomega)
+            !G0(:,:,ik, iomega) = 1d0/(cmplx_i*pi*(2*iomega-1)-(h0_k(ik,ik,k)-mu))
         enddo
     enddo
 
-
-    print *, 'end'
+    ! chi
+    ! chi_c
+    ! chi_s
+    ! 玻色频率 pi*(2n-2), n从1开始
+    print *, 'end.'
+    return
 
 end program
 

@@ -1,4 +1,4 @@
-module mpi_functions
+module myfunctions
 #ifdef USE_MPI
     include 'mpif.h'
 #endif
@@ -15,4 +15,10 @@ contains
         mpi_rank = rank
     end function mpi_rank
 
-END MODULE mpi_functions
+    integer function sub_g2chi(a,b)
+        IMPLICIT NONE
+        integer a, b
+        sub_g2chi = a+(b-1)*5
+    end function sub_g2chi
+
+END MODULE myfunctions

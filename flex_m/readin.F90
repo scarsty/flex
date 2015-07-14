@@ -10,7 +10,7 @@ subroutine readin(T, target_density, density_tol, mu, &
 
     USE CONSTANTS
     !use ifport
-    use mpi_functions
+    use myfunctions
     IMPLICIT NONE
 
     include "parameters.F90"
@@ -20,7 +20,7 @@ subroutine readin(T, target_density, density_tol, mu, &
         h1_U, h1_Up, h1_J, h1_Jp,&
         sigma_input,  sigma_input_file,&
         sigma_output, sigma_output_file,&
-        sigma_tol, max_it, alpha,  alpha_scheme
+        sigma_tol, max_it, alpha,  alpha_scheme, spin_state
 
     real eigen_value(5)
     namelist /band/ eigen_value
