@@ -119,7 +119,7 @@ program flex_m
     G0=cmplx_0
     do ik=1,nk
         do iomega=-nomega,nomega
-            !G0(:,:,ik, iomega) = 1d0/(cmplx_i*pi*(2*iomega-1)-(h0_k(ik,ik,k)-mu))
+            !G0(:,:,ik, iomega) = 1d0/(cmplx_i*pi*(2*iomega-1)-(h0_k(ik,ik,k)-mu))未完成
         enddo
     enddo
     G=G0
@@ -189,6 +189,19 @@ program flex_m
                 enddo;enddo;
             enddo;enddo
 
+            ! 新的G
+            G1=G
+            G=0
+            do l1=1,nb; do m1=1,nb;
+                do ikk=1,nk;do iomegak=-nomega,nomega
+                    do l2=1,nb; do m2=1,nb;
+                        G(l1, m1, ikk, iomegak) = G(l1, m1, ikk, iomegak) &
+                            + G0(l1,l2,ikk,iomegak)*sigma(l2,m2,kk,iomegak)*G1(m2, m1, ikk, iomegak)
+                    enddo;enddo;
+                enddo;enddo;
+            enddo;enddo
+            G=G+G0
+
             !第一次迭代, 直接赋值sigma0
             if(sigma_iter==0) then
                 sigma0 = sigma
@@ -228,7 +241,7 @@ program flex_m
             V_s(:, :, ikq, iomegaq)=U_ud+1.5*U_s*chi_s(:, :, ikq, iomegaq)*U_s-0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
         endif
     enddo; enddo
-
+    ! 未完成
 
     print *, 'end.'
     return
