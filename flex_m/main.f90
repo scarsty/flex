@@ -169,7 +169,7 @@ program flex_m
                     +1.5*U_s*chi_s(:, :, ikq, iomegaq)*U_s + 0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
             enddo;enddo
 
-            ! sigma
+            ! sigma, 并行
             sigma=cmplx_0
             do l1=1,nb; do m1=1,nb;
                 do ikk=1,nk;do iomegak=-nomega,nomega
@@ -189,7 +189,7 @@ program flex_m
                 enddo;enddo;
             enddo;enddo
 
-            ! 新的G
+            ! 新的G, 并行
             G1=G
             G=0
             do l1=1,nb; do m1=1,nb;
