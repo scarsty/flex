@@ -7,10 +7,10 @@ MODULE Constants
 
     ! Lattice and frequency grid parameters. (all must be 2^n!)
     ! 松原频率的n
-    integer, parameter :: nomega=512
+    integer, parameter :: nomega=128
     ! k点
-    integer, parameter :: kx = 32   ! lattice dimension >=lcx
-    integer, parameter :: ky = 32
+    integer, parameter :: kx = 8   ! lattice dimension >=lcx
+    integer, parameter :: ky = 8
     integer, parameter :: kz = 1
     integer, parameter :: nk = kx*ky*kz
 

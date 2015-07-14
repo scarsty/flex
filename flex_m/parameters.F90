@@ -32,6 +32,8 @@ INTEGER alpha_scheme
 ! 自旋态
 integer spin_state
 
+
+
 #ifdef USE_MPI
 INTEGER ierr
 #endif /* USE_MPI */
