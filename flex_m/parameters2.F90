@@ -2,7 +2,7 @@
 
 ! 格林函数, 反常格林函数
 ! 自能函数, 反常自能函数
-complex, dimension (nb, nb, nk, nomega) :: G, F, sigma, delta
+complex, dimension (nb, nb, nk, nomega) :: G, F, sigma, delta, G0
 
 ! 极化率, susceptibilities, effective interactions
 complex, dimension (nb*nb, nb*nb, nk, nomega) :: chi, chi_s, chi_c, V, V_s

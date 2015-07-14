@@ -17,7 +17,7 @@ REAL target_density, density_tol
 REAL h1_U, h1_Up, h1_J, h1_Jp
 
 ! 温度
-real T
+real T, T_beta
 
 ! 保存的自能函数
 LOGICAL sigma_input, sigma_output

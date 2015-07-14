@@ -1,4 +1,3 @@
-#define stdin  5
 #define stdout 6
 #define stderr 0
 
@@ -8,7 +7,7 @@ program flex_m
     include "parameters.F90"
     include "parameters2.F90"
 
-    integer ix, iy, iz, count_k, zero_k, ib1, ib2, ik
+    integer ix, iy, iz, count_k, zero_k, ib1, ib2, ik, iomega
     real rdotk, fac, temp(2)
 
     call readin(T, target_density, density_tol, mu, &
@@ -16,6 +15,8 @@ program flex_m
         sigma_input, sigma_input_file, sigma_output, &
         sigma_output_file, sigma_tol, max_it, &
         alpha, alpha_scheme, h0_r)
+
+    T_beta = 1d0/kb/T
 
     !计算k点的坐标
     count_k = 0
@@ -46,9 +47,16 @@ program flex_m
             enddo
         enddo
     enddo
-    ! 好像没归一化? h0_k=h0_k
+    ! 好像没归一化? h0_k=h0_k/?
 
     ! 构造G0
+    do ik=1,nk
+        do iomega=1,nomega
+            G0(:,:,ik, iomega)
+        enddo
+    enddo
+
+
     print *, 'end'
 
 end program

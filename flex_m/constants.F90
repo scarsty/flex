@@ -24,9 +24,9 @@ MODULE Constants
     !integer, parameter :: m1 = m - 1
 
     ! Mathematical and physical constants
-    REAL, parameter :: kb = 8.61734315d-05  ! eV/K, 波尔兹曼常数
-    REAL, parameter :: mub = 5.788381755d-5 ! eV/T, 暂时不知道
-    REAL, parameter :: gs = 2.002319
+    REAL, parameter :: kB = 8.61734315d-05  ! eV/K, 玻耳兹曼常数
+    REAL, parameter :: mub = 5.788381755d-5 ! eV/T, 磁导率, 此处无用
+    REAL, parameter :: gs = 2.002319 !不知道
 
     real, parameter, public    :: pi=3.141592653589793238462643383279
     real, parameter, public    :: two_pi = 2*pi
