@@ -22,7 +22,7 @@ contains
     end function sub_g2chi
 
     integer function sub_g2e(l,m,k,omega)
-            use Constants
+        use Constants
         IMPLICIT NONE
         integer l,m,k,omega
         integer omegat
