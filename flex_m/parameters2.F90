@@ -10,7 +10,7 @@ complex, dimension (nb*nb, nb*nb, nk, -nomega:nomega) :: chi0, chi_s, chi_c, V, 
 complex, dimension (nb*nb, nb*nb, nk, ntau) :: V_tau, V_s_tau
 
 ! 交换能, 单位矩阵
-real, dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu, I_chi
+complex, dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu, I_chi
 
 ! H0
 complex, dimension (nb, nb, -2:2, -2:2) :: h0_r
@@ -25,6 +25,4 @@ integer, dimension (nk, nk) :: k_minus, k_plus
 complex, dimension (nb, nb) :: I_g0
 real, dimension (nb, nb) :: u_g0
 
-! 计算chi的辅助
-complex, dimension (nb*nb, nb*nb) :: A_chi, B_chi
 

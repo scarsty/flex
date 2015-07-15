@@ -21,8 +21,10 @@ program flex_m
     real cur_sigma_tol, cur_density
     real, dimension(2,2):: a, b
 
+    ! 计算chi的辅助
+    complex, dimension (nb*nb, nb*nb) :: chi0_, chi_c_, chi_s_, Iminuschi0_
     !
-    complex, dimension (nb*nb*nk*2*(nomega*2-1), nb*nb*nk*2*(nomega*2-1)):: Elishaberg
+    !complex, dimension (nb*nb*nk*2*(nomega*2-1), nb*nb*nk*2*(nomega*2-1)):: Elishaberg
 
 
     ! 代码段---------------------------------------------
@@ -177,20 +179,24 @@ program flex_m
                 ! the same to solve AX=B, where A = (I +/- chi0) and B = chi0
 
                 ! chi_c = chi0 - chi0*chi_c
-                A_chi = I_chi + chi0(:, :, ikq, iomegaq)*U_c
-                B_chi = chi0(:, :, ikq, iomegaq)
-                call cgesv(square_nb, square_nb, A_chi, square_nb, ipiv, B_chi, square_nb, info)
-                chi_c(:, :, ikq, iomegaq) = B_chi
+                chi0_=chi0(:, :, ikq, iomegaq)
+                Iminuschi0_ = I_chi + AB(chi0_, U_c)
+                chi_c_ = chi0(:, :, ikq, iomegaq)
+                call cgesv(square_nb, square_nb, Iminuschi0_, square_nb, ipiv, chi_c_, square_nb, info)
+                chi_c(:, :, ikq, iomegaq) = chi_c_
                 ! chi_s = chi0 + chi0*chi_s
-                A_chi = I_chi - chi0(:, :, ikq, iomegaq)*U_c
-                B_chi = chi0(:, :, ikq, iomegaq)
-                call cgesv(square_nb, square_nb, A_chi, square_nb, ipiv, B_chi, square_nb, info)
-                chi_s(:, :, ikq, iomegaq) = B_chi
+                Iminuschi0_ = I_chi - AB(chi0_, U_c)
+                chi_s_ = chi0(:, :, ikq, iomegaq)
+                call cgesv(square_nb, square_nb, Iminuschi0_, square_nb, ipiv, chi_s_, square_nb, info)
+                chi_s(:, :, ikq, iomegaq) = chi_s_
 
                 !chi_c(:, :, ikq, iomegaq)=inverse(I_chi + chi0(:, :, ikq, iomegaq)*U_c) * chi0(:, :, ikq, iomegaq)
                 !chi_s(:, :, ikq, iomegaq)=inverse(I_chi - chi0(:, :, ikq, iomegaq)*U_s) * chi0(:, :, ikq, iomegaq)
-                V(:, :, ikq, iomegaq) = U_ud - 2*U_uu - U_ud*chi0(:, :, ikq, iomegaq)*U_ud &
-                    +1.5*U_s*chi_s(:, :, ikq, iomegaq)*U_s + 0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
+                !V(:, :, ikq, iomegaq) = U_ud - 2*U_uu - U_ud*chi0(:, :, ikq, iomegaq)*U_ud &
+                    !    +1.5*U_s*chi_s(:, :, ikq, iomegaq)*U_s + 0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
+                V(:, :, ikq, iomegaq) = U_ud - 2*U_uu -ABA(U_ud, chi0_) &
+                    +1.5*ABA(U_s, chi_s_)+0.5*ABA(U_c, chi_c_)
+
             enddo;enddo
 
             ! sigma, 并行
@@ -265,11 +271,14 @@ program flex_m
     ! 自旋态不是3就是1
     ! 含矩阵乘, 需改写
     do ikq=1,nk; do iomegaq=-nomega,nomega
+        chi_c_ = chi0(:, :, ikq, iomegaq)
+        chi_s_ = chi0(:, :, ikq, iomegaq)
         if (spin_state==3) then
-            V_s(:, :, ikq, iomegaq)=U_ud-0.5* matmul(matmul(U_s,chi_s(:, :, ikq, iomegaq)),U_s)&
-                -0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
+            V_s(:, :, ikq, iomegaq) = U_ud - 0.5*ABA(U_s,chi_s_) &
+                -0.5*ABA(U_c, chi_c_)
         else
-            V_s(:, :, ikq, iomegaq)=U_ud+1.5*U_s*chi_s(:, :, ikq, iomegaq)*U_s-0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
+            V_s(:, :, ikq, iomegaq) = U_ud + 1.5*ABA(U_s,chi_s_) &
+                -0.5*ABA(U_c, chi_c_)
         endif
     enddo; enddo
 
@@ -277,7 +286,7 @@ program flex_m
     ! 原方程包含负号, 使用减法
     ! 必要时改稀疏阵
     ! sub_g2e转换坐标
-    Elishaberg=complex_0
+    !Elishaberg=complex_0
     do l1=1,nb; do m1=1,nb
         do ikk1=1,nk; do iomegak1=-nomega, nomega
             elia1 = sub_g2e(l1,m1,ikk1,iomegak1)
@@ -290,10 +299,10 @@ program flex_m
                         elia2 = sub_g2e(l2,m2,ikk2,iomegak2)
                         do l3=1,nb; do m3=1,nb
 
-                            Elishaberg(elia1, elia2) = Elishaberg(elia1, elia2) &
-                                - &
-                                V_s(sub_g2chi(l1,l3), sub_g2chi(m3,m1), k_kminusk, omega_kminusk) &
-                                *G(l3,l2,ikk2,iomegak2)*conjg(G(m3,m2,ikk2,iomegak2))
+                            !Elishaberg(elia1, elia2) = Elishaberg(elia1, elia2) &
+                                !   - &
+                                !   V_s(sub_g2chi(l1,l3), sub_g2chi(m3,m1), k_kminusk, omega_kminusk) &
+                                !   *G(l3,l2,ikk2,iomegak2)*conjg(G(m3,m2,ikk2,iomegak2))
 
                         enddo; enddo
                     enddo; enddo

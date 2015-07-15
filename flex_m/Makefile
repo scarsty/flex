@@ -9,6 +9,8 @@ TARGET=ffff
 
 all: $(TARGET)
 
+mpi: FC=$(MPIF90)
+
 $(TARGET): $(OBJECTS)
 	$(FC) $(OBJECTS) -o $(TARGET)
 

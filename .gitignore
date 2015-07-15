@@ -4,3 +4,4 @@
 *.cbp
 flex_m/obj/
 *.depend
+*.a

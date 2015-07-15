@@ -61,4 +61,32 @@ contains
 
     end subroutine komega_minus
 
+    function inverseAbyB(A0, B0)
+        use Constants
+        implicit none
+        complex, dimension (nb*nb, nb*nb) :: A0, B0, A, B, inverseAbyB
+        integer info, lda, ldb, ipiv
+        call cgesv(square_nb, square_nb, A, square_nb, ipiv, B, square_nb, info)
+    end function inverseAbyB
+
+    ! 需要测试, 考虑内存模式
+    function ABA(A, B)
+        use Constants
+        implicit none
+        complex, dimension (nb*nb, nb*nb) :: A, B, ABA, C
+        call ctrmm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
+            A, square_nb, B, square_nb, complex_0, C, square_nb)
+        call ctrmm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
+            C, square_nb, A, square_nb, complex_0, ABA, square_nb)
+    end function ABA
+
+    ! 需要测试, 考虑内存模式
+    function AB(A, B)
+        use Constants
+        implicit none
+        complex, dimension (nb*nb, nb*nb) :: A, B, AB
+        call ctrmm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
+            A, square_nb, B, square_nb, complex_0, AB, square_nb)
+    end function AB
+
 END MODULE myfunctions
