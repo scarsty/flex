@@ -25,9 +25,10 @@ contains
             use Constants
         IMPLICIT NONE
         integer l,m,k,omega
-        integer omegat=2*omega+1
+        integer omegat
+        omegat=2*omega+1
         sub_g2e = l*nb*nk*omegat+m*nk*omegat+omega+nomega+1 ! 未完成
-    end function sub_g2chi
+    end function sub_g2e
 
     !n计算松原频率
     integer function calfreq(omega, fb)
