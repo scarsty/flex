@@ -22,9 +22,11 @@ contains
     end function sub_g2chi
 
     integer function sub_g2e(l,m,k,omega)
+            use Constants
         IMPLICIT NONE
         integer l,m,k,omega
-        sub_g2e =0 ! 未完成
+        integer omegat=2*omega+1
+        sub_g2e = l*nb*nk*omegat+m*nk*omegat+omega+nomega+1 ! 未完成
     end function sub_g2chi
 
     !n计算松原频率
