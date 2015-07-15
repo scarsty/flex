@@ -57,7 +57,7 @@ subroutine readin(T, target_density, density_tol, mu, &
         endif
     enddo
     !哈密顿量
-    h0_r = cmplx_0
+    h0_r = complex_0
     do ib1 = 1, nb
         h0_r(ib1, ib2, 0, 0)=eigen_value(ib1)
     enddo

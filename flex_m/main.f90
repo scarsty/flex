@@ -12,9 +12,9 @@ program flex_m
     integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq,k_kminusq, omega_kminusq
     integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk
     integer l1,m1,l2,m2,l3,m3, n1
-    integer elia1, elia2
-    real rdotk, fac, temp(2), dis
-    complex temp_complex
+    integer elia1, elia2, info, lda, ldb, ipiv
+    real rdotk, temp(2), dis
+    complex temp_complex, fac
 
     ! 迭代sigma次数, density次数
     integer sigma_iter, density_iter, total_iter
@@ -32,7 +32,7 @@ program flex_m
         sigma_output_file, sigma_tol, max_it, &
         alpha, alpha_scheme, h0_r)
 
-    T_beta = 1d0/kb/T
+    T_beta = 1d0/kB/T
 
     !计算k点的坐标
     count_k = 0
@@ -84,6 +84,7 @@ program flex_m
             endif
         enddo
     enddo
+
     ! U
     ! 能带下标ab, cd -> (a+(b-1)*5, c+(d-1)*5)
     ! real, dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu
@@ -106,14 +107,15 @@ program flex_m
     U_c = U_ud+u_uu
 
     ! 反傅里叶变换h0到k空间
-    h0_k = cmplx_0
+    h0_k = complex_0
     do ik=1,nk
         do ix = -2, 2
             do iy = -2, 2
-                temp(1)=ix
-                temp(2)=iy
+                !temp(1)=ix
+                !temp(2)=iy
+                temp=[ix,iy]
                 rdotk = two_pi*dot_product(k(ik,:),temp)
-                fac=exp(cmplx_i*rdotk)
+                fac=exp(complex_i*rdotk)
                 h0_k(:,:,ik)=h0_k(:,:,ik)+fac*h0_r(:,:,ix, iy)
             enddo
         enddo
@@ -122,20 +124,20 @@ program flex_m
 
     ! G0
     ! 费米频率 pi*(2n-1)
-    G0=cmplx_0
+    G0=complex_0
     do l1=1,nb; do m1=1,nb; do n1=1,nb
         do ik=1,nk
             do iomegak=-nomega,nomega
-                G0(l1,m1,ik, iomega) = 1d0/(cmplx_i*pi*(2*iomegak-1)/T_beta-(h0_k(n1,n1,ik)-mu)) !未完成
+                G0(l1,m1,ik, iomega) = 1d0/(complex_i*pi*(2*iomegak-1)/T_beta-(h0_k(n1,n1,ik)-mu)) ! 未完成
             enddo
         enddo
     enddo;enddo;enddo
     G=G0
 
-    !I_chi
-    I_chi=cmplx_0
+    ! I_chi
+    I_chi=complex_0
     do i=1,nb*nb
-        I_chi(i,i)=cmplx_1
+        I_chi(i,i)=complex_1
     enddo
 
     write(stdout, *) 'cal chi'
@@ -145,17 +147,17 @@ program flex_m
 
     total_iter = 0
     density_iter = 0
-    cur_sigma_tol=1d0
-    cur_density=1000d0
+    cur_sigma_tol = 1d0
+    cur_density = 1000d0
     do while (abs(target_density-cur_density)>density_tol)
 
         sigma_iter=0
         do while (cur_sigma_tol>sigma_tol)
             ! chi0, 看起来需要并行
-            chi0=cmplx_0
+            chi0=complex_0
             do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
                 do ikq=1,nk;do iomegaq=-nomega,nomega
-                    temp_complex=cmplx_0
+                    temp_complex=complex_0
                     do ikk=1,nk;do iomegak=-nomega,nomega
                         k_kplusq = k_plus(ikk, ikq)
                         omega_kplusq = iomegaq+iomegak
@@ -172,17 +174,30 @@ program flex_m
             ! chi_c, chi_s, V, 需要并行和数学库
             ! 含有矩阵乘, 需改写
             do ikq=1,nk;do iomegaq=-nomega,nomega
+                ! the same to solve AX=B, where A = (I +/- chi0) and B = chi0
+
+                ! chi_c = chi0 - chi0*chi_c
+                A_chi = I_chi + chi0(:, :, ikq, iomegaq)*U_c
+                B_chi = chi0(:, :, ikq, iomegaq)
+                call cgesv(square_nb, square_nb, A_chi, square_nb, ipiv, B_chi, square_nb, info)
+                chi_c(:, :, ikq, iomegaq) = B_chi
+                ! chi_s = chi0 + chi0*chi_s
+                A_chi = I_chi - chi0(:, :, ikq, iomegaq)*U_c
+                B_chi = chi0(:, :, ikq, iomegaq)
+                call cgesv(square_nb, square_nb, A_chi, square_nb, ipiv, B_chi, square_nb, info)
+                chi_s(:, :, ikq, iomegaq) = B_chi
+
                 !chi_c(:, :, ikq, iomegaq)=inverse(I_chi + chi0(:, :, ikq, iomegaq)*U_c) * chi0(:, :, ikq, iomegaq)
                 !chi_s(:, :, ikq, iomegaq)=inverse(I_chi - chi0(:, :, ikq, iomegaq)*U_s) * chi0(:, :, ikq, iomegaq)
-                V(:, :, ikq, iomegaq)=U_ud-2*U_uu-U_ud*chi0(:, :, ikq, iomegaq)*U_ud &
+                V(:, :, ikq, iomegaq) = U_ud - 2*U_uu - U_ud*chi0(:, :, ikq, iomegaq)*U_ud &
                     +1.5*U_s*chi_s(:, :, ikq, iomegaq)*U_s + 0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
             enddo;enddo
 
             ! sigma, 并行
-            sigma=cmplx_0
+            sigma=complex_0
             do l1=1,nb; do m1=1,nb;
                 do ikk=1,nk;do iomegak=-nomega,nomega
-                    temp_complex=cmplx_0
+                    temp_complex=complex_0
                     do ikq=1,nk;do iomegaq=-nomega,nomega
                         do l2=1,nb; do m2=1,nb
                             k_kminusq = k_minus(ikk, ikq)
@@ -262,7 +277,7 @@ program flex_m
     ! 原方程包含负号, 使用减法
     ! 必要时改稀疏阵
     ! sub_g2e转换坐标
-    Elishaberg=cmplx_0
+    Elishaberg=complex_0
     do l1=1,nb; do m1=1,nb
         do ikk1=1,nk; do iomegak1=-nomega, nomega
             elia1 = sub_g2e(l1,m1,ikk1,iomegak1)

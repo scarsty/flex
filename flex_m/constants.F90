@@ -4,10 +4,14 @@ MODULE Constants
 
     public
     integer, parameter :: nb=5 ! number of bands
+    integer, parameter :: square_nb=nb*nb ! number of bands
 
     ! Lattice and frequency grid parameters. (all must be 2^n!)
-    ! 松原频率的n
+    ! 松原频率个数
     integer, parameter :: nomega=8
+    ! 虚时间离散的点数
+    integer, parameter :: ntau=512
+
     ! k点
     integer, parameter :: kx = 8   ! lattice dimension >=lcx
     integer, parameter :: ky = 8
@@ -31,8 +35,8 @@ MODULE Constants
     real, parameter, public    :: pi=3.141592653589793238462643383279
     real, parameter, public    :: two_pi = 2*pi
 
-    complex, parameter, public :: cmplx_i = (0.0,1.0)
-    complex, parameter, public :: cmplx_0 = (0.0,0.0)
-    complex, parameter, public :: cmplx_1 = (1.0,0.0)
-    real, parameter, public::real_error = 1d-5
+    complex, parameter, public :: complex_i = (0.0,1.0)
+    complex, parameter, public :: complex_0 = (0.0,0.0)
+    complex, parameter, public :: complex_1 = (1.0,0.0)
+    real, parameter, public :: real_error = 1d-5
 END MODULE CONSTANTS
