@@ -21,11 +21,17 @@ contains
         sub_g2chi = a+(b-1)*5
     end function sub_g2chi
 
+    integer function sub_g2e(l,m,k,omega)
+        IMPLICIT NONE
+        integer l,m,k,omega
+        sub_g2e =0 ! 未完成
+    end function sub_g2chi
+
     !n计算松原频率
     integer function calfreq(omega, fb)
-    implicit none
-    integer omega, fb
-            if (fb/=0) then
+        implicit none
+        integer omega, fb
+        if (fb/=0) then
             calfreq=2*omega-1
         else
             calfreq=2*omega

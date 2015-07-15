@@ -9,17 +9,23 @@ program flex_m
     include "parameters2.F90"
 
     integer ix, iy, iz, count_k, zero_k, ib, ib1, ib2, ik, iomega, ix1, ix2, ix3, ix4, i1, i2, i, iy1, iy2
-    integer ikk,ikq,iomegak,iomegaq,k_kplusq, omega_kplusq,k_kminusq, omega_kminusq
-    integer l1,m1,l2,m2,l3,m3
+    integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq,k_kminusq, omega_kminusq
+    integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk
+    integer l1,m1,l2,m2,l3,m3, n1
+    integer elia1, elia2
     real rdotk, fac, temp(2), dis
     complex temp_complex
 
     ! 迭代sigma次数, density次数
     integer sigma_iter, density_iter, total_iter
     real cur_sigma_tol, cur_density
+    real, dimension(2,2):: a, b
+
+    !
+    complex, dimension (nb*nb*nk*2*(nomega*2-1), nb*nb*nk*2*(nomega*2-1)):: Elishaberg
 
 
-    !代码段---------------------------------------------
+    ! 代码段---------------------------------------------
     call readin(T, target_density, density_tol, mu, &
         h1_U, h1_Up, h1_J, h1_Jp, &
         sigma_input, sigma_input_file, sigma_output, &
@@ -117,11 +123,13 @@ program flex_m
     ! G0
     ! 费米频率 pi*(2n-1)
     G0=cmplx_0
-    do ik=1,nk
-        do iomega=-nomega,nomega
-            !G0(:,:,ik, iomega) = 1d0/(cmplx_i*pi*(2*iomega-1)-(h0_k(ik,ik,k)-mu))未完成
+    do l1=1,nb; do m1=1,nb; do n1=1,nb
+        do ik=1,nk
+            do iomegak=-nomega,nomega
+                G0(l1,m1,ik, iomega) = 1d0/(cmplx_i*pi*(2*iomegak-1)/T_beta-(h0_k(n1,n1,ik)-mu)) !未完成
+            enddo
         enddo
-    enddo
+    enddo;enddo;enddo
     G=G0
 
     !I_chi
@@ -133,7 +141,7 @@ program flex_m
     write(stdout, *) 'cal chi'
 
 
-    ! 迭代部分
+    ! 迭代部分-----------------------------------------------------------
 
     total_iter = 0
     density_iter = 0
@@ -162,9 +170,10 @@ program flex_m
             enddo;enddo;enddo;enddo
 
             ! chi_c, chi_s, V, 需要并行和数学库
+            ! 含有矩阵乘, 需改写
             do ikq=1,nk;do iomegaq=-nomega,nomega
-                chi_c(:, :, ikq, iomegaq)=inverse(I_chi + chi0(:, :, ikq, iomegaq)*U_c) * chi0(:, :, ikq, iomegaq)
-                chi_s(:, :, ikq, iomegaq)=inverse(I_chi - chi0(:, :, ikq, iomegaq)*U_s) * chi0(:, :, ikq, iomegaq)
+                !chi_c(:, :, ikq, iomegaq)=inverse(I_chi + chi0(:, :, ikq, iomegaq)*U_c) * chi0(:, :, ikq, iomegaq)
+                !chi_s(:, :, ikq, iomegaq)=inverse(I_chi - chi0(:, :, ikq, iomegaq)*U_s) * chi0(:, :, ikq, iomegaq)
                 V(:, :, ikq, iomegaq)=U_ud-2*U_uu-U_ud*chi0(:, :, ikq, iomegaq)*U_ud &
                     +1.5*U_s*chi_s(:, :, ikq, iomegaq)*U_s + 0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
             enddo;enddo
@@ -196,7 +205,7 @@ program flex_m
                 do ikk=1,nk;do iomegak=-nomega,nomega
                     do l2=1,nb; do m2=1,nb;
                         G(l1, m1, ikk, iomegak) = G(l1, m1, ikk, iomegak) &
-                            + G0(l1,l2,ikk,iomegak)*sigma(l2,m2,kk,iomegak)*G1(m2, m1, ikk, iomegak)
+                            + G0(l1,l2,ikk,iomegak)*sigma(l2,m2,ikk,iomegak)*G1(m2, m1, ikk, iomegak)
                     enddo;enddo;
                 enddo;enddo;
             enddo;enddo
@@ -210,10 +219,10 @@ program flex_m
                 !cur_sigma_tol=norm2()???
             endif
             sigma_iter=sigma_iter+1;
-            !未收敛处理G?
+            ! 未收敛处理G?
         enddo ! sigma loop
 
-        !计算density
+        ! 计算density
         cur_density=0d0
         ! 这部分应可放在循环外
         do ib=1, nb; do ik=1,nk
@@ -227,21 +236,61 @@ program flex_m
         cur_density=cur_density*2
         if (abs(cur_density-target_density)<density_tol) then
             !计算结束
+        else
+            mu = mu + cur_density-target_density
         endif
 
     enddo ! density loop
 
+
+    ! 后处理--------------------------------------------------------------
+
     ! 厄立希伯格方程, 直接应用上面得到的组合
 
-    ! 自旋态不是3均认为是1
+    ! 自旋态不是3就是1
+    ! 含矩阵乘, 需改写
     do ikq=1,nk; do iomegaq=-nomega,nomega
         if (spin_state==3) then
-            V_s(:, :, ikq, iomegaq)=U_ud-0.5*U_s*chi_s(:, :, ikq, iomegaq)*U_s-0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
+            V_s(:, :, ikq, iomegaq)=U_ud-0.5* matmul(matmul(U_s,chi_s(:, :, ikq, iomegaq)),U_s)&
+                -0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
         else
             V_s(:, :, ikq, iomegaq)=U_ud+1.5*U_s*chi_s(:, :, ikq, iomegaq)*U_s-0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
         endif
     enddo; enddo
-    ! 未完成
+
+    ! Elishberg方程所需矩阵
+    ! 原方程包含负号, 使用减法
+    ! 必要时改稀疏阵
+    ! sub_g2e转换坐标
+    Elishaberg=cmplx_0
+    do l1=1,nb; do m1=1,nb
+        do ikk1=1,nk; do iomegak1=-nomega, nomega
+            elia1 = sub_g2e(l1,m1,ikk1,iomegak1)
+            do ikk2=1,nk; do iomegak2=-nomega, nomega
+                omega_kminusk = iomegak1-iomegak2
+
+                if (abs(omega_kminusk)<=nomega) then
+                    k_kminusk = k_minus(ikk1, ikk2)
+                    do l2=1,nb; do m2=1,nb
+                        elia2 = sub_g2e(l2,m2,ikk2,iomegak2)
+                        do l3=1,nb; do m3=1,nb
+
+                            Elishaberg(elia1, elia2) = Elishaberg(elia1, elia2) &
+                                - &
+                                V_s(sub_g2chi(l1,l3), sub_g2chi(m3,m1), k_kminusk, omega_kminusk) &
+                                *G(l3,l2,ikk2,iomegak2)*conjg(G(m3,m2,ikk2,iomegak2))
+
+                        enddo; enddo
+                    enddo; enddo
+                endif
+            enddo; enddo
+        enddo; enddo
+    enddo; enddo
+
+    ! 求特征值和特征向量, 调用数学库, 未完成
+
+    !call ()
+
 
     print *, 'end.'
     return

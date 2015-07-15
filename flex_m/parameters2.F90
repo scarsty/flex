@@ -18,3 +18,9 @@ complex, dimension (nb, nb, nk):: h0_k
 real, dimension (nk, 2) :: k
 ! 两个k的差对应的k
 integer, dimension (nk, nk) :: k_minus, k_plus
+
+! 计算g0的辅助
+complex, dimension (nb, nb) :: I_g0
+
+real, dimension (nb, nb) :: u_g0
+
