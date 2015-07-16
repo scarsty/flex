@@ -26,8 +26,8 @@ program flex_m
     complex, dimension (nb*nb, nb*nb) :: chi_0_, chi_c_, chi_s_, Iminuschi_0_
 
     ! 傅里叶变换, 反傅里叶变换的辅助, f/b means fermi and bose freq
-    complex, dimension (ntau*2+1, nomega*2+1) :: idft_f, idft_b
     complex, dimension (nomega*2+1, ntau*2+1) :: dft_f, dft_b
+    complex, dimension (ntau*2+1, nomega*2+1) :: idft_f, idft_b
 
     complex, dimension (nk, nomega*2+1) :: dft_omega
     complex, dimension (nk, ntau*2+1) :: dft_tau
@@ -182,7 +182,10 @@ program flex_m
         sigma_iter=0
         do while (cur_sigma_tol>sigma_tol)
 
+
+
             write(stdout, *) 'calculating chi_0...'
+
             ! dft G to G_tau
             ! 考虑一下是分批还是干脆一批
             do l1=1,nb; do m1=1,nb
@@ -212,7 +215,12 @@ program flex_m
                 chi_0(sub_g2chi(l1, l2), sub_g2chi(m1, m2),:,:) = dft_omega
             enddo;enddo;enddo;enddo
 
+            write(stdout, *) 'calculated chi_0'
+
+
+
             write(stdout, *) 'calculating chi_c, chi_s, V...'
+
             ! chi_c, chi_s, V, 需要并行和数学库
             ! 含有矩阵乘, 需改写
             do ikq=1,nk;do iomegaq=-nomega,nomega
@@ -238,6 +246,10 @@ program flex_m
                     +1.5*ABA(U_s, chi_s_)+0.5*ABA(U_c, chi_c_)
 
             enddo;enddo
+
+            write(stdout, *) 'calculated chi_c, chi_s, V'
+
+
 
             write(stdout, *) 'calculating sigma...'
 
@@ -267,6 +279,12 @@ program flex_m
                 sigma(l1,m1,:,:) = dft_omega
             enddo; enddo
 
+            write(stdout, *) 'calculated sigma'
+
+
+
+            write(stdout, *) 'calculating New G'
+
             ! 新的G, 并行
             G1=G
             G=0
@@ -279,6 +297,10 @@ program flex_m
                 enddo;enddo;
             enddo;enddo
             G=G+G0
+
+            write(stdout, *) 'calculated New G'
+
+            write(stdout, *) 'checking convergence of sigma'
 
             !第一次迭代, 直接赋值sigma0
             if(sigma_iter==0) then
