@@ -10,7 +10,7 @@ program flex_m
 
     ! 循环控制变量较多, 主要是为方便对照文献中公式
     integer ix, iy, iz, count_k, zero_k, ib, ib1, ib2, ik, iomega, ix1, ix2, ix3, ix4, i1, i2, i, iy1, iy2
-    integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq,k_kminusq, omega_kminusq, itau
+    integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq,k_kminusq, omega_kminusq, itau, k_0minusq
     integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk
     integer l1,m1,l2,m2,l3,m3, n1
     integer elia1, elia2, info, lda, ldb, ipiv
@@ -181,26 +181,25 @@ program flex_m
         do while (cur_sigma_tol>sigma_tol)
 
             write(stdout, *) 'calculating chi_0...'
-            ! G_tau
+            ! dft G to G_tau
             ! 考虑一下是分批还是干脆一批
 
             ! chi_0, 看起来需要并行
-            ! 为方便卷积形式, 改成减法 chi(-q)= G1(k-q)G2(k)
+            ! 为方便卷积形式, 改成减法 chi(-q)= -G1(k-q)G2(k)
             chi_0_tau=0
             do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-                do ikq=1,nk;
-                    do ikk=1,nk
-                        k_kminusq = k_minus(ikk, ikq)
-                        chi_0_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), k_minus(zero_k, ikq), :) &
-                            = chi_0_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), k_minus(zero_k, ikq), :) &
-                            + G_tau(l1, m1, k_kminusq, :)*G_tau(m2, l2, ikk, :)
-                        !write(stdout,*) temp_complex
-                    enddo;
-                enddo
+                do ikq=1,nk; do ikk=1,nk
+                    k_kminusq = k_minus(ikk, ikq)
+                    k_0minusq = k_minus(zero_k, ikq)
+                    chi_0_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), k_0minusq, :) &
+                        = chi_0_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), k_0minusq, :) &
+                        - G_tau(l1, m1, k_kminusq, :)*G_tau(m2, l2, ikk, :)
+                    !write(stdout,*) temp_complex
+                enddo;enddo
                 !write(stdout,*) l1, l2, m1, m2
             enddo;enddo;enddo;enddo
 
-            ! ifft chi_0_tau into chi_0
+            ! idft chi_0_tau to chi_0
             ! 未完成
 
             write(stdout, *) 'calculating chi_c, chi_s, V...'
@@ -231,25 +230,23 @@ program flex_m
             enddo;enddo
 
             write(stdout, *) 'calculating sigma...'
-            ! sigma, 并行
-            sigma=complex_0
-            do l1=1,nb; do m1=1,nb;
-                do ikk=1,nk;do iomegak=-nomega,nomega
-                    temp_complex=complex_0
-                    do ikq=1,nk;do iomegaq=-nomega,nomega
-                        do l2=1,nb; do m2=1,nb
-                            k_kminusq = k_minus(ikk, ikq)
-                            omega_kminusq = iomegak-iomegaq
-                            if (abs(omega_kminusq)<=nomega)then
-                                temp_complex = temp_complex+V(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikq, iomegaq)*G(l2,m2,ikk,iomegak)
-                            endif
-                        enddo;enddo
-                        sigma(l1, m1, ikk, iomegak) = temp_complex
-                        !write(stdout,*) temp_complex
-                    enddo;enddo
-                    !write(stdout,*) ix1,iy1, ix2, iy2
-                enddo;enddo;
-            enddo;enddo
+
+            ! dft V to V_tau
+            ! 未完成
+
+            ! sigma_tau, 并行
+            sigma_tau=0
+            do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
+                do ikk=1,nk; do ikq=1,nk;
+                    k_kminusq = k_minus(ikk, ikq)
+                    sigma_tau(l1, m1, ikk, :) = sigma_tau(l1, m1, ikk, :) &
+                        + V_tau(ub_g2chi(l1,l2), sub_g2chi(m1,m2), ikq, :) * G_tau(l2,m2,k_kminusq,:)
+                    !write(stdout,*) temp_complex
+                enddo;enddo
+                !write(stdout,*) l1, l2, m1, m2
+            enddo;enddo;enddo;enddo
+
+            ! idft sigma_tau to sigma
 
             ! 新的G, 并行
             G1=G
@@ -314,11 +311,12 @@ program flex_m
         endif
     enddo; enddo
 
+
     ! Elishberg方程所需矩阵
     ! 原方程包含负号, 使用减法
     ! 必要时改稀疏阵
     ! sub_g2e转换坐标
-    !Elishaberg=complex_0
+    ! Elishaberg=complex_0
     do l1=1,nb; do m1=1,nb
         do ikk1=1,nk; do iomegak1=-nomega, nomega
             elia1 = sub_g2e(l1,m1,ikk1,iomegak1)
