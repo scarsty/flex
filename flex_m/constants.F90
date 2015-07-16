@@ -7,10 +7,14 @@ MODULE Constants
     integer, parameter :: square_nb=nb*nb ! number of bands
 
     ! Lattice and frequency grid parameters. (all must be 2^n!)
+
     ! 松原频率个数
     integer, parameter :: nomega=8
     ! 虚时间离散的点数
     integer, parameter :: ntau=512
+
+    integer, parameter :: total_omega=nomega*2+1
+    integer, parameter :: total_tau=ntau*2+1
 
     ! k点
     integer, parameter :: kx = 8   ! lattice dimension >=lcx

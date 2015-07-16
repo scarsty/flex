@@ -70,13 +70,14 @@ contains
     end function inverseAbyB
 
     ! 需要测试, 考虑内存模式
+    ! 因为都是方阵, 可考虑换函数
     function ABA(A, B)
         use Constants
         implicit none
         complex, dimension (nb*nb, nb*nb) :: A, B, ABA, C
-        call ctrmm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
+        call cgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
             A, square_nb, B, square_nb, complex_0, C, square_nb)
-        call ctrmm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
+        call cgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
             C, square_nb, A, square_nb, complex_0, ABA, square_nb)
     end function ABA
 
@@ -85,8 +86,17 @@ contains
         use Constants
         implicit none
         complex, dimension (nb*nb, nb*nb) :: A, B, AB
-        call ctrmm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
+        call cgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
             A, square_nb, B, square_nb, complex_0, AB, square_nb)
     end function AB
+
+    subroutine matrixProduct(src, dft_matrix, dst, M, N, K)
+        use Constants
+        implicit none
+        integer M,N,K
+        complex dft_matrix(K,N), src(M,K), dst(M,N)
+        call cgemm('N', 'N', M, N, K, complex_1, &
+            src, M, dft_matrix, K, complex_0, dst, M)
+    end subroutine matrixProduct
 
 END MODULE myfunctions

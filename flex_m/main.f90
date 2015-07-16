@@ -10,9 +10,9 @@ program flex_m
 
     ! 循环控制变量较多, 主要是为方便对照文献中公式
     integer ix, iy, iz, count_k, zero_k, ib, ib1, ib2, ik, iomega, ix1, ix2, ix3, ix4, i1, i2, i, iy1, iy2
-    integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq,k_kminusq, omega_kminusq, itau, k_0minusq
+    integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq,k_kminusq, omega_kminusq, itau, k_0minusq, k_qminusk
     integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk
-    integer l1,m1,l2,m2,l3,m3, n1
+    integer l1,m1,l2,m2,l3,m3, n1,l,m
     integer elia1, elia2, info, lda, ldb, ipiv
     real rdotk, temp(2), dis
     complex temp_complex, fac
@@ -26,12 +26,16 @@ program flex_m
     complex, dimension (nb*nb, nb*nb) :: chi_0_, chi_c_, chi_s_, Iminuschi_0_
 
     ! 傅里叶变换, 反傅里叶变换的辅助, f/b means fermi and bose freq
-    complex, dimension (ntau*2+1, nomega*2+1) :: dft_f, dft_b
-    complex, dimension (nomega*2+1, ntau*2+1) :: idft_f, idft_b
+    complex, dimension (ntau*2+1, nomega*2+1) :: idft_f, idft_b
+    complex, dimension (nomega*2+1, ntau*2+1) :: dft_f, dft_b
+
+    complex, dimension (nk, nomega*2+1) :: dft_omega
+    complex, dimension (nk, ntau*2+1) :: dft_tau
+
     integer  omega_f, omega_b
     real tau
     !
-    !complex, dimension (nb*nb*nk*2*(nomega*2-1), nb*nb*nk*2*(nomega*2-1)):: Elishaberg
+    !complex, dimension (nb*nb*nk*(nomega*2-1), nb*nb*nk*(nomega*2-1)):: Elishaberg
 
 
     ! 代码段---------------------------------------------
@@ -150,19 +154,17 @@ program flex_m
     enddo
 
     ! 频域与时域的傅里叶变换辅助矩阵
-    ! complex, dimension (ntau*2+1, nomega*2+1) :: dft_f, dft_b
-    ! complex, dimension (nomega*2+1, ntau*2+1) :: idft_f, idft_b
     ! 可以一次计算一组, 或者构造大矩阵计算多组
-    ! for one k-point, G_tau (行向量) = ifft_f * G_omega (列向量)
+    ! for one k-point, G_tau (行) = G_omega (行) * dft
     do itau = -ntau,ntau
         do iomega=-nomega,nomega
             omega_f = 2*iomega-1
             omega_b = 2*iomega
             tau = itau*1d0/ntau
-            dft_f(itau, iomega) = exp(-2*pi * omega_f*tau)
-            dft_b(itau, iomega) = exp(-2*pi * omega_b*tau)
-            idft_f(iomega, itau) = exp(2*pi * omega_f*tau)
-            idft_b(iomega, itau) = exp(2*pi * omega_b*tau)
+            dft_f(iomega, itau) = exp(-2*pi * omega_f*tau)
+            dft_b(iomega, itau) = exp(-2*pi * omega_b*tau)
+            idft_f(itau, iomega) = exp(2*pi * omega_f*tau)
+            idft_b(itau, iomega) = exp(2*pi * omega_b*tau)
         enddo
     enddo
     dft_f = dft_f / (2*nomega+1)
@@ -183,24 +185,32 @@ program flex_m
             write(stdout, *) 'calculating chi_0...'
             ! dft G to G_tau
             ! 考虑一下是分批还是干脆一批
+            do l1=1,nb; do m1=1,nb
+                dft_omega = G(l1,m1,:,:)
+                call matrixProduct(dft_omega, dft_f, dft_tau, nk, total_tau, total_omega)
+                G_tau(l1,m1,:,:) = dft_tau
+            enddo; enddo
 
             ! chi_0, 看起来需要并行
-            ! 为方便卷积形式, 改成减法 chi(-q)= -G1(k-q)G2(k)
+            ! 卷积形式, 改成减法 chi(q)= -G1(q-k)G2(-k), G(-k)=conjg(G(k)) on tau
             chi_0_tau=0
             do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
                 do ikq=1,nk; do ikk=1,nk
-                    k_kminusq = k_minus(ikk, ikq)
-                    k_0minusq = k_minus(zero_k, ikq)
-                    chi_0_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), k_0minusq, :) &
-                        = chi_0_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), k_0minusq, :) &
-                        - G_tau(l1, m1, k_kminusq, :)*G_tau(m2, l2, ikk, :)
+                    k_qminusk = k_minus(ikq, ikk)
+                    chi_0_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), ikq, :) &
+                        = chi_0_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), ikq, :) &
+                        - G_tau(l1, m1, k_qminusk, :)*conjg(G_tau(m2, l2, ikk, :))
                     !write(stdout,*) temp_complex
                 enddo;enddo
                 !write(stdout,*) l1, l2, m1, m2
             enddo;enddo;enddo;enddo
 
             ! idft chi_0_tau to chi_0
-            ! 未完成
+            do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
+                dft_tau = chi_0_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2),:,:)
+                call matrixProduct(dft_tau, idft_b, dft_omega, nk, total_omega, total_tau)
+                chi_0(sub_g2chi(l1, l2), sub_g2chi(m1, m2),:,:) = dft_omega
+            enddo;enddo;enddo;enddo
 
             write(stdout, *) 'calculating chi_c, chi_s, V...'
             ! chi_c, chi_s, V, 需要并行和数学库
@@ -232,7 +242,11 @@ program flex_m
             write(stdout, *) 'calculating sigma...'
 
             ! dft V to V_tau
-            ! 未完成
+            do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
+                dft_omega = V(sub_g2chi(l1, l2), sub_g2chi(m1, m2),:,:)
+                call matrixProduct(dft_omega, dft_b, dft_tau, nk, total_tau, total_omega)
+                V_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2),:,:) = dft_tau
+            enddo;enddo;enddo;enddo
 
             ! sigma_tau, 并行
             sigma_tau=0
@@ -240,13 +254,18 @@ program flex_m
                 do ikk=1,nk; do ikq=1,nk;
                     k_kminusq = k_minus(ikk, ikq)
                     sigma_tau(l1, m1, ikk, :) = sigma_tau(l1, m1, ikk, :) &
-                        + V_tau(ub_g2chi(l1,l2), sub_g2chi(m1,m2), ikq, :) * G_tau(l2,m2,k_kminusq,:)
+                        + V_tau(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikq, :) * G_tau(l2,m2,k_kminusq,:)
                     !write(stdout,*) temp_complex
                 enddo;enddo
                 !write(stdout,*) l1, l2, m1, m2
             enddo;enddo;enddo;enddo
 
             ! idft sigma_tau to sigma
+            do l1=1,nb; do m1=1,nb
+                dft_tau = sigma_tau(l1,m1,:,:)
+                call matrixProduct(dft_tau, idft_f, dft_omega, nk, total_omega, total_tau)
+                sigma(l1,m1,:,:) = dft_omega
+            enddo; enddo
 
             ! 新的G, 并行
             G1=G
@@ -317,12 +336,12 @@ program flex_m
     ! 必要时改稀疏阵
     ! sub_g2e转换坐标
     ! Elishaberg=complex_0
+    ! 再说吧
     do l1=1,nb; do m1=1,nb
         do ikk1=1,nk; do iomegak1=-nomega, nomega
             elia1 = sub_g2e(l1,m1,ikk1,iomegak1)
             do ikk2=1,nk; do iomegak2=-nomega, nomega
                 omega_kminusk = iomegak1-iomegak2
-
                 if (abs(omega_kminusk)<=nomega) then
                     k_kminusk = k_minus(ikk1, ikk2)
                     do l2=1,nb; do m2=1,nb
