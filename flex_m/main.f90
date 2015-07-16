@@ -8,8 +8,9 @@ program flex_m
     include "parameters.F90"
     include "parameters2.F90"
 
+    ! 循环控制变量较多, 主要是为方便对照文献中公式
     integer ix, iy, iz, count_k, zero_k, ib, ib1, ib2, ik, iomega, ix1, ix2, ix3, ix4, i1, i2, i, iy1, iy2
-    integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq,k_kminusq, omega_kminusq
+    integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq,k_kminusq, omega_kminusq, itau
     integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk
     integer l1,m1,l2,m2,l3,m3, n1
     integer elia1, elia2, info, lda, ldb, ipiv
@@ -22,7 +23,13 @@ program flex_m
     real, dimension(2,2):: a, b
 
     ! 计算chi的辅助
-    complex, dimension (nb*nb, nb*nb) :: chi0_, chi_c_, chi_s_, Iminuschi0_
+    complex, dimension (nb*nb, nb*nb) :: chi_0_, chi_c_, chi_s_, Iminuschi_0_
+
+    ! 傅里叶变换, 反傅里叶变换的辅助, f/b means fermi and bose freq
+    complex, dimension (ntau*2+1, nomega*2+1) :: dft_f, dft_b
+    complex, dimension (nomega*2+1, ntau*2+1) :: idft_f, idft_b
+    integer  omega_f, omega_b
+    real tau
     !
     !complex, dimension (nb*nb*nk*2*(nomega*2-1), nb*nb*nk*2*(nomega*2-1)):: Elishaberg
 
@@ -142,7 +149,24 @@ program flex_m
         I_chi(i,i)=complex_1
     enddo
 
-    write(stdout, *) 'cal chi'
+    ! 频域与时域的傅里叶变换辅助矩阵
+    ! complex, dimension (ntau*2+1, nomega*2+1) :: dft_f, dft_b
+    ! complex, dimension (nomega*2+1, ntau*2+1) :: idft_f, idft_b
+    ! 可以一次计算一组, 或者构造大矩阵计算多组
+    ! for one k-point, G_tau (行向量) = ifft_f * G_omega (列向量)
+    do itau = -ntau,ntau
+        do iomega=-nomega,nomega
+            omega_f = 2*iomega-1
+            omega_b = 2*iomega
+            tau = itau*1d0/ntau
+            dft_f(itau, iomega) = exp(-2*pi * omega_f*tau)
+            dft_b(itau, iomega) = exp(-2*pi * omega_b*tau)
+            idft_f(iomega, itau) = exp(2*pi * omega_f*tau)
+            idft_b(iomega, itau) = exp(2*pi * omega_b*tau)
+        enddo
+    enddo
+    dft_f = dft_f / (2*nomega+1)
+    dft_b = dft_b / (2*nomega+1)
 
 
     ! 迭代部分-----------------------------------------------------------
@@ -155,50 +179,58 @@ program flex_m
 
         sigma_iter=0
         do while (cur_sigma_tol>sigma_tol)
-            ! chi0, 看起来需要并行
-            chi0=complex_0
+
+            write(stdout, *) 'calculating chi_0...'
+            ! G_tau
+            ! 考虑一下是分批还是干脆一批
+
+            ! chi_0, 看起来需要并行
+            ! 为方便卷积形式, 改成减法 chi(-q)= G1(k-q)G2(k)
+            chi_0_tau=0
             do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-                do ikq=1,nk;do iomegaq=-nomega,nomega
-                    temp_complex=complex_0
-                    do ikk=1,nk;do iomegak=-nomega,nomega
-                        k_kplusq = k_plus(ikk, ikq)
-                        omega_kplusq = iomegaq+iomegak
-                        if (abs(omega_kplusq)<=nomega)then
-                            temp_complex= temp_complex-G(l1, m1, k_kplusq, omega_kplusq)*G(m2, l2, ikk, iomegak)
-                        endif
-                    enddo;enddo
-                    chi0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikq, iomegaq) = temp_complex
-                    !write(stdout,*) temp_complex
-                enddo;enddo
-                !write(stdout,*) ix1,iy1, ix2, iy2
+                do ikq=1,nk;
+                    do ikk=1,nk
+                        k_kminusq = k_minus(ikk, ikq)
+                        chi_0_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), k_minus(zero_k, ikq), :) &
+                            = chi_0_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), k_minus(zero_k, ikq), :) &
+                            + G_tau(l1, m1, k_kminusq, :)*G_tau(m2, l2, ikk, :)
+                        !write(stdout,*) temp_complex
+                    enddo;
+                enddo
+                !write(stdout,*) l1, l2, m1, m2
             enddo;enddo;enddo;enddo
 
+            ! ifft chi_0_tau into chi_0
+            ! 未完成
+
+            write(stdout, *) 'calculating chi_c, chi_s, V...'
             ! chi_c, chi_s, V, 需要并行和数学库
             ! 含有矩阵乘, 需改写
             do ikq=1,nk;do iomegaq=-nomega,nomega
-                ! the same to solve AX=B, where A = (I +/- chi0) and B = chi0
+                ! the same to solve AX=B, where A = (I +/- chi_0) and B = chi_0
 
-                ! chi_c = chi0 - chi0*chi_c
-                chi0_=chi0(:, :, ikq, iomegaq)
-                Iminuschi0_ = I_chi + AB(chi0_, U_c)
-                chi_c_ = chi0(:, :, ikq, iomegaq)
-                call cgesv(square_nb, square_nb, Iminuschi0_, square_nb, ipiv, chi_c_, square_nb, info)
+                ! chi_c = chi_0 - chi_0*chi_c
+                chi_0_=chi_0(:, :, ikq, iomegaq)
+                Iminuschi_0_ = I_chi + AB(chi_0_, U_c)
+                chi_c_ = chi_0(:, :, ikq, iomegaq)
+                call cgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_c_, square_nb, info)
                 chi_c(:, :, ikq, iomegaq) = chi_c_
-                ! chi_s = chi0 + chi0*chi_s
-                Iminuschi0_ = I_chi - AB(chi0_, U_c)
-                chi_s_ = chi0(:, :, ikq, iomegaq)
-                call cgesv(square_nb, square_nb, Iminuschi0_, square_nb, ipiv, chi_s_, square_nb, info)
+                ! chi_s = chi_0 + chi_0*chi_s
+                Iminuschi_0_ = I_chi - AB(chi_0_, U_c)
+                chi_s_ = chi_0(:, :, ikq, iomegaq)
+                call cgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_s_, square_nb, info)
                 chi_s(:, :, ikq, iomegaq) = chi_s_
 
-                !chi_c(:, :, ikq, iomegaq)=inverse(I_chi + chi0(:, :, ikq, iomegaq)*U_c) * chi0(:, :, ikq, iomegaq)
-                !chi_s(:, :, ikq, iomegaq)=inverse(I_chi - chi0(:, :, ikq, iomegaq)*U_s) * chi0(:, :, ikq, iomegaq)
-                !V(:, :, ikq, iomegaq) = U_ud - 2*U_uu - U_ud*chi0(:, :, ikq, iomegaq)*U_ud &
+                !chi_c(:, :, ikq, iomegaq)=inverse(I_chi + chi_0(:, :, ikq, iomegaq)*U_c) * chi_0(:, :, ikq, iomegaq)
+                !chi_s(:, :, ikq, iomegaq)=inverse(I_chi - chi_0(:, :, ikq, iomegaq)*U_s) * chi_0(:, :, ikq, iomegaq)
+                !V(:, :, ikq, iomegaq) = U_ud - 2*U_uu - U_ud*chi_0(:, :, ikq, iomegaq)*U_ud &
                     !    +1.5*U_s*chi_s(:, :, ikq, iomegaq)*U_s + 0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
-                V(:, :, ikq, iomegaq) = U_ud - 2*U_uu -ABA(U_ud, chi0_) &
+                V(:, :, ikq, iomegaq) = U_ud - 2*U_uu -ABA(U_ud, chi_0_) &
                     +1.5*ABA(U_s, chi_s_)+0.5*ABA(U_c, chi_c_)
 
             enddo;enddo
 
+            write(stdout, *) 'calculating sigma...'
             ! sigma, 并行
             sigma=complex_0
             do l1=1,nb; do m1=1,nb;
@@ -271,8 +303,8 @@ program flex_m
     ! 自旋态不是3就是1
     ! 含矩阵乘, 需改写
     do ikq=1,nk; do iomegaq=-nomega,nomega
-        chi_c_ = chi0(:, :, ikq, iomegaq)
-        chi_s_ = chi0(:, :, ikq, iomegaq)
+        chi_c_ = chi_0(:, :, ikq, iomegaq)
+        chi_s_ = chi_0(:, :, ikq, iomegaq)
         if (spin_state==3) then
             V_s(:, :, ikq, iomegaq) = U_ud - 0.5*ABA(U_s,chi_s_) &
                 -0.5*ABA(U_c, chi_c_)
