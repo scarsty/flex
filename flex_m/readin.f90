@@ -1,7 +1,5 @@
 subroutine readin()
-
-    USE CONSTANTS
-    !use ifport
+    use constants
     use parameters
     use parameters2
     use myfunctions

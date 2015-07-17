@@ -16,15 +16,15 @@ contains
     end function mpi_rank
 
     integer function sub_g2chi(a,b)
-        use Constants, only: nb
-        IMPLICIT NONE
+        use constants, only: nb
+        implicit none
         integer a, b
         sub_g2chi = a+(b-1)*nb
     end function sub_g2chi
 
     integer function sub_g2e(l,m,k,omega)
-        use Constants
-        IMPLICIT NONE
+        use constants
+        implicit none
         integer l,m,k,omega
         integer omegat
         omegat=2*omega+1
@@ -45,7 +45,7 @@ contains
     ! k和松原频率的减法, fb: fermi(1) or bose(0)
     ! 1 - 2 -> 3
     subroutine komega_minus(k1, omega1, fb1, k2, omega2, fb2, k, k_minus, zero_k, k3, omega3, fb3)
-        use Constants
+        use constants
         implicit none
         integer k1, omega1, fb1, k2, omega2, fb2, k3, omega3, fb3, sign_omega3, zero_k
         integer f1, f2, f3
@@ -63,7 +63,7 @@ contains
     end subroutine komega_minus
 
     function inverseAbyB(A0, B0)
-        use Constants
+        use constants
         implicit none
         complex, dimension (nb*nb, nb*nb) :: A0, B0, A, B, inverseAbyB
         integer info, lda, ldb, ipiv
@@ -73,7 +73,7 @@ contains
     ! 需要测试, 考虑内存模式
     ! 因为都是方阵, 可考虑换函数
     function ABA(A, B)
-        use Constants
+        use constants
         implicit none
         complex, dimension (nb*nb, nb*nb) :: A, B, ABA, C
         call cgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
@@ -84,7 +84,7 @@ contains
 
     ! 需要测试, 考虑内存模式
     function AB(A, B)
-        use Constants
+        use constants
         implicit none
         complex, dimension (nb*nb, nb*nb) :: A, B, AB
         call cgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
@@ -92,7 +92,7 @@ contains
     end function AB
 
     subroutine matrixProduct(src, dft_matrix, dst, M, N, K)
-        use Constants
+        use constants
         implicit none
         integer M,N,K
         complex dft_matrix(K,N), src(M,K), dst(M,N)

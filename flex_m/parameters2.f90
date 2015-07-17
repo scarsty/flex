@@ -1,7 +1,7 @@
 !数组专用
 module parameters2
 
-    use Constants
+    use constants
     implicit none
 
     public

@@ -26,7 +26,14 @@ module parameters
     ! 自旋态
     integer spin_state
 
-	logical, parameter :: solve_eliashberg = .false.
+    logical, parameter :: solve_eliashberg = .false.
+
+    namelist /basic/ T, target_density, density_tol, mu,&
+        h1_U, h1_Up, h1_J, h1_Jp,&
+        sigma_input,  sigma_input_file,&
+        sigma_output, sigma_output_file,&
+        sigma_tol, max_it, alpha,  alpha_scheme, spin_state
+
 
 
 #ifdef USE_MPI
@@ -38,11 +45,5 @@ module parameters
     ! Timing variables
     Real start_time, end_time
     Real last_it_time, this_it_time
-
-    namelist /basic/ T, target_density, density_tol, mu,&
-        h1_U, h1_Up, h1_J, h1_Jp,&
-        sigma_input,  sigma_input_file,&
-        sigma_output, sigma_output_file,&
-        sigma_tol, max_it, alpha,  alpha_scheme, spin_state
 
 end module parameters

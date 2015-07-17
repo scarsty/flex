@@ -1,5 +1,5 @@
 program flex_m
-	use Constants
+	use constants
 	use myfunctions
 	use parameters
 	use parameters2

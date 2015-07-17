@@ -6,8 +6,7 @@ eliashberg.o: eliashberg.f90 constants.mod myfunctions.mod parameters.mod \
 main.o: main.f90 constants.mod myfunctions.mod parameters.mod \
  parameters2.mod
     $(FC) -c $(@:.o=.f90)
-myfunctions.o myfunctions.mod: myfunctions.f90 constants.mod \
- constants.mod constants.mod constants.mod constants.mod constants.mod
+myfunctions.o myfunctions.mod: myfunctions.f90 constants.mod
     $(FC) -c $(@:.o=.f90)
 parameters.o parameters.mod: parameters.f90
     $(FC) -c $(@:.o=.f90)

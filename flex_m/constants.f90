@@ -1,4 +1,4 @@
-MODULE Constants
+MODULE constants
 
 	implicit none
 
@@ -49,4 +49,4 @@ MODULE Constants
 	integer, parameter :: stdout = 6
 	integer, parameter :: stderr = 0
 
-END MODULE CONSTANTS
+END MODULE constants
