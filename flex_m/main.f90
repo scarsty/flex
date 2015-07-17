@@ -36,9 +36,10 @@ program flex_m
     real tau
     !
     !complex, dimension (nb*nb*nk*(nomega*2-1), nb*nb*nk*(nomega*2-1)):: Elishaberg
+    ! 变量段结束-------------------------------------------------------------------------------
 
 
-    ! 代码段---------------------------------------------
+    ! 代码段-----------------------------------------------------------------------------------
     call readin(T, target_density, density_tol, mu, &
         h1_U, h1_Up, h1_J, h1_Jp, &
         sigma_input, sigma_input_file, sigma_output, &
@@ -226,12 +227,14 @@ program flex_m
             ! 含有矩阵乘, 需改写
             do ikq=1,nk;do iomegaq=-nomega,nomega
                 ! the same to solve AX=B, where A = (I +(c)/-(s) chi_0) and B = chi_0
+
                 ! chi_c = chi_0 - chi_0*chi_c
                 chi_0_=chi_0(:, :, ikq, iomegaq)
                 Iminuschi_0_ = I_chi + AB(chi_0_, U_c)
                 chi_c_ = chi_0(:, :, ikq, iomegaq)
                 call cgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_c_, square_nb, info)
                 chi_c(:, :, ikq, iomegaq) = chi_c_
+
                 ! chi_s = chi_0 + chi_0*chi_s
                 Iminuschi_0_ = I_chi - AB(chi_0_, U_c)
                 chi_s_ = chi_0(:, :, ikq, iomegaq)
