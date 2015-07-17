@@ -156,6 +156,7 @@ program flex_m
     ! 频域与时域的傅里叶变换辅助矩阵
     ! 可以一次计算一组, 或者构造大矩阵计算多组
     ! for one k-point, G_tau (行) = G_omega (行) * dft
+    ! G_omega (行) = G_tau (行) * idft
     do itau = -ntau,ntau
         do iomega=-nomega,nomega
             omega_f = 2*iomega-1
@@ -224,8 +225,7 @@ program flex_m
             ! chi_c, chi_s, V, 需要并行和数学库
             ! 含有矩阵乘, 需改写
             do ikq=1,nk;do iomegaq=-nomega,nomega
-                ! the same to solve AX=B, where A = (I +/- chi_0) and B = chi_0
-
+                ! the same to solve AX=B, where A = (I +(c)/-(s) chi_0) and B = chi_0
                 ! chi_c = chi_0 - chi_0*chi_c
                 chi_0_=chi_0(:, :, ikq, iomegaq)
                 Iminuschi_0_ = I_chi + AB(chi_0_, U_c)
@@ -283,7 +283,7 @@ program flex_m
 
 
 
-            write(stdout, *) 'calculating New G'
+            write(stdout, *) 'calculating New G...'
 
             ! 新的G, 并行
             G1=G
@@ -300,7 +300,7 @@ program flex_m
 
             write(stdout, *) 'calculated New G'
 
-            write(stdout, *) 'checking convergence of sigma'
+            write(stdout, *) 'checking convergence of sigma...'
 
             !第一次迭代, 直接赋值sigma0
             if(sigma_iter==0) then
