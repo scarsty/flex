@@ -1,15 +1,8 @@
 module parameters
-
     implicit none
-    ! MPI variables
-    INTEGER rank, size
-    ! Timing variables
-    Real start_time, end_time
-    Real last_it_time, this_it_time
 
     ! 化学势, 占据数
     real mu, n_density
-
 
     ! 目标占据数, 收敛误差
     REAL target_density, density_tol
@@ -33,12 +26,18 @@ module parameters
     ! 自旋态
     integer spin_state
 
+	logical, parameter :: solve_eliashberg = .false.
 
 
 #ifdef USE_MPI
     INTEGER ierr
 #endif /* USE_MPI */
 
+    ! MPI variables
+    INTEGER rank, size
+    ! Timing variables
+    Real start_time, end_time
+    Real last_it_time, this_it_time
 
     namelist /basic/ T, target_density, density_tol, mu,&
         h1_U, h1_Up, h1_J, h1_Jp,&

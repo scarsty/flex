@@ -1,7 +1,3 @@
-#define stdin  5
-#define stdout 6
-#define stderr 0
-
 subroutine readin()
 
     USE CONSTANTS

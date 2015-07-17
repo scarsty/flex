@@ -1,6 +1,3 @@
-#define stdout 6
-#define stderr 0
-
 program flex_m
 	use Constants
 	use myfunctions
@@ -329,7 +326,7 @@ program flex_m
 
 
 	if (solve_eliashberg) then
-		!call eliashberg
+		call eliashberg()
 	endif
 
 
