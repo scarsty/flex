@@ -15,6 +15,6 @@ $(TARGET): $(OBJECTS)
 	$(FC) $(OBJECTS) -o $(TARGET)
 
 clean:
-	rm *.o .d *.mod
+	rm *.o *.mod
 
--include dep.d
+-include .d
