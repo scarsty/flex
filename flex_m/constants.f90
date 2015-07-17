@@ -43,4 +43,7 @@ MODULE Constants
     complex, parameter, public :: complex_0 = (0.0,0.0)
     complex, parameter, public :: complex_1 = (1.0,0.0)
     real, parameter, public :: real_error = 1d-5
+
+    logical, parameter :: solve_eliashberg = .false.
+
 END MODULE CONSTANTS
