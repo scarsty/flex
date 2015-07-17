@@ -2,25 +2,14 @@
 #define stdout 6
 #define stderr 0
 
-subroutine readin(T, target_density, density_tol, mu, &
-        h1_U, h1_Up, h1_J, h1_Jp, &
-        sigma_input, sigma_input_file, sigma_output, &
-        sigma_output_file, sigma_tol, max_it, &
-        alpha, alpha_scheme, h0_r)
+subroutine readin()
 
     USE CONSTANTS
     !use ifport
+    use parameters
+    use parameters2
     use myfunctions
     IMPLICIT NONE
-
-    include "parameters.F90"
-    complex, dimension (nb, nb, -2:2, -2:2) :: h0_r
-
-    namelist /basic/ T, target_density, density_tol, mu,&
-        h1_U, h1_Up, h1_J, h1_Jp,&
-        sigma_input,  sigma_input_file,&
-        sigma_output, sigma_output_file,&
-        sigma_tol, max_it, alpha,  alpha_scheme, spin_state
 
     real eigen_value(5)
     namelist /band/ eigen_value
@@ -33,7 +22,7 @@ subroutine readin(T, target_density, density_tol, mu, &
 
     complex temp_h0
 
-    rank=mpi_rank()
+    !rank=mpi_rank()
     !读取
 #ifdef _DEBUG
     fileunit = 10

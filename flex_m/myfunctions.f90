@@ -16,9 +16,10 @@ contains
     end function mpi_rank
 
     integer function sub_g2chi(a,b)
+        use Constants, only: nb
         IMPLICIT NONE
         integer a, b
-        sub_g2chi = a+(b-1)*5
+        sub_g2chi = a+(b-1)*nb
     end function sub_g2chi
 
     integer function sub_g2e(l,m,k,omega)
@@ -27,10 +28,10 @@ contains
         integer l,m,k,omega
         integer omegat
         omegat=2*omega+1
-        sub_g2e = l*nb*nk*omegat+m*nk*omegat+omega+nomega+1 ! Î´Íê³É
+        sub_g2e = l*nb*nk*omegat+m*nk*omegat+omega+nomega+1 ! æœªå®Œæˆ
     end function sub_g2e
 
-    !n¼ÆËãËÉÔ­ÆµÂÊ
+    !nè®¡ç®—æ¾åŸé¢‘ç‡
     integer function calfreq(omega, fb)
         implicit none
         integer omega, fb
@@ -41,7 +42,7 @@ contains
         endif
     end function calfreq
 
-    ! kºÍËÉÔ­ÆµÂÊµÄ¼õ·¨, fb: fermi(1) or bose(0)
+    ! kå’Œæ¾åŸé¢‘ç‡çš„å‡æ³•, fb: fermi(1) or bose(0)
     ! 1 - 2 -> 3
     subroutine komega_minus(k1, omega1, fb1, k2, omega2, fb2, k, k_minus, zero_k, k3, omega3, fb3)
         use Constants
@@ -69,8 +70,8 @@ contains
         call cgesv(square_nb, square_nb, A, square_nb, ipiv, B, square_nb, info)
     end function inverseAbyB
 
-    ! ĞèÒª²âÊÔ, ¿¼ÂÇÄÚ´æÄ£Ê½
-    ! ÒòÎª¶¼ÊÇ·½Õó, ¿É¿¼ÂÇ»»º¯Êı
+    ! éœ€è¦æµ‹è¯•, è€ƒè™‘å†…å­˜æ¨¡å¼
+    ! å› ä¸ºéƒ½æ˜¯æ–¹é˜µ, å¯è€ƒè™‘æ¢å‡½æ•°
     function ABA(A, B)
         use Constants
         implicit none
@@ -81,7 +82,7 @@ contains
             C, square_nb, A, square_nb, complex_0, ABA, square_nb)
     end function ABA
 
-    ! ĞèÒª²âÊÔ, ¿¼ÂÇÄÚ´æÄ£Ê½
+    ! éœ€è¦æµ‹è¯•, è€ƒè™‘å†…å­˜æ¨¡å¼
     function AB(A, B)
         use Constants
         implicit none

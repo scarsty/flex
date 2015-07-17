@@ -1,6 +1,8 @@
-subroutine eliashberg(G, V_s)
+subroutine eliashberg()
     use Constants
     use myfunctions
+    use parameters
+    use parameters2
     implicit none
 
     ! 未完成
@@ -8,6 +10,14 @@ subroutine eliashberg(G, V_s)
 
     ! 自旋态不是3就是1
     ! 含矩阵乘, 需改写
+
+    integer elia1, elia2
+    integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq,k_kminusq, omega_kminusq, itau, k_0minusq, k_qminusk
+    integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk
+        integer l1,m1,l2,m2,l3,m3
+    ! complex, dimension (nb*nb*nk*(nomega*2-1), nb*nb*nk*(nomega*2-1)):: Elishaberg
+
+    ! ---------------------------------------------------------------------------------------------
 
     do ikq=1,nk; do iomegaq=-nomega,nomega
         chi_c_ = chi_0(:, :, ikq, iomegaq)

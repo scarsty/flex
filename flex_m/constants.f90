@@ -11,7 +11,7 @@ MODULE Constants
     ! 松原频率个数
     integer, parameter :: nomega=8
     ! 虚时间离散的点数
-    integer, parameter :: ntau=512
+    integer, parameter :: ntau=256
 
     integer, parameter :: total_omega=nomega*2+1
     integer, parameter :: total_tau=ntau*2+1
