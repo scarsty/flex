@@ -169,6 +169,7 @@ program flex_m
             idft_b(itau, iomega) = exp(2*pi * omega_b*tau)
         enddo
     enddo
+    ! 这里的系数可能应该*2, 即所有频率一起考虑
     dft_f = dft_f / (2*nomega+1)
     dft_b = dft_b / (2*nomega+1)
 
