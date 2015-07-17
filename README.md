@@ -5,3 +5,5 @@ FLEX计算超导性能的代码
 Note: The codes are created by Prof. John Deisz with little modification.
 
 [https://github.com/johndeisz]
+
+flex_m 为新编
