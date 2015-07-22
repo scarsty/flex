@@ -1,7 +1,7 @@
-subroutine eliashberg()
+subroutine testband()
     use constants
     use myfunctions
-    use parameters
+    ! use parameters
     use parameters2
     implicit none
 
@@ -12,14 +12,18 @@ subroutine eliashberg()
     ! 含矩阵乘, 需改写
 
     integer count_k, i, ik, ix, iy, fileunit
+    complex :: fac
+    real :: rdotk
+    real, dimension(2) :: temp
     real, dimension (31, 2) :: k_band
     complex, dimension (nb,nb,31) :: h0_k_band
-    complex, dimension (nb,nb,31) :: A, B
-    real, dimension(nb, 31) :: ev_band
+    complex, dimension (nb,nb) :: A, B
+    complex, dimension(nb, 31) :: ev_band
     complex, dimension(nb) :: alpha, beta
     complex, dimension(nb, nb) :: vl, vr
     complex, dimension(nb*2) :: work
-    integer lwork
+    integer lwork, info
+    real, dimension(nb*8) :: rwork
 
     ! 测试能带正确性
     ! 组合一组高对称点
@@ -43,8 +47,10 @@ subroutine eliashberg()
 
     h0_k = complex_0
 
+    write(stdout,*) 'build k-points of band...'
 
     do ik=1,30
+        h0_k_band=complex_0
         do ix = -2, 2
             do iy = -2, 2
                 temp=[ix,iy]
@@ -54,20 +60,26 @@ subroutine eliashberg()
             enddo
         enddo
         A = h0_k_band(:,:,ik)
+        ! if (ik==1) then
+        !    write(stdout,*) A
+        ! endif
         B = complex_0
-        do ik = 1,nb
-            B(ik,ik)=complex_1
+        do i = 1,nb
+            B(i,i)=complex_1
         enddo
-        call cggbev('N', 'N', nb, A, nb, B, nb, alpha, beta, vl, 1, vr, 1)
+        ! write(stdout,*) 'calling cggev...'
+        call cggev('N', 'N', nb, A, nb, B, nb, alpha, beta, vl, 1, vr, 1, work, 2*nb, rwork, info)
+        ! write(stdout,*) 'finish state ', info
+        ev_band(:,ik) = alpha/beta
     enddo
 
     fileunit = 9999
     open(fileunit, file='testband.dat')
     do ik=1,30
-        write(fileunit, *) ik, ev_band(:,ik)
+        write(fileunit, *) ik, real(ev_band(:,ik))
     enddo
 
-close(fileunit)
+    close(fileunit)
 
 
     return

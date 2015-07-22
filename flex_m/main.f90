@@ -30,6 +30,7 @@ program flex_m
 
 	call readin()
 
+    call testband()
 
 	T_beta = 1d0/kB/T
 
