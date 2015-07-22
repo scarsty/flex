@@ -30,6 +30,7 @@ program flex_m
 
 	call readin()
 
+
 	T_beta = 1d0/kB/T
 
 	!计算k点的坐标
@@ -47,6 +48,7 @@ program flex_m
 		enddo
 	enddo
 	write(stdout, *) zero_k
+
 	! k减法矩阵
 	k_minus=0
 	do i1=1,nk
