@@ -27,6 +27,7 @@ module parameters
     integer spin_state
 
     logical, parameter :: solve_eliashberg = .false.
+    logical, parameter :: test_band = .false.
 
     namelist /basic/ T, target_density, density_tol, mu,&
         h1_U, h1_Up, h1_J, h1_Jp,&

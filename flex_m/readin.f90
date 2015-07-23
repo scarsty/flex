@@ -39,7 +39,8 @@ subroutine readin()
             exit
         endif
     enddo
-    !哈密顿量
+
+    ! w-s原胞点阵上的哈密顿量
     h0_r = complex_0
     do ib1 = 1, nb
         h0_r(ib1, ib2, 0, 0)=eigen_value(ib1)

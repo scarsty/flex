@@ -49,6 +49,8 @@ subroutine testBand()
 
     write(stdout,*) 'build k-points of band...'
 
+    ! 反傅里叶变换到k空间的能带
+    ! 在每个k点上对角化得到能带特征值
     do ik=1,36
         h0_k_band=complex_0
         do ix = -2, 2
@@ -81,10 +83,20 @@ subroutine testBand()
 
     close(fileunit)
 
-
     return
 
 end subroutine testBand
+
+
+subroutine testFunctions()
+    implicit none
+
+    real, dimension (512) :: k1, k2
+
+
+
+    return
+end subroutine testFunctions
 
 
 subroutine testConvolution()

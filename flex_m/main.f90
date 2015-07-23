@@ -30,7 +30,9 @@ program flex_m
 
 	call readin()
 
+if (test_band) then
     call testband()
+endif
 
 	T_beta = 1d0/kB/T
 
@@ -229,12 +231,12 @@ program flex_m
 				call cgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_s_, square_nb, info)
 				chi_s(:, :, ikq, iomegaq) = chi_s_
 
-				!chi_c(:, :, ikq, iomegaq)=inverse(I_chi + chi_0(:, :, ikq, iomegaq)*U_c) * chi_0(:, :, ikq, iomegaq)
-				!chi_s(:, :, ikq, iomegaq)=inverse(I_chi - chi_0(:, :, ikq, iomegaq)*U_s) * chi_0(:, :, ikq, iomegaq)
-				!V(:, :, ikq, iomegaq) = U_ud - 2*U_uu - U_ud*chi_0(:, :, ikq, iomegaq)*U_ud &
-					!    +1.5*U_s*chi_s(:, :, ikq, iomegaq)*U_s + 0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
-				V(:, :, ikq, iomegaq) = U_ud - 2*U_uu -ABA(U_ud, chi_0_) &
-					+1.5*ABA(U_s, chi_s_)+0.5*ABA(U_c, chi_c_)
+				! chi_c(:, :, ikq, iomegaq)=inverse(I_chi + chi_0(:, :, ikq, iomegaq)*U_c) * chi_0(:, :, ikq, iomegaq)
+				! chi_s(:, :, ikq, iomegaq)=inverse(I_chi - chi_0(:, :, ikq, iomegaq)*U_s) * chi_0(:, :, ikq, iomegaq)
+				! V(:, :, ikq, iomegaq) = U_ud - 2*U_uu - U_ud*chi_0(:, :, ikq, iomegaq)*U_ud &
+					! +1.5*U_s*chi_s(:, :, ikq, iomegaq)*U_s + 0.5*U_c*chi_c(:, :, ikq, iomegaq)*U_c
+				V(:, :, ikq, iomegaq) = U_ud - 2*U_uu - ABA(U_ud, chi_0_) &
+					+ 1.5*ABA(U_s, chi_s_) + 0.5*ABA(U_c, chi_c_)
 
 			enddo;enddo
 
