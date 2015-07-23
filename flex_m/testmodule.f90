@@ -1,4 +1,4 @@
-subroutine testband()
+subroutine testBand()
     use constants
     use myfunctions
     ! use parameters
@@ -14,16 +14,16 @@ subroutine testband()
     integer count_k, i, ik, ix, iy, fileunit
     complex :: fac
     real :: rdotk
-    real, dimension(2) :: temp
-    real, dimension (31, 2) :: k_band
-    complex, dimension (nb,nb,31) :: h0_k_band
+    real, dimension (2) :: temp
+    real, dimension (36, 2) :: k_band
+    complex, dimension (nb, nb, 36) :: h0_k_band
     complex, dimension (nb,nb) :: A, B
-    complex, dimension(nb, 31) :: ev_band
-    complex, dimension(nb) :: alpha, beta
-    complex, dimension(nb, nb) :: vl, vr
-    complex, dimension(nb*2) :: work
+    complex, dimension (nb, 36) :: ev_band
+    complex, dimension (nb) :: alpha, beta
+    complex, dimension (nb, nb) :: vl, vr
+    complex, dimension (nb*2) :: work
     integer lwork, info
-    real, dimension(nb*8) :: rwork
+    real, dimension (nb*8) :: rwork
 
     ! 测试能带正确性
     ! 组合一组高对称点
@@ -39,17 +39,17 @@ subroutine testband()
         k_band(count_k, 1) = i*0.5d0/10;
         k_band(count_k, 2) = 0.5d0;
     enddo
-    do i = 1,10
+    do i = 1,15
         count_k = count_k+1;
-        k_band(count_k, 1) = 0.5d0-i*0.5d0/10;
-        k_band(count_k, 2) = 0.5d0-i*0.5d0/10;
+        k_band(count_k, 1) = 0.5d0-i*0.5d0/15;
+        k_band(count_k, 2) = 0.5d0-i*0.5d0/15;
     enddo
 
     h0_k = complex_0
 
     write(stdout,*) 'build k-points of band...'
 
-    do ik=1,30
+    do ik=1,36
         h0_k_band=complex_0
         do ix = -2, 2
             do iy = -2, 2
@@ -75,7 +75,7 @@ subroutine testband()
 
     fileunit = 9999
     open(fileunit, file='testband.dat')
-    do ik=1,30
+    do ik=1,36
         write(fileunit, *) ik, real(ev_band(:,ik))
     enddo
 
@@ -84,4 +84,15 @@ subroutine testband()
 
     return
 
-end subroutine testband
+end subroutine testBand
+
+
+subroutine testConvolution()
+    implicit none
+
+    real, dimension (512) :: k1, k2
+
+
+
+    return
+end subroutine testConvolution

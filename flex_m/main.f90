@@ -48,7 +48,7 @@ program flex_m
 			!write(stdout, *) k(count_k,:)
 		enddo
 	enddo
-	write(stdout, *) zero_k
+	! write(stdout, *) zero_k
 
 	! k减法矩阵
 	k_minus=0
@@ -132,7 +132,7 @@ program flex_m
 				G0(l1,m1,ik, iomega) = 1d0/(complex_i*pi*(2*iomegak-1)/T_beta-(h0_k(n1,n1,ik)-mu)) ! 未完成
 			enddo
 		enddo
-	enddo;enddo;enddo
+	enddo; enddo; enddo
 	G=G0
 
 	! I_chi
@@ -155,8 +155,8 @@ program flex_m
 			idft_f(itau, iomega) = exp(2*pi*omega_f*tau*complex_i)
 			idft_b(itau, iomega) = exp(2*pi*omega_b*tau*complex_i)
 		enddo
-
 	enddo
+
 	! 这里的系数可能应该*2, 即所有频率一起考虑
 	dft_f = dft_f / (2*nomega+1)
 	dft_b = dft_b / (2*nomega+1)
