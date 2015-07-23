@@ -4,7 +4,7 @@ module myfunctions
 #endif
 contains
     integer function mpi_rank()
-        IMPLICIT NONE
+        implicit none
         integer rank
         real ierr
 #ifdef USE_MPI
@@ -99,5 +99,86 @@ contains
         call cgemm('N', 'N', M, N, K, complex_1, &
             src, M, dft_matrix, K, complex_0, dst, M)
     end subroutine matrixProduct
+
+    ! 生成傅里叶变换辅助矩阵dft_f, dft_b, idft_f, idft_b
+    subroutine buildDFTMatrix()
+        use constants
+        use parameters2
+        implicit none
+
+        integer itau, tau, iomega, omega_f, omega_b
+
+        ! 频域与时域的傅里叶变换辅助矩阵
+        ! 可以一次计算一组, 或者构造大矩阵计算多组
+        ! for one k-point, G_tau (行) = G_omega (行) * dft
+        ! G_omega (行) = G_tau (行) * idft
+        do itau = -ntau,ntau
+            do iomega=-nomega,nomega
+                omega_f = 2*iomega-1
+                omega_b = 2*iomega
+                tau = itau*1d0/ntau
+                dft_f(iomega, itau) = exp(-2*pi*omega_f*tau*complex_i)
+                dft_b(iomega, itau) = exp(-2*pi*omega_b*tau*complex_i)
+                idft_f(itau, iomega) = exp(2*pi*omega_f*tau*complex_i)
+                idft_b(itau, iomega) = exp(2*pi*omega_b*tau*complex_i)
+            enddo
+        enddo
+
+        ! 这里的系数可能应该*2, 即所有频率一起考虑
+        dft_f = dft_f / (2*nomega+1)
+        dft_b = dft_b / (2*nomega+1)
+
+        return
+    end subroutine buildDFTMatrix
+
+    ! dft频域到时域, fb表示为费米频率(1)或者玻色频率(0)
+    subroutine dft(input, output, N, fb)
+        use constants, only : nk, total_omega, total_tau
+        use parameters2
+        implicit none
+
+        integer N, fb, l, m
+        complex, dimension(N,N,nk,total_omega) :: input
+        complex, dimension(N,N,nk,total_tau) :: output
+
+        fb = mod(fb,2)
+        do l=1,N; do m=1,N
+            dft_omega = input(l,m,:,:)
+            if (fb==0) then
+                call matrixProduct(dft_omega, dft_b, dft_tau, nk, total_tau, total_omega)
+            else
+                call matrixProduct(dft_omega, dft_f, dft_tau, nk, total_tau, total_omega)
+            endif
+            output(l,m,:,:) = dft_tau
+        enddo; enddo
+
+        return
+
+    end subroutine dft
+
+    ! idft时域到频域
+    subroutine idft(input, output, N, fb)
+        use constants, only : nk, total_omega, total_tau
+        use parameters2
+        implicit none
+
+        integer N, fb, l, m
+        complex, dimension(N,N,nk,total_omega) :: output
+        complex, dimension(N,N,nk,total_tau) :: input
+
+        fb = mod(fb,2)
+        do l=1,N; do m=1,N
+            dft_tau= input(l,m,:,:)
+            if (fb==0) then
+                call matrixProduct(dft_tau, idft_b, dft_omega, nk, total_omega, total_tau)
+            else
+                call matrixProduct(dft_tau, idft_f, dft_omega, nk, total_omega, total_tau)
+            endif
+            output(l,m,:,:) = dft_omega
+        enddo; enddo
+
+        return
+
+    end subroutine idft
 
 END MODULE myfunctions

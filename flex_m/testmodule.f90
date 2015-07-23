@@ -25,6 +25,9 @@ subroutine testBand()
     integer lwork, info
     real, dimension (nb*8) :: rwork
 
+
+    ! ------------------------------------------------------------------------
+
     ! 测试能带正确性
     ! 组合一组高对称点
     k_band = 0d0;
@@ -96,6 +99,7 @@ subroutine testFunctions()
 
 
     return
+
 end subroutine testFunctions
 
 
@@ -107,4 +111,5 @@ subroutine testConvolution()
 
 
     return
+
 end subroutine testConvolution

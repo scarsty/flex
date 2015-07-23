@@ -7,8 +7,8 @@ module parameters2
     public
     ! 格林函数, 反常格林函数
     ! 自能函数, 反常自能函数
-    complex, dimension (nb, nb, nk, -nomega:nomega) :: G, F, sigma, delta, G0, sigma0, G1, delta0
-    complex, dimension (nb, nb, nk, -ntau:ntau) :: G_tau, sigma_tau, delta_tau, delta_tau0,
+    complex, dimension (nb, nb, nk, -nomega:nomega) :: G, F, sigma, delta, G0, sigma0, G1, delta0, sigma_minus
+    complex, dimension (nb, nb, nk, -ntau:ntau) :: G_tau, sigma_tau, delta_tau, delta_tau0
 
     ! 极化率, susceptibilities, effective interactions
     complex, dimension (nb*nb, nb*nb, nk, -nomega:nomega) :: chi_0, chi_s, chi_c, V, V_s, GGdelta
