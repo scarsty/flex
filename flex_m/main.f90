@@ -4,14 +4,13 @@ program flex_m
     use parameters
     use parameters2
     implicit none
-    !include "parameters.F90"
-    !include "parameters2.F90"
+
 
     ! 循环控制变量较多, 主要是为方便对照文献中公式
     integer ix, iy, iz, count_k, zero_k, ib, ib1, ib2, ik, iq, iomega, ix1, ix2, ix3, ix4, i1, i2, i, iy1, iy2
-    integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq,k_kminusq, omega_kminusq, itau, k_0minusq, k_qminusk
+    integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq, k_kminusq, omega_kminusq, itau, k_0minusq, k_qminusk
     integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk
-    integer l1,m1,l2,m2,l3,m3, n1,l,m
+    integer l1,m1,l2,m2,l3,m3,n1,l,m
     integer elia1, elia2, info, lda, ldb, ipiv
     real rdotk, temp(2), dis
     complex temp_complex, fac
@@ -25,9 +24,8 @@ program flex_m
     integer  omega_f, omega_b
     real tau
 
+
     ! 变量段结束-------------------------------------------------------------------------------
-
-
 
     call readin()
 
@@ -144,7 +142,7 @@ program flex_m
         I_chi(i,i)=complex_1
     enddo
 
-call buildDFTMatrix()
+    call buildDFTMatrix()
 
 
 
@@ -171,11 +169,11 @@ call buildDFTMatrix()
             ! dft G to G_tau
             ! 考虑一下是分批还是干脆一批
             call dft(G, G_tau, nb, 1)
-!            do l1=1,nb; do m1=1,nb
-!                dft_omega = G(l1,m1,:,:)
-!                call matrixProduct(dft_omega, dft_f, dft_tau, nk, total_tau, total_omega)
-!                G_tau(l1,m1,:,:) = dft_tau
-!            enddo; enddo
+            !            do l1=1,nb; do m1=1,nb
+            !                dft_omega = G(l1,m1,:,:)
+            !                call matrixProduct(dft_omega, dft_f, dft_tau, nk, total_tau, total_omega)
+            !                G_tau(l1,m1,:,:) = dft_tau
+            !            enddo; enddo
 
             ! chi_0, 看起来需要并行
             ! 卷积形式, 改成减法 chi(q)= -G1(q-k)G2(-k), G(-k)=conjg(G(k)) on tau
@@ -190,7 +188,7 @@ call buildDFTMatrix()
             enddo;enddo;enddo;enddo
 
             ! idft chi_0_tau to chi_0
-            call dft(chi_0_tau, chi_0, nb*nb, 0)
+            call idft(chi_0_tau, chi_0, nb*nb, 0)
 
             write(stdout, *) 'calculated chi_0'
 
