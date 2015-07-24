@@ -22,6 +22,11 @@ MODULE constants
 	integer, parameter :: kz = 1
 	integer, parameter :: nk = kx*ky*kz
 
+    ! r点, 表示r坐标 -r to r
+	integer, parameter :: rx = 2
+	integer, parameter :: ry = 2
+	integer, parameter :: rz = 0
+
 	! MPI related constants.
 	integer, parameter :: np = 16 !number of processes
 	!integer, parameter :: mp = m/np  ! must be an integer

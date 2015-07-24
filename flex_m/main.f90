@@ -111,8 +111,8 @@ program flex_m
     ! 反傅里叶变换h0到k空间
     h0_k = complex_0
     do ik=1,nk
-        do ix = -2, 2
-            do iy = -2, 2
+        do ix = -rx, rx
+            do iy = -ry, ry
                 !temp(1)=ix
                 !temp(2)=iy
                 temp=[ix,iy]

@@ -56,8 +56,8 @@ subroutine testBand()
     ! 在每个k点上对角化得到能带特征值
     do ik=1,36
         h0_k_band=complex_0
-        do ix = -2, 2
-            do iy = -2, 2
+        do ix = -rx, rx
+            do iy = -ry, ry
                 temp=[ix,iy]
                 rdotk = two_pi*dot_product(k_band(ik,:),temp)
                 fac=exp(complex_i*rdotk)

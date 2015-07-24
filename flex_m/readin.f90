@@ -45,8 +45,8 @@ subroutine readin()
     do ib1 = 1, nb
         h0_r(ib1, ib2, 0, 0)=eigen_value(ib1)
     enddo
-    do ix = -2, 2
-        do iy = -2, 2
+    do ix = -rx, rx
+        do iy = -ry, ry
             !write(text1, "(A1), (I3), (I3), (A1), (A8)") "[", ix, iy, "]", "hopping"
             !write(stdout, *) text1
             read(fileunit,*)
