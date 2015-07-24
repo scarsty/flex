@@ -27,7 +27,7 @@ program flex_m
 
     ! 变量段结束-------------------------------------------------------------------------------
 
-    call readin()
+    !call readin()
 
     if (test_band) then
         call testband()

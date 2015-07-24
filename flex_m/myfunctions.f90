@@ -133,15 +133,15 @@ contains
 
     ! dft频域到时域, fb表示为费米频率(1)或者玻色频率(0)
     subroutine dft(input, output, N, fb)
-        use constants, only : nk, total_omega, total_tau
+        use constants, only : nk, total_omega, total_tau, nomega, ntau
         use parameters2
         implicit none
 
         integer N, fb, l, m
-        complex, dimension(N,N,nk,total_omega) :: input
-        complex, dimension(N,N,nk,total_tau) :: output
+        complex, dimension(N,N,nk,-nomega:nomega) :: input
+        complex, dimension(N,N,nk,-ntau:ntau) :: output
 
-        fb = mod(fb,2)
+        ! fb = mod(fb,2)
         do l=1,N; do m=1,N
             dft_omega = input(l,m,:,:)
             if (fb==0) then
@@ -158,15 +158,15 @@ contains
 
     ! idft时域到频域
     subroutine idft(input, output, N, fb)
-        use constants, only : nk, total_omega, total_tau
+        use constants, only : nk, total_omega, total_tau, nomega, ntau
         use parameters2
         implicit none
 
         integer N, fb, l, m
-        complex, dimension(N,N,nk,total_omega) :: output
-        complex, dimension(N,N,nk,total_tau) :: input
+        complex, dimension(N,N,nk,-nomega:nomega) :: output
+        complex, dimension(N,N,nk,-ntau:ntau) :: input
 
-        fb = mod(fb,2)
+        ! fb = mod(fb,2)
         do l=1,N; do m=1,N
             dft_tau= input(l,m,:,:)
             if (fb==0) then
@@ -181,4 +181,17 @@ contains
 
     end subroutine idft
 
+#ifdef _DEBUG
+    ! sometimes the linker cannot find this blas function
+    real function scnrm2(N, A, incx)
+        implicit none
+        integer N, incx, i
+        complex, dimension(N):: A
+        scnrm2=0d0
+        i=1
+        do while (i<=N)
+            scnrm2=scnrm2+abs(A(i))
+        enddo
+    end function scnrm2
+#endif
 END MODULE myfunctions

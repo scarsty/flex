@@ -3,7 +3,7 @@ MODULE constants
 	implicit none
 
 	public
-	integer, parameter :: nb=5 ! number of bands
+	integer, parameter :: nb=1 ! number of bands
 	integer, parameter :: square_nb=nb*nb ! number of bands
 
 	! Lattice and frequency grid parameters. (all must be 2^n!)
