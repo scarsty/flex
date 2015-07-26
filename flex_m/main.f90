@@ -278,6 +278,7 @@ program flex_m
                 ! scnrm2: 欧几里得模，行向量乘以自身转置共轭
                 sigma_minus = sigma0 - sigma
                 cur_sigma_tol=scnrm2(nb*nb*nk*total_omega, sigma_minus, 1)
+				write(stdout,*) 'sigma tolence is ', cur_sigma_tol, '/', sigma_tol
                 if (cur_sigma_tol<sigma_tol) then
                     sigma_conv = .true.
                 endif
