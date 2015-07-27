@@ -16,5 +16,7 @@ $(TARGET): $(OBJECTS)
 
 clean:
 	rm *.o *.mod
+%.o: %.f90
+	$(FC) -c $(@:.o=.f90)
 
 -include .d
