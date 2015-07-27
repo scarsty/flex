@@ -24,6 +24,8 @@ program flex_m
     integer  omega_f, omega_b
     real tau
 
+    real scnrm2
+    external scnrm2
 
     ! 变量段结束-------------------------------------------------------------------------------
 
@@ -332,7 +334,7 @@ program flex_m
 
 
     print *, 'good night.'
-    return
+    ! return
 
 end program
 
