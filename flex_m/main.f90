@@ -192,7 +192,7 @@ program flex_m
             ! idft chi_0_tau to chi_0
             call idft(chi_0_tau, chi_0, nb*nb, 0)
 
-            write(stdout, *) 'calculated chi_0'
+            ! write(stdout, *) 'calculated chi_0'
 
 
 
@@ -225,7 +225,7 @@ program flex_m
 
             enddo;enddo
 
-            write(stdout, *) 'calculated chi_c, chi_s, V'
+            ! write(stdout, *) 'calculated chi_c, chi_s, V'
 
 
 
@@ -249,7 +249,7 @@ program flex_m
             ! idft sigma_tau to sigma
             call idft(sigma_tau, sigma, nb, 1)
 
-            write(stdout, *) 'calculated sigma'
+            ! write(stdout, *) 'calculated sigma'
 
 
 
@@ -267,7 +267,7 @@ program flex_m
                 enddo;enddo;
             enddo;enddo
 
-            write(stdout, *) 'calculated New G'
+            ! write(stdout, *) 'calculated New G'
 
 
             write(stdout, *) 'checking convergence of sigma...'
