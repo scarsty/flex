@@ -183,15 +183,15 @@ contains
 
 #ifdef _DEBUG
     ! sometimes the linker cannot find this blas function
-    real function scnrm2(N, A, incx)
-        implicit none
-        integer N, incx, i
-        complex, dimension(N):: A
-        scnrm2=0d0
-        i=1
-        do while (i<=N)
-            scnrm2=scnrm2+abs(A(i))
-        enddo
-    end function scnrm2
+!    real function scnrm2(N, A, incx)
+!        implicit none
+!        integer N, incx, i
+!        complex, dimension(N):: A
+!        scnrm2=0d0
+!        i=1
+!        do while (i<=N)
+!            scnrm2=scnrm2+abs(A(i))
+!        enddo
+!    end function scnrm2
 #endif
 END MODULE myfunctions

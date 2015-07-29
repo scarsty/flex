@@ -21,7 +21,7 @@ subroutine eliashberg()
 
     ! ---------------------------------------------------------------------------------------------
 
-write(stdout,*) 'Solving Eliashberg equation...'
+    write(stdout,*) 'Solving Eliashberg equation...'
     ! 文献中自旋3态有区别, 需自行推导
     do ikq=1,nk; do iomegaq=-nomega,nomega
         chi_c_ = chi_0(:, :, ikq, iomegaq)
@@ -133,13 +133,12 @@ write(stdout,*) 'Solving Eliashberg equation...'
         lambda0 = lambda
     enddo
 
-write(stdout,*) 'Solving ended, the eigenvalue is ', lambda
+    write(stdout,*) 'Solving ended, the eigenvalue is ', lambda
 
     ! output delta_nn (gap function)
 
 
-    ! 求特征值和特征向量, 调用数学库, 取消
-
+    ! 求特征值和特征向量, 调用数学库, (取消)
     !call ()
 
 end subroutine eliashberg

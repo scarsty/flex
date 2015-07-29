@@ -113,3 +113,20 @@ subroutine testConvolution()
     return
 
 end subroutine testConvolution
+
+subroutine build_h0_k()
+    use constants
+    use parameters2
+    implicit none
+
+    integer l1, m1, ik, iomega
+
+    do l1=1,nb; do m1=1,nb
+        do ik=1,nk
+            h0_k(l1,m1,ik) = - cos(k(ik,1)*two_pi) - cos(k(ik,2)*two_pi)
+        enddo
+    enddo; enddo
+
+    return
+
+end subroutine build_h0_k

@@ -30,6 +30,10 @@ subroutine readin()
 
     write(stdout, *) "Temperature in K = ", T
 
+    if (test_band) then
+        return
+    endif
+
     ! 返回去重新读, 后面的格式不可出错
     rewind(fileunit)
     do while (.true.)

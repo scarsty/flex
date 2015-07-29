@@ -24,12 +24,13 @@ program flex_m
     integer  omega_f, omega_b
     real tau
 
+
     real scnrm2
     external scnrm2
 
     ! 变量段结束-------------------------------------------------------------------------------
 
-    !call readin()
+    call readin()
 
     if (test_band) then
         call testband()
@@ -125,6 +126,10 @@ program flex_m
         enddo
     enddo
     ! 好像没归一化? h0_k=h0_k/?
+
+    if (test_band) then
+        call build_h0_k()
+    endif
 
     ! G0
     ! 费米频率 pi*(2n-1)
@@ -280,7 +285,7 @@ program flex_m
                 ! scnrm2: 欧几里得模，行向量乘以自身转置共轭
                 sigma_minus = sigma0 - sigma
                 cur_sigma_tol=scnrm2(nb*nb*nk*total_omega, sigma_minus, 1)
-				write(stdout,*) 'sigma tolence is ', cur_sigma_tol, '/', sigma_tol
+                write(stdout,*) 'sigma tolence is ', cur_sigma_tol, '/', sigma_tol
                 if (cur_sigma_tol<sigma_tol) then
                     sigma_conv = .true.
                 endif
