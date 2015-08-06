@@ -30,7 +30,7 @@ subroutine readin()
 
     write(stdout, *) "Temperature in K = ", T
 
-    if (test_band) then
+    if (.not. test_band) then
         return
     endif
 

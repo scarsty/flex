@@ -36,6 +36,9 @@ program flex_m
         call testband()
     endif
 
+    call testConvolution()
+    return
+
     T_beta = 1d0/kB/T
 
     !计算k点的坐标

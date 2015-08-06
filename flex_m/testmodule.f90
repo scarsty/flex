@@ -104,10 +104,59 @@ end subroutine testFunctions
 
 
 subroutine testConvolution()
+    use constants
     implicit none
 
-    real, dimension (512) :: k1, k2
+    complex, dimension (0:3) :: f, g
+    complex, dimension (0:3) :: f_ft
 
+    integer i, x, t, i1, i2, x_minus_t
+
+
+    ! calculate convolution g(x)=f(t)f(x-t) with 3 methods
+
+    do i=0,3
+        f(i)=i
+    enddo
+
+    g=0
+    do x=0,3
+        do t=0,3
+            if (x-t>=0 .and. x-t<=3) then
+                g(x)=g(x)+f(t)*f(x-t)
+            endif
+        enddo
+    enddo
+
+    write(0, *) 'directly calculated: ', g
+
+    g=0
+    do x=0,3
+        do t=0,3
+            x_minus_t = x-t
+            do while (x_minus_t<0 .or. x_minus_t>3)
+                x_minus_t=x_minus_t-sign(1, x_minus_t)*4
+            enddo
+            g(x)=g(x)+f(t)*f(x_minus_t)
+        enddo
+    enddo
+
+    write(0, *) 'directly calculated with period: ', g
+
+    f_ft=complex_0
+    do i1=0,3;do i2=0,3
+        f_ft(i1) = f_ft(i1) + exp(-2*pi*i1*i2/4*complex_i)*f(i2)
+    enddo; enddo
+
+    f_ft = f_ft*f_ft
+
+    g=complex_0
+    do i1=0,3;do i2=0,3
+        g(i1) = g(i1) + exp(2*pi*i1*i2/4*complex_i)*f_ft(i2)
+    enddo; enddo
+    g=g/4
+
+    write(0, *) 'calculated by ft: ', g
 
 
     return
