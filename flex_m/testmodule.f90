@@ -9,6 +9,7 @@ subroutine testBand()
     ! 自旋态不是3就是1
     ! 含矩阵乘, 需改写
 
+    ! 点数36: 1~11~21~36
     integer count_k, i, ik, ix, iy, fileunit
     complex :: fac
     real :: rdotk
