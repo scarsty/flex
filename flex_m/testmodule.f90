@@ -173,11 +173,11 @@ subroutine testConvolution2()
 
     integer i, x, t, i1, i2, j1, j2, i_minus_j1, i_minus_j2, num
     type(C_PTR) :: plan
-    real(8) :: start, finish, summary
-    integer,parameter:: n=16,n1=n-1
+    real :: start, finish, summary
+    integer,parameter:: n=8,n1=n-1
 
-    complex(8), dimension (0:n-1,0:n-1) :: f, g, g1
-    complex(8), dimension (0:n-1,0:n-1) :: f_ft
+    complex, dimension (0:n-1,0:n-1) :: f, g, g1
+    complex, dimension (0:n-1,0:n-1) :: f_ft
 
     ! calculate 2D convolution g(x)=f(t)f(x-t) with 2 methods
 
@@ -193,13 +193,13 @@ subroutine testConvolution2()
             do j1=0,n1; do j2=0,n1
                 i_minus_j1 = i1-j1
                 i_minus_j2 = i2-j2
-                !                do while (i_minus_j1<0 .or. i_minus_j1>n1)
-                !                    i_minus_j1=i_minus_j1-sign(1, i_minus_j1)*n
-                !                enddo
-                !                do while (i_minus_j2<0 .or. i_minus_j2>n1)
-                !                    i_minus_j2=i_minus_j2-sign(1, i_minus_j2)*n
-                !                enddo
-                g(i1,i2)=g(i1,i2)+f(j1,j2)*f(j1,j1)
+                do while (i_minus_j1<0 .or. i_minus_j1>n1)
+                    i_minus_j1=i_minus_j1-sign(1, i_minus_j1)*n
+                enddo
+                do while (i_minus_j2<0 .or. i_minus_j2>n1)
+                    i_minus_j2=i_minus_j2-sign(1, i_minus_j2)*n
+                enddo
+                g(i1,i2)=g(i1,i2)+f(j1,j2)*f(i_minus_j1,i_minus_j2)
             enddo; enddo
         enddo; enddo
     enddo
@@ -215,16 +215,16 @@ subroutine testConvolution2()
     call cpu_time(start)
     do num=1,10000
         f_ft=0
-        plan=fftw_plan_dft_2d(n, n, f, f_ft, FFTW_BACKWARD, FFTW_ESTIMATE)
-        call fftw_execute_dft(plan, f, f_ft)
-        call fftw_destroy_plan(plan)
+        plan=fftwf_plan_dft_2d(n, n, f, f_ft, FFTW_BACKWARD, FFTW_ESTIMATE)
+        call fftwf_execute_dft(plan, f, f_ft)
+        call fftwf_destroy_plan(plan)
         !write(0, *) f_ft
 
         f_ft=f_ft*f_ft
 
-        plan=fftw_plan_dft_2d(n, n, f_ft, g, FFTW_FORWARD, FFTW_ESTIMATE)
-        call fftw_execute_dft(plan, f_ft, g)
-        call fftw_destroy_plan(plan)
+        plan=fftwf_plan_dft_2d(n, n, f_ft, g, FFTW_FORWARD, FFTW_ESTIMATE)
+        call fftwf_execute_dft(plan, f_ft, g)
+        call fftwf_destroy_plan(plan)
         g=g/n/n
     enddo
 
@@ -233,13 +233,15 @@ subroutine testConvolution2()
 
     write(0, *) 'calculated by fft: '
     do i=0,n1
-        !write(0, *) g
+        !write(0, *) g(i,:)
     enddo
+
     g=g-g1
     summary=0d0
     do i1=0,n1; do i2=0,n1
         summary=summary+abs(g(i1,i2))
     enddo; enddo
+
     write(0, *) 'error is ', summary
 
     return
