@@ -30,7 +30,7 @@ module parameters2
     complex, dimension (nb, nb) :: I_g0
     real, dimension (nb, nb) :: u_g0
 
-        ! 计算chi的辅助
+    ! 计算chi的辅助
     complex, dimension (nb*nb, nb*nb) :: chi_0_, chi_c_, chi_s_, Iminuschi_0_
 
     ! 傅里叶变换, 反傅里叶变换的辅助, f/b means fermi and bose freq

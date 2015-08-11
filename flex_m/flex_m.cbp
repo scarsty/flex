@@ -38,8 +38,9 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Linker>
-			<Add library="libblas.a" />
+			<Add option="-L." />
 			<Add library="liblapack.a" />
+			<Add library="libblas.a" />
 			<Add library="libfftw3f.a" />
 			<Add directory="C:/dat/project/flex/flex_m/" />
 		</Linker>

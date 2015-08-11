@@ -36,7 +36,7 @@ program flex_m
         call testband()
     endif
 
-    call testConvolution2()
+    call testConvolution()
     return
 
     T_beta = 1d0/kB/T

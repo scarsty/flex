@@ -106,16 +106,18 @@ subroutine testConvolution()
     use constants
     implicit none
 
-    integer,parameter:: n=16,n1=n-1
+    integer, parameter:: n=16,n1=n-1
+    integer, parameter:: m=32,m1=m-1
     complex, dimension (0:n1) :: f, g
-    complex, dimension (0:n1) :: f_ft
+    complex, dimension (0:m1) :: f_ft
 
     integer i, x, t, i1, i2, x_minus_t
 
 
     ! calculate convolution g(x)=f(t)f(x-t) with 3 methods
 
-    do i=0,n1
+    f=complex_0
+    do i=0,n1/2
         f(i)=cmplx(i,i)
     enddo
 
@@ -145,17 +147,17 @@ subroutine testConvolution()
     write(0, *) 'directly calculated with period: '
     write(0, *) g
     f_ft=complex_0
-    do i1=0,n1;do i2=0,n1
+    do i1=0,m1;do i2=0,n1
         f_ft(i1) = f_ft(i1) + exp(2*pi*i1*i2/n*complex_i)*f(i2)
     enddo; enddo
 
     f_ft = f_ft*f_ft
 
     g=complex_0
-    do i1=0,n1;do i2=0,n1
+    do i1=0,n1;do i2=0,m1
         g(i1) = g(i1) + exp(-2*pi*i1*i2/n*complex_i)*f_ft(i2)
     enddo; enddo
-    g=g/n
+    g=g/m
 
     write(0, *) 'calculated by ft: '
     write(0, *) g
