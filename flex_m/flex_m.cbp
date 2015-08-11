@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="flex_m" />
+		<Option pch_mode="2" />
+		<Option compiler="gfortran" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/flex_m" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gfortran" />
+				<Compiler>
+					<Add option="-cpp" />
+					<Add option="-w" />
+					<Add option="-g" />
+					<Add option="-D_DEBUG" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/flex_m" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gfortran" />
+				<Compiler>
+					<Add option="-ffast-math" />
+					<Add option="-O2" />
+					<Add option="-cpp" />
+					<Add option="-D_DEBUG" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Linker>
+			<Add library="libblas.a" />
+			<Add library="liblapack.a" />
+			<Add library="libfftw3f.a" />
+			<Add directory="C:/dat/project/flex/flex_m/" />
+		</Linker>
+		<Unit filename=".d">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="Makefile">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="constants.f90">
+			<Option weight="0" />
+		</Unit>
+		<Unit filename="eliashberg.f90">
+			<Option weight="3" />
+		</Unit>
+		<Unit filename="flex_m.cbp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="input_file">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="main.f90">
+			<Option weight="3" />
+		</Unit>
+		<Unit filename="myfunctions.f90">
+			<Option weight="2" />
+		</Unit>
+		<Unit filename="parameters.f90">
+			<Option weight="0" />
+		</Unit>
+		<Unit filename="parameters2.f90">
+			<Option weight="1" />
+		</Unit>
+		<Unit filename="readin.f90">
+			<Option weight="3" />
+		</Unit>
+		<Unit filename="testmodule.f90">
+			<Option weight="3" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
