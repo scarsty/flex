@@ -1,6 +1,6 @@
 # flex
 FLEX to calculate superconductive properties
 
-refrence:
+reference:
 
 [https://github.com/johndeisz/flex-general]
