@@ -131,67 +131,97 @@ contains
         return
     end subroutine buildDFTMatrix
 
-    ! dft频域到时域, fb表示为费米频率(1)或者玻色频率(0)
-    subroutine dft(input, output, N, fb)
+    ! dft, direction means FORWORD(+) or BACKWORD(-)
+    subroutine dft(input, output, N, direction, normal)
         use constants, only : nk, total_omega, total_tau, nomega, ntau
         use parameters2
         implicit none
 
-        integer N, fb, l, m
-        complex, dimension(N,N,nk,-nomega:nomega) :: input
-        complex, dimension(N,N,nk,-ntau:ntau) :: output
+        include 'fftw3.f03'
+        type(C_PTR) :: plan
 
-        ! fb = mod(fb,2)
+        integer N, fb, l, m, normal
+        integer(C_INT) direction
+        complex, dimension(N,N,nkx,nky,-nomega2+1:nomega2) :: input
+        complex, dimension(N,N,nkx,nky,-nomega2+1:nomega2) :: output
+
+        if (direction >= 0) then
+            direction = FFTW_FORWARD
+        else
+            direction = FFTW_BACKWARD
+        endif
+
         do l=1,N; do m=1,N
-            dft_omega = input(l,m,:,:)
-            if (fb==0) then
-                call matrixProduct(dft_omega, dft_b, dft_tau, nk, total_tau, total_omega)
-            else
-                call matrixProduct(dft_omega, dft_f, dft_tau, nk, total_tau, total_omega)
-            endif
-            output(l,m,:,:) = dft_tau
+            dft_in = input(l,m,:,:,:)
+
+            plan=fftwf_plan_dft_3d(nkx, nky, 2*nomega2, dft_in, dft_out, direction, FFTW_ESTIMATE)
+            call fftwf_execute_dft(plan, dft_in, dft_out)
+            call fftwf_destroy_plan(plan)
+
+            output(l,m,:,:,:) = dft_out
         enddo; enddo
+
+        if (normal /= 0) then
+            output = output/nkx/nky/2/nomega2
+        endif
 
         return
 
     end subroutine dft
 
-    ! idft时域到频域
-    subroutine idft(input, output, N, fb)
-        use constants, only : nk, total_omega, total_tau, nomega, ntau
+    subroutine buildkminus()
+        use constants
         use parameters2
         implicit none
-
-        integer N, fb, l, m
-        complex, dimension(N,N,nk,-nomega:nomega) :: output
-        complex, dimension(N,N,nk,-ntau:ntau) :: input
-
-        ! fb = mod(fb,2)
-        do l=1,N; do m=1,N
-            dft_tau= input(l,m,:,:)
-            if (fb==0) then
-                call matrixProduct(dft_tau, idft_b, dft_omega, nk, total_omega, total_tau)
-            else
-                call matrixProduct(dft_tau, idft_f, dft_omega, nk, total_omega, total_tau)
-            endif
-            output(l,m,:,:) = dft_omega
-        enddo; enddo
-
-        return
-
-    end subroutine idft
+        ! k减法矩阵
+        ! seems of no use
+        !        k_minus=0
+        !        do i1=1,nk
+        !            do i2=1,nk
+        !                temp = k(i1,:) - k(i2,:)
+        !                !write(stdout, *) temp
+        !                do while (abs(temp(1)+real_error)>0.5)
+        !                    temp(1) = temp(1) -sign(1., temp(1))
+        !                enddo
+        !                do while (abs(temp(2)+real_error)>0.5)
+        !                    temp(2) = temp(2) -sign(1., temp(2))
+        !                enddo
+        !                !write(stdout, *) temp
+        !                do i = 1,nk
+        !                    dis = norm2(temp-k(i,:))
+        !                    if (dis<real_error) then
+        !                        k_minus(i1, i2) = i
+        !                        exit
+        !                    endif
+        !                enddo
+        !                if (k_minus(i1, i2)<=0 .or. k_minus(i1, i2)>nk) then
+        !                    write(stdout, *) 'Wrong k_minus at', i1, i2
+        !                endif
+        !            enddo
+        !        enddo
+        !
+        !        ! k加法矩阵, k_minus(k1, k_minus(zero_k, k2))
+        !        do i1=1,nk
+        !            do i2=1,nk
+        !                k_plus(i1, i2) = k_minus(i1, k_minus(zero_k, i2))
+        !                if (k_plus(i1, i2)==0 .or. k_plus(i1, i2)>nk) then
+        !                    write(stdout, *) 'Wrong k_plus at', i1, i2
+        !                endif
+        !            enddo
+        !        enddo
+    end subroutine buildkminus
 
 #ifdef _DEBUG
     ! sometimes the linker cannot find this blas function
-!    real function scnrm2(N, A, incx)
-!        implicit none
-!        integer N, incx, i
-!        complex, dimension(N):: A
-!        scnrm2=0d0
-!        i=1
-!        do while (i<=N)
-!            scnrm2=scnrm2+abs(A(i))
-!        enddo
-!    end function scnrm2
+    !    real function scnrm2(N, A, incx)
+    !        implicit none
+    !        integer N, incx, i
+    !        complex, dimension(N):: A
+    !        scnrm2=0d0
+    !        i=1
+    !        do while (i<=N)
+    !            scnrm2=scnrm2+abs(A(i))
+    !        enddo
+    !    end function scnrm2
 #endif
 END MODULE myfunctions

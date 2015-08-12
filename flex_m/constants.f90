@@ -8,19 +8,20 @@ MODULE constants
 
 	! Lattice and frequency grid parameters. (all must be 2^n!)
 
-	! 松原频率个数
-	integer, parameter :: nomega=8
+	! 松原频率个数, effective is -(nomega1)~(nomega1)
+	integer, parameter :: nomega=8, nomega1 = nomega-1, nomega2 = 2*nomega
+	!
 	! 虚时间离散的点数
-	integer, parameter :: ntau=256
+	! integer, parameter :: ntau=256
 
 	integer, parameter :: total_omega=nomega*2+1
 	integer, parameter :: total_tau=ntau*2+1
 
 	! k点
-	integer, parameter :: kx = 8   ! lattice dimension >=lcx
-	integer, parameter :: ky = 8
-	integer, parameter :: kz = 1
-	integer, parameter :: nk = kx*ky*kz
+	integer, parameter :: nkx = 8   ! lattice dimension >=lcx
+	integer, parameter :: nky = 8
+	integer, parameter :: nkz = 1
+	integer, parameter :: nk = nkx*nky*nkz
 
     ! r点, 表示r坐标 -r to r
 	integer, parameter :: rx = 2

@@ -256,12 +256,12 @@ subroutine build_h0_k()
     use parameters2
     implicit none
 
-    integer l1, m1, ik, iomega
+    integer l1, m1, ikx, iky, iomega
 
     do l1=1,nb; do m1=1,nb
-        do ik=1,nk
-            h0_k(l1,m1,ik) = - cos(k(ik,1)*two_pi) - cos(k(ik,2)*two_pi)
-        enddo
+        do ikx=1,nkx; do iky=1,nky
+            h0_k(l1,m1,ikx,iky) = - cos(k(ikx,iky,1)*two_pi) - cos(k(ikx,iky,2)*two_pi)
+        enddo; enddo
     enddo; enddo
 
     return

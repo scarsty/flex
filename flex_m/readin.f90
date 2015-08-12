@@ -1,4 +1,4 @@
-subroutine readin()
+ subroutine readin()
     use constants
     use parameters
     use parameters2
