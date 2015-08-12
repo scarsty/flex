@@ -43,6 +43,8 @@ MODULE constants
 
 	real, parameter, public    :: pi=3.141592653589793238462643383279
 	real, parameter, public    :: two_pi = 2*pi
+    ! real, public    :: pi=3.141592653589793238462643383279
+	! real, public    :: two_pi
 
 	complex, parameter, public :: complex_i = (0.0,1.0)
 	complex, parameter, public :: complex_0 = (0.0,0.0)

@@ -1,4 +1,4 @@
-program flex_m
+program flex_m2d
     use constants
     use myfunctions
     use parameters
@@ -24,7 +24,6 @@ program flex_m
     integer  omega_f, omega_b
     real tau
 
-
     real scnrm2
     external scnrm2
 
@@ -37,6 +36,7 @@ program flex_m
     endif
 
     call testConvolution()
+    call testConvolution2()
     return
 
     T_beta = 1d0/kB/T

@@ -106,10 +106,10 @@ subroutine testConvolution()
     use constants
     implicit none
 
-    integer, parameter:: n=16,n1=n-1
-    integer, parameter:: m=32,m1=m-1
-    complex, dimension (0:n1) :: f, g
-    complex, dimension (0:m1) :: f_ft
+    integer, parameter:: n=8,n1=n-1
+    integer, parameter:: m=4,m1=m-1
+    complex, dimension (-n1:n) :: f, g
+    complex, dimension (-m1:m) :: f_ft
 
     integer i, x, t, i1, i2, x_minus_t
 
@@ -117,14 +117,14 @@ subroutine testConvolution()
     ! calculate convolution g(x)=f(t)f(x-t) with 3 methods
 
     f=complex_0
-    do i=0,n1/2
+    do i=-n1,n
         f(i)=cmplx(i,i)
     enddo
 
     g=0
-    do x=0,n1
-        do t=0,n1
-            if (x-t>=0 .and. x-t<=n1) then
+    do x=-n1,n
+        do t=-n1,n
+            if (x-t>=-n1 .and. x-t<=n) then
                 g(x)=g(x)+f(t)*f(x-t)
             endif
         enddo
@@ -134,11 +134,11 @@ subroutine testConvolution()
     write(0, *) g
 
     g=0
-    do x=0,n1
-        do t=0,n1
+    do x=-n1,n
+        do t=-n1,n
             x_minus_t = x-t
-            do while (x_minus_t<0 .or. x_minus_t>n1)
-                x_minus_t=x_minus_t-sign(1, x_minus_t)*n
+            do while (x_minus_t<-n1 .or. x_minus_t>n)
+                x_minus_t=x_minus_t-sign(1, x_minus_t)*(2*n)
             enddo
             g(x)=g(x)+f(t)*f(x_minus_t)
         enddo
@@ -147,17 +147,17 @@ subroutine testConvolution()
     write(0, *) 'directly calculated with period: '
     write(0, *) g
     f_ft=complex_0
-    do i1=0,m1;do i2=0,n1
-        f_ft(i1) = f_ft(i1) + exp(2*pi*i1*i2/n*complex_i)*f(i2)
+    do i1=-m1,m;do i2=-n1,n
+        f_ft(i1) = f_ft(i1) + exp(2*pi*i1*i2/(2*m)*complex_i)*f(i2)
     enddo; enddo
 
     f_ft = f_ft*f_ft
 
     g=complex_0
-    do i1=0,n1;do i2=0,m1
-        g(i1) = g(i1) + exp(-2*pi*i1*i2/n*complex_i)*f_ft(i2)
+    do i1=-n1,n;do i2=-m1,m
+        g(i1) = g(i1) + exp(-2*pi*i1*i2/(2*m)*complex_i)*f_ft(i2)
     enddo; enddo
-    g=g/m
+    g=g/(m*2)
 
     write(0, *) 'calculated by ft: '
     write(0, *) g
