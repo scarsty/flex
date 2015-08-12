@@ -17,7 +17,7 @@ subroutine eliashberg()
     integer l1,m1,l2,m2,l3,m3
     real lambda, lambda0
     logical elia_conv
-    ! complex, dimension (nb*nb*nk*(nomega*2-1), nb*nb*nk*(nomega*2-1)):: Elishaberg
+    ! complex, dimension (nb*nb*nk*(nomega*2-1), nb*nb*nk*(nomega*2-1)):: Eliashberg
 
     ! ---------------------------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ subroutine eliashberg()
                 - 0.5*ABA(U_c, chi_c_)
         else
             V_s(:, :, ikx, iky, iomegaq) = U_ud + 1.5*ABA(U_s,chi_s_) &
-                -0.5*ABA(U_c, chi_c_)
+                - 0.5*ABA(U_c, chi_c_)
         endif
     enddo; enddo; enddo
 
@@ -95,7 +95,7 @@ subroutine eliashberg()
                                 V_s_r_tau(sub_g2chi(l1,l3), sub_g2chi(m3,m1), k_kminusk, itau) &
                                 * GGdelta_r_tau(sub_g2chi(l2,l3), sub_g2chi(m2,m3), ikk2, itau)
 
-                            !Elishaberg(elia1, elia2) = Elishaberg(elia1, elia2) &
+                            !Eliashberg(elia1, elia2) = Eliashberg(elia1, elia2) &
                                 !   - &
                                 !   V_s(sub_g2chi(l1,l3), sub_g2chi(m3,m1), k_kminusk, omega_kminusk) &
                                 !   *G(l3,l2,ikk2,iomegak2)*conjg(G(m3,m2,ikk2,iomegak2))
