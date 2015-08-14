@@ -37,7 +37,7 @@ module parameters2
     complex, dimension (-nomega:nomega, -ntau:ntau) :: dft_f, dft_b
     complex, dimension (-ntau:ntau, -nomega:nomega) :: idft_f, idft_b
 
-    complex, dimension (nk, -nomega2+1:nomega2) :: dft_in
-    complex, dimension (nk, -nomega2+1:nomega2) :: dft_out
+    complex, dimension (nkx, nky, -nomega2+1:nomega2) :: dft_in
+    complex, dimension (nkx, nky, -nomega2+1:nomega2) :: dft_out
 
 end module parameters2

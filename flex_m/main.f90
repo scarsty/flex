@@ -124,10 +124,10 @@ program flex_m2d
 
     ! base density
     density_base = 0d0
-        do ib=1,nb; do ik=1,nk
-            density_base=density_base+1/(exp(T_beta*(h0_k(ib,ib,ik)-mu))-1)
-        enddo; enddo
-        density_base=density_base*2
+    do ib=1,nb; do ikx=1,nkx; do iky=1,nky
+        density_base=density_base+1/(exp(T_beta*(h0_k(ib,ib,ikx,iky)-mu))-1)
+    enddo; enddo; enddo
+    density_base=density_base*2
 
     do while (.not. density_conv)
 
@@ -148,9 +148,9 @@ program flex_m2d
             ! 卷积形式, 改成减法  on tau
             chi_0_r_tau=0
             do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-                    chi_0_r_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
-                        = - G_r_tau(l1, m1, :, :, :)*conjg(G_r_tau(m2, l2, :, :, :))
-             enddo;enddo;enddo;enddo
+                chi_0_r_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
+                    = - G_r_tau(l1, m1, :, :, :)*conjg(G_r_tau(m2, l2, :, :, :))
+            enddo;enddo;enddo;enddo
 
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, -1, 1)
@@ -180,7 +180,7 @@ program flex_m2d
                 call cgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_s_, square_nb, info)
                 chi_s(:, :, ikx, iky, iomegaq) = chi_s_
 
-                V(:, :, ikq, iomegaq) = U_ud - 2*U_uu - ABA(U_ud, chi_0_) &
+                V(:, :, ikx, iky, iomegaq) = U_ud - 2*U_uu - ABA(U_ud, chi_0_) &
                     + 1.5*ABA(U_s, chi_s_) + 0.5*ABA(U_c, chi_c_)
 
             enddo; enddo; enddo
@@ -197,8 +197,8 @@ program flex_m2d
             ! sigma_r_tau, 并行
             sigma_r_tau=0
             do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-                    sigma_r_tau(l1, m1, :, ;, :)
-                        = + V_r_tau(sub_g2chi(l1,l2), sub_g2chi(m1,m2),:,:,:) * G_r_tau(l2,m2,:,:,:)
+                sigma_r_tau(l1, m1, :, :, :) = sigma_r_tau(l1, m1, :, :, :) &
+                    + V_r_tau(sub_g2chi(l1,l2), sub_g2chi(m1,m2),:,:,:) * G_r_tau(l2,m2,:,:,:)
             enddo; enddo; enddo; enddo
 
             ! idft sigma_r_tau to sigma
@@ -248,9 +248,9 @@ program flex_m2d
         cur_density=0d0
 
 
-        do ib=1,nb; do ik=1,nk; do iomegak=-nomega,nomega
-            cur_density=cur_density+G(ib, ib, ik, iomegak)-G0(ib, ib, ik, iomegak)
-        enddo; enddo; enddo
+        do ib=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=-nomega,nomega
+            cur_density=cur_density+G(ib, ib, ikx, iky, iomegak)-G0(ib, ib, ikx, iky, iomegak)
+        enddo; enddo; enddo; enddo
 
         cur_density=cur_density*2 + density_base
 
@@ -270,13 +270,13 @@ program flex_m2d
     ! output chi_s(q,0)
     write(stdout,*) 'chi_s at omega = 0'
 
-!    do l1=1,nb; do l2=1,nb
-!        temp_complex=complex_0
-!        do ikx=1,nk
-!            temp_complex=temp_complex+chi_s(sub_g2chi(l1,l1),sub_g2chi(l2,l2),ikx,0)
-!        enddo
-!        write(stdout,*) k(iq,:), temp_complex
-!    enddo; enddo
+    !    do l1=1,nb; do l2=1,nb
+    !        temp_complex=complex_0
+    !        do ikx=1,nk
+    !            temp_complex=temp_complex+chi_s(sub_g2chi(l1,l1),sub_g2chi(l2,l2),ikx,0)
+    !        enddo
+    !        write(stdout,*) k(iq,:), temp_complex
+    !    enddo; enddo
 
 
 

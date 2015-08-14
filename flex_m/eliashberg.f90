@@ -43,7 +43,7 @@ subroutine eliashberg()
     ! enddo; enddo
 
     ! dft V_s to V_s_r_tau
-    call dft(V_s, V_r_tau, nb*nb, -1,0)
+    call dft(V_s, V_r_tau, nb*nb, 1,0)
 
     ! 规格化幂法求解LEV
     ! u=v
@@ -79,35 +79,21 @@ subroutine eliashberg()
         enddo; enddo
 
         ! 变换至时域上G*G*delta
-        call dft(GGdelta, GGdelta_r_tau, nb*nb, 0)
+        call dft(GGdelta, GGdelta_r_tau, nb*nb, 1, 0)
 
         ! 原方程包含负号, 使用减法
         delta_r_tau = complex_0
         do l1=1,nb; do m1=1,nb
-            do ikk1=1,nk; do ikk2=1,nk;
-                k_kminusk = k_minus(ikk1, ikk2)
-                do l2=1,nb; do m2=1,nb
-                    do l3=1,nb; do m3=1,nb
-                        do itau=-ntau,ntau
-
-                            delta_r_tau(l1, m1, ikk1, itau) = delta_r_tau(l1, m1, ikk1, itau) &
-                                - &
-                                V_s_r_tau(sub_g2chi(l1,l3), sub_g2chi(m3,m1), k_kminusk, itau) &
-                                * GGdelta_r_tau(sub_g2chi(l2,l3), sub_g2chi(m2,m3), ikk2, itau)
-
-                            !Eliashberg(elia1, elia2) = Eliashberg(elia1, elia2) &
-                                !   - &
-                                !   V_s(sub_g2chi(l1,l3), sub_g2chi(m3,m1), k_kminusk, omega_kminusk) &
-                                !   *G(l3,l2,ikk2,iomegak2)*conjg(G(m3,m2,ikk2,iomegak2))
-
-                        enddo
-                    enddo; enddo
-                enddo; enddo
+            do l3=1,nb; do m3=1,nb
+                delta_r_tau(l1,m1,:,:,:) = delta_r_tau(l1,m1,:,:,:) &
+                    - &
+                    V_s_r_tau(sub_g2chi(l1,l3),sub_g2chi(m3,m1),:,:,:) &
+                    * GGdelta_r_tau(l3,m3,:,:,:)
             enddo; enddo
         enddo; enddo
 
         ! 变换回频域
-        call idft(delta_r_tau, delta, nb, 1)
+        call dft(delta_r_tau, delta, nb, -1, 1)
 
         ! 规格化
         lambda = 0
