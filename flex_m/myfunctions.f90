@@ -112,28 +112,30 @@ contains
         ! 可以一次计算一组, 或者构造大矩阵计算多组
         ! for one k-point, G_tau (行) = G_omega (行) * dft
         ! G_omega (行) = G_tau (行) * idft
-        do itau = -ntau,ntau
-            do iomega=-nomega,nomega
-                omega_f = 2*iomega-1
-                omega_b = 2*iomega
-                tau = itau*1d0/ntau
-                dft_f(iomega, itau) = exp(-2*pi*omega_f*tau*complex_i)
-                dft_b(iomega, itau) = exp(-2*pi*omega_b*tau*complex_i)
-                idft_f(itau, iomega) = exp(2*pi*omega_f*tau*complex_i)
-                idft_b(itau, iomega) = exp(2*pi*omega_b*tau*complex_i)
-            enddo
-        enddo
-
-        ! 这里的系数可能应该*2, 即所有频率一起考虑
-        dft_f = dft_f / (2*nomega+1)
-        dft_b = dft_b / (2*nomega+1)
+        !        do itau = -ntau,ntau
+        !            do iomega=-nomega,nomega
+        !                omega_f = 2*iomega-1
+        !                omega_b = 2*iomega
+        !                tau = itau*1d0/ntau
+        !                dft_f(iomega, itau) = exp(-2*pi*omega_f*tau*complex_i)
+        !                dft_b(iomega, itau) = exp(-2*pi*omega_b*tau*complex_i)
+        !                idft_f(itau, iomega) = exp(2*pi*omega_f*tau*complex_i)
+        !                idft_b(itau, iomega) = exp(2*pi*omega_b*tau*complex_i)
+        !            enddo
+        !        enddo
+        !
+        !        ! 这里的系数可能应该*2, 即所有频率一起考虑
+        !        dft_f = dft_f / (2*nomega+1)
+        !        dft_b = dft_b / (2*nomega+1)
 
         return
     end subroutine buildDFTMatrix
 
     ! dft, direction means FORWORD(+) or BACKWORD(-)
+    ! 调用fftw
+    ! normal为归一化和展宽部分清零
     subroutine dft(input, output, N, direction, normal)
-        use constants, only : nk, total_omega, total_tau, nomega, ntau
+        use constants
         use parameters2
         use, intrinsic :: iso_c_binding
         implicit none
@@ -141,27 +143,31 @@ contains
         include 'fftw3.f03'
         type(C_PTR) :: plan
 
-        integer N, fb, l, m, normal
-        integer(C_INT) direction
+        integer N, fb, l, m, normal, i
+        integer(C_INT) direction, direction2
         complex, dimension(N,N,nkx,nky,-nomega2+1:nomega2) :: input
         complex, dimension(N,N,nkx,nky,-nomega2+1:nomega2) :: output
 
         if (direction >= 0) then
-            direction = FFTW_FORWARD
+            direction2 = FFTW_FORWARD
         else
-            direction = FFTW_BACKWARD
+            direction2 = FFTW_BACKWARD
         endif
 
         do l=1,N; do m=1,N
             dft_in = input(l,m,:,:,:)
-
-            plan=fftwf_plan_dft_3d(nkx, nky, 2*nomega2, dft_in, dft_out, direction, FFTW_ESTIMATE)
+            plan=fftwf_plan_dft_3d(nkx, nky, 2*nomega2, dft_in, dft_out, direction2, FFTW_ESTIMATE)
             call fftwf_execute_dft(plan, dft_in, dft_out)
             call fftwf_destroy_plan(plan)
+            ! 清空截断频率之外
+            if (normal /= 0) then
+                dft_out(:,:,-nomega2+1:-nomega) = complex_0
+                dft_out(:,:,nomega:nomega2) = complex_0
+            endif
 
             output(l,m,:,:,:) = dft_out
         enddo; enddo
-
+        ! 卷积结果归一化
         if (normal /= 0) then
             output = output/nkx/nky/2/nomega2
         endif

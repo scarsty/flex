@@ -34,8 +34,8 @@ module parameters2
     complex, dimension (nb*nb, nb*nb) :: chi_0_, chi_c_, chi_s_, Iminuschi_0_
 
     ! 傅里叶变换, 反傅里叶变换的辅助, f/b means fermi and bose freq
-    complex, dimension (-nomega:nomega, -ntau:ntau) :: dft_f, dft_b
-    complex, dimension (-ntau:ntau, -nomega:nomega) :: idft_f, idft_b
+    !complex, dimension (-nomega:nomega, -ntau:ntau) :: dft_f, dft_b
+    !complex, dimension (-ntau:ntau, -nomega:nomega) :: idft_f, idft_b
 
     complex, dimension (nkx, nky, -nomega2+1:nomega2) :: dft_in
     complex, dimension (nkx, nky, -nomega2+1:nomega2) :: dft_out

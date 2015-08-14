@@ -86,17 +86,17 @@ program flex_m2d
     enddo; enddo
     ! 好像没归一化? a: seems it is ok
 
-    if (test_band) then
-        call build_h0_k()
-    endif
+    ! if (test_band) then
+    call build_h0_k()
+    ! endif
 
     ! G0
     ! 费米频率 pi*(2n-1)
     G0=complex_0
     do l1=1,nb; do m1=1,nb; do n1=1,nb
         do ikx=1,nkx; do iky=1,nky
-            do iomegak=-nomega,nomega
-                G0(l1,m1,ikx,iky,iomega) = 1d0/(complex_i*pi*(2*iomegak-1)/T_beta-(h0_k(n1,n1,ikx,iky)-mu)) ! 未完成
+            do iomegak=-nomega1,nomega1
+                G0(l1,m1,ikx,iky,iomegak) = 1d0/(complex_i*pi*(2*iomegak-1)/T_beta-(h0_k(n1,n1,ikx,iky)-mu)) ! 未完成
             enddo
         enddo; enddo
     enddo; enddo; enddo
@@ -135,8 +135,6 @@ program flex_m2d
         sigma_iter=0
         do while (.not. sigma_conv)
 
-
-
             write(stdout, *) 'calculating chi_0...'
 
             ! calculate chi_0 with chi(q)= -G1(q-k)G2(-k),
@@ -154,8 +152,6 @@ program flex_m2d
 
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, -1, 1)
-
-            ! write(stdout, *) 'calculated chi_0'
 
 
 
@@ -185,8 +181,6 @@ program flex_m2d
 
             enddo; enddo; enddo
 
-            ! write(stdout, *) 'calculated chi_c, chi_s, V'
-
 
 
             write(stdout, *) 'calculating sigma...'
@@ -204,8 +198,6 @@ program flex_m2d
             ! idft sigma_r_tau to sigma
             call dft(sigma_r_tau, sigma, nb, -1, 1)
 
-            ! write(stdout, *) 'calculated sigma'
-
 
 
             write(stdout, *) 'calculating New G...'
@@ -222,7 +214,6 @@ program flex_m2d
                 enddo;enddo;enddo
             enddo;enddo
 
-            ! write(stdout, *) 'calculated New G'
 
 
             write(stdout, *) 'checking convergence of sigma...'
@@ -270,13 +261,13 @@ program flex_m2d
     ! output chi_s(q,0)
     write(stdout,*) 'chi_s at omega = 0'
 
-    !    do l1=1,nb; do l2=1,nb
-    !        temp_complex=complex_0
-    !        do ikx=1,nk
-    !            temp_complex=temp_complex+chi_s(sub_g2chi(l1,l1),sub_g2chi(l2,l2),ikx,0)
-    !        enddo
-    !        write(stdout,*) k(iq,:), temp_complex
-    !    enddo; enddo
+    do l1=1,nb; do l2=1,nb
+        temp_complex=complex_0
+        do ikx=1,nkx; do iky=1,nky
+            temp_complex=temp_complex+chi_s(sub_g2chi(l1,l1),sub_g2chi(l2,l2),ikx,iky,0)
+        enddo; enddo
+        write(stdout,*) k(ikx,iky,:), temp_complex
+    enddo; enddo
 
 
 

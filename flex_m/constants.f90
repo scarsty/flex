@@ -12,10 +12,10 @@ MODULE constants
 	integer, parameter :: nomega=8, nomega1 = nomega-1, nomega2 = 2*nomega
 	!
 	! 虚时间离散的点数
-    integer, parameter :: ntau=256
+    ! integer, parameter :: ntau=256
 
 	integer, parameter :: total_omega=nomega*2+1
-	integer, parameter :: total_tau=ntau*2+1
+	! integer, parameter :: total_tau=ntau*2+1
 
 	! k点
 	integer, parameter :: nkx = 8   ! lattice dimension >=lcx
