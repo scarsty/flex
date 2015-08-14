@@ -135,6 +135,7 @@ contains
     subroutine dft(input, output, N, direction, normal)
         use constants, only : nk, total_omega, total_tau, nomega, ntau
         use parameters2
+        use, intrinsic :: iso_c_binding
         implicit none
 
         include 'fftw3.f03'
