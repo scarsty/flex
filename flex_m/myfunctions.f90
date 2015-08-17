@@ -159,17 +159,15 @@ contains
             plan=fftwf_plan_dft_3d(nkx, nky, 2*nomega2, dft_in, dft_out, direction2, FFTW_ESTIMATE)
             call fftwf_execute_dft(plan, dft_in, dft_out)
             call fftwf_destroy_plan(plan)
-            ! 清空截断频率之外
-            if (normal /= 0) then
-                dft_out(:,:,-nomega2+1:-nomega) = complex_0
-                dft_out(:,:,nomega:nomega2) = complex_0
-            endif
 
             output(l,m,:,:,:) = dft_out
         enddo; enddo
         ! 卷积结果归一化
         if (normal /= 0) then
             output = output/nkx/nky/2/nomega2
+            ! 清空截断频率之外
+            output(:,:,:,:,-nomega2+1:-nomega) = complex_0
+            output(:,:,:,:,nomega:nomega2) = complex_0
         endif
 
         return

@@ -2,17 +2,17 @@
 !------------Basic thermodynamic parameters -----------------------
 T=100.0d0            ! temperature (K)
 target_density=6d0, density_tol=1.0d-8    ! electron density, tolerance
-mu=11.0d+00   ! guess for unrenormalized chemical potential (eV)
+mu=0.0d+00   ! guess for unrenormalized chemical potential (eV)
 
 !-------------------- Interaction parameters  ------------------------------
-h1_U=1.5d0, h1_Up= 1.2d0, h1_J= 0.15d0, h1_Jp= 0.15d0 ! U , U' , J , J' (eV) for H1
+h1_U=4d0, h1_Up= 1.2d0, h1_J= 0.15d0, h1_Jp= 0.15d0 ! U , U' , J , J' (eV) for H1
 
 !---------Sigma input and output ----------------------------------------------
 sigma_input=.true.,  sigma_input_file="sig_output"             ! input
 sigma_output=.true., sigma_output_file="sig_output"             ! output
 
 !----------FEA parameters ------------------------------------------------
-sigma_tol=1.0d-08, max_it= 50             ! tolerance in sigma, maximum iterations
+sigma_tol=1.0d-06, max_it= 50             ! tolerance in sigma, maximum iterations
 alpha=0.3d0,  alpha_scheme=1       ! alpha, (0 constant, 1 using Sig_HF, 2 using Sig_e0)
 spin_state=1 ! spin state, 1 or 3
 /

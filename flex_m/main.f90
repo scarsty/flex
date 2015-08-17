@@ -36,12 +36,13 @@ program flex_m2d
         call testband()
     endif
 
-    call testConvolution()
-    call testConvolution2()
+    ! call testConvolution()
+    ! call testConvolution2()
     ! return
 
     T_beta = 1d0/kB/T
 
+    T_beta = 0.25
     !计算k点的坐标
     zero_k = 1    ! k原点
     do ikx = 1, nkx
@@ -74,6 +75,8 @@ program flex_m2d
     U_s = U_ud-U_uu
     U_c = U_ud+u_uu
 
+    write (stdout, *) U_s, U_c, U_ud, U_uu
+
     ! 反傅里叶变换h0到k空间
     h0_k = complex_0
     do ikx=1,nkx; do iky=1,nky
@@ -89,17 +92,20 @@ program flex_m2d
     ! if (test_band) then
     call build_h0_k()
     ! endif
+    write(stderr,*) h0_k
+    write(stderr,*) k
 
     ! G0
     ! 费米频率 pi*(2n-1)
     G0=complex_0
-    do l1=1,nb; do m1=1,nb; do n1=1,nb
+    do l1=1,nb; do m1=1,nb; !do n1=1,nb
         do ikx=1,nkx; do iky=1,nky
             do iomegak=-nomega1,nomega1
-                G0(l1,m1,ikx,iky,iomegak) = 1d0/(complex_i*pi*(2*iomegak-1)/T_beta-(h0_k(n1,n1,ikx,iky)-mu)) ! 未完成
+                !G0(l1,m1,ikx,iky,iomegak) = 1d0/(complex_i*pi*(2*iomegak-1)/T_beta-(h0_k(n1,n1,ikx,iky)-mu)) ! 未完成
+                G0(l1,m1,ikx,iky,iomegak) = T_beta / (complex_i*pi*(2*iomegak-1) - (h0_k(l1,m1,ikx,iky)-mu))
             enddo
         enddo; enddo
-    enddo; enddo; enddo
+    enddo; enddo; !enddo
     G=G0
 
     ! I_chi
@@ -141,18 +147,18 @@ program flex_m2d
 
             ! dft G to G_r_tau
             call dft(G, G_r_tau, nb, 1, 0)
-
+            !write(stderr,*) G
             ! chi_0, 看起来需要并行
             ! 卷积形式, 改成减法  on tau
             chi_0_r_tau=0
             do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
                 chi_0_r_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
                     = - G_r_tau(l1, m1, :, :, :)*conjg(G_r_tau(m2, l2, :, :, :))
-            enddo;enddo;enddo;enddo
+            enddo; enddo; enddo; enddo
 
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, -1, 1)
-
+            !write(stderr,*) chi_0
 
 
             write(stdout, *) 'calculating chi_c, chi_s, V...'
@@ -166,6 +172,7 @@ program flex_m2d
                 chi_0_=chi_0(:, :, ikx, iky, iomegaq)
 
                 Iminuschi_0_ = I_chi + AB(chi_0_, U_c)
+
                 chi_c_ = chi_0(:, :, ikx, iky, iomegaq)
                 call cgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_c_, square_nb, info)
                 chi_c(:, :, ikx, iky, iomegaq) = chi_c_
@@ -218,19 +225,19 @@ program flex_m2d
 
             write(stdout, *) 'checking convergence of sigma...'
 
-            ! 第一次迭代, 直接赋值sigma0
-            if(sigma_iter==0) then
-                sigma0 = sigma
-            else
+            ! 第一次迭代, 直接赋值sigma0, 不测试收敛
+            if(sigma_iter>0) then
                 ! 计算sigma0与sigma的符合情况, 向量库
                 ! scnrm2: 欧几里得模，行向量乘以自身转置共轭
                 sigma_minus = sigma0 - sigma
-                cur_sigma_tol=scnrm2(nb*nb*nk*total_omega, sigma_minus, 1)
+                cur_sigma_tol = scnrm2(nb*nb*nkx*nky*nomega2, sigma_minus, 1) &
+                    / scnrm2(nb*nb*nkx*nky*nomega2, sigma, 1)
                 write(stdout,*) 'sigma tolence is ', cur_sigma_tol, '/', sigma_tol
                 if (cur_sigma_tol<sigma_tol) then
                     sigma_conv = .true.
                 endif
             endif
+            sigma0 = sigma
             sigma_iter=sigma_iter+1;
             ! 未收敛处理G?
         enddo ! sigma loop
