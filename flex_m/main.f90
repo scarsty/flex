@@ -80,11 +80,11 @@ program flex_m2d
     ! 反傅里叶变换h0到k空间
     h0_k = complex_0
     do ikx=1,nkx; do iky=1,nky
-        do irx = -rx, rx; do iry = -ry, ry
-            temp=[ix,iy]
+        do irx=-rx,rx; do iry=-ry,ry
+            temp=[irx,iry]
             rdotk = two_pi*dot_product(k(ikx,iky,:),temp)
             fac=exp(complex_i*rdotk)
-            h0_k(:,:,ikx,iky)=h0_k(:,:,ikx,iky)+fac*h0_r(:,:,irx, iry)
+            h0_k(:,:,ikx,iky)=h0_k(:,:,ikx,iky)+fac*h0_r(:,:,irx,iry)
         enddo; enddo
     enddo; enddo
     ! 好像没归一化? a: seems it is ok
@@ -107,7 +107,6 @@ program flex_m2d
         enddo; enddo
     enddo; enddo; !enddo
     G=G0
-    write(stderr,*) G0(1,1,1,1,0),G0(1,1,3,3,1)
 
     !call testConvolution3()
 
@@ -229,14 +228,14 @@ program flex_m2d
             write(stdout, *) 'checking convergence of sigma...'
 
             ! 第一次迭代, 直接赋值sigma0, 不测试收敛
-            if(sigma_iter>0) then
+            if (sigma_iter > 0) then
                 ! 计算sigma0与sigma的符合情况, 向量库
                 ! scnrm2: 欧几里得模，行向量乘以自身转置共轭
                 sigma_minus = sigma0 - sigma
                 cur_sigma_tol = scnrm2(nb*nb*nkx*nky*nomega2, sigma_minus, 1) &
                     / scnrm2(nb*nb*nkx*nky*nomega2, sigma, 1)
                 write(stdout,*) 'sigma tolence is ', cur_sigma_tol, '/', sigma_tol
-                if (cur_sigma_tol<sigma_tol) then
+                if (cur_sigma_tol < sigma_tol) then
                     sigma_conv = .true.
                 endif
             endif

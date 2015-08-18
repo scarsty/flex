@@ -10,15 +10,12 @@ MODULE constants
 
 	! 松原频率个数, effective is -(nomega1)~(nomega1)
 	integer, parameter :: nomega=8, nomega1 = nomega-1, nomega2 = 2*nomega
-	!
+
 	! 虚时间离散的点数
     ! integer, parameter :: ntau=256
 
-	integer, parameter :: total_omega=nomega*2+1
-	! integer, parameter :: total_tau=ntau*2+1
-
 	! k点
-	integer, parameter :: nkx = 4   ! lattice dimension >=lcx
+	integer, parameter :: nkx = 4
 	integer, parameter :: nky = 4
 	integer, parameter :: nkz = 1
 	integer, parameter :: nk = nkx*nky*nkz
@@ -44,8 +41,6 @@ MODULE constants
 
 	real, parameter, public    :: pi=3.141592653589793238462643383279
 	real, parameter, public    :: two_pi = 2*pi
-    ! real, public    :: pi=3.141592653589793238462643383279
-	! real, public    :: two_pi
 
 	complex, parameter, public :: complex_i = (0.0,1.0)
 	complex, parameter, public :: complex_0 = (0.0,0.0)
