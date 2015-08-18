@@ -75,7 +75,7 @@ program flex_m2d
     U_s = U_ud-U_uu
     U_c = U_ud+u_uu
 
-    write (stdout, *) U_s, U_c, U_ud, U_uu
+    !write (stdout, *) U_s, U_c, U_ud, U_uu
 
     ! 反傅里叶变换h0到k空间
     h0_k = complex_0
@@ -92,8 +92,8 @@ program flex_m2d
     ! if (test_band) then
     call build_h0_k()
     ! endif
-    write(stderr,*) h0_k
-    write(stderr,*) k
+    !write(stderr,*) h0_k
+    !write(stderr,*) k
 
     ! G0
     ! 费米频率 pi*(2n-1)
@@ -107,7 +107,11 @@ program flex_m2d
         enddo; enddo
     enddo; enddo; !enddo
     G=G0
+    write(stderr,*) G0(1,1,1,1,0),G0(1,1,3,3,1)
 
+    !call testConvolution3()
+
+    return
     ! I_chi
     I_chi=complex_0
     do i=1,nb*nb
@@ -147,7 +151,7 @@ program flex_m2d
 
             ! dft G to G_r_tau
             call dft(G, G_r_tau, nb, 1, 0)
-            !write(stderr,*) G
+
             ! chi_0, 看起来需要并行
             ! 卷积形式, 改成减法  on tau
             chi_0_r_tau=0
@@ -158,7 +162,6 @@ program flex_m2d
 
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, -1, 1)
-            !write(stderr,*) chi_0
 
 
             write(stdout, *) 'calculating chi_c, chi_s, V...'

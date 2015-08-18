@@ -9,7 +9,7 @@ MODULE constants
 	! Lattice and frequency grid parameters. (all must be 2^n!)
 
 	! 松原频率个数, effective is -(nomega1)~(nomega1)
-	integer, parameter :: nomega=64, nomega1 = nomega-1, nomega2 = 2*nomega
+	integer, parameter :: nomega=8, nomega1 = nomega-1, nomega2 = 2*nomega
 	!
 	! 虚时间离散的点数
     ! integer, parameter :: ntau=256

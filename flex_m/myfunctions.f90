@@ -164,7 +164,7 @@ contains
         enddo; enddo
         ! 卷积结果归一化
         if (normal /= 0) then
-            output = output/nkx/nky/2/nomega2
+            output = output/nkx/nky/nomega2
             ! 清空截断频率之外
             output(:,:,:,:,-nomega2+1:-nomega) = complex_0
             output(:,:,:,:,nomega:nomega2) = complex_0
