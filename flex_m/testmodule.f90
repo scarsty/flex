@@ -289,10 +289,10 @@ subroutine testConvolution3()
                     kyplus=kyplus-sign(1, kyplus)*nky
                 enddo
                 omegaplus=iomega1+iomega2
-                if (abs(omegaplus)<=nomega1)then
+                if (abs(omegaplus)<=nomega1) then
                     chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, iomega2) &
-                    = chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, iomega2) &
-                    - G(l1, m1, kxplus, kyplus, omegaplus)*G(m2, l2, ikx1, iky1, iomega1)
+                        = chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, iomega2) &
+                        - G(l1, m1, kxplus, kyplus, omegaplus)*G(m2, l2, ikx1, iky1, iomega1)
                 endif
             enddo;enddo;enddo
         enddo;enddo;enddo
