@@ -188,7 +188,6 @@ subroutine testConvolution2()
         f(i1,i2)=cmplx(i1*i2,i1+i2)
     enddo; enddo
 
-
     call cpu_time(start)
     do num=1,10000
         g=0
