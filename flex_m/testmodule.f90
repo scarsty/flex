@@ -262,23 +262,23 @@ subroutine testConvolution3()
     complex temp_complex
     ! dft G to G_r_tau
     call dft(G, G_r_tau, nb, 1, 0)
-
-    ! chi_0, 看起来需要并行
-    ! 卷积形式, 改成减法  on tau
+    call dft(conjgG, conjgG_r_tau, nb, 1, 0)
+    ! 卷积形式, 改成减法
     chi_0_r_tau=0
     do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
         chi_0_r_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
-            = - G_r_tau(l1, m1, :, :, :)*conjg(G_r_tau(m2, l2, :, :, :))
+            = - G_r_tau(l1, m1, :, :, :)*conjgG_r_tau(m2, l2, :, :, :)
     enddo; enddo; enddo; enddo
 
     ! idft chi_0_r_tau to chi_0
     call dft(chi_0_r_tau, chi_0, nb*nb, -1, 1)
+    write(stderr, *) G
     write(stderr, *) chi_0
 
     chi_0=complex_0
     do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-        do ikx1=1,nkx;do iky1=1,nky;do iomega1=-nomega1,nomega1
-            do ikx2=1,nkx;do iky2=1,nky;do iomega2=-nomega1,nomega1
+        do ikx1=1,nkx;do iky1=1,nky;do iomega1=-(2*nomega-1),2*nomega-1,2
+            do ikx2=1,nkx;do iky2=1,nky;do iomega2=-2*(2*nomega-1),2*(2*nomega-1),2
                 kxplus=ikx1+ikx2
                 kyplus=iky1+iky2
                 do while (kxplus<0 .or. kxplus>nkx)
@@ -288,7 +288,7 @@ subroutine testConvolution3()
                     kyplus=kyplus-sign(1, kyplus)*nky
                 enddo
                 omegaplus=iomega1+iomega2
-                if (abs(omegaplus)<=nomega1) then
+                if (abs(omegaplus)<=2*(2*nomega-1)) then
                     chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, iomega2) &
                         = chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, iomega2) &
                         - G(l1, m1, kxplus, kyplus, omegaplus)*G(m2, l2, ikx1, iky1, iomega1)
@@ -298,7 +298,7 @@ subroutine testConvolution3()
     enddo;enddo;enddo;enddo
     write(stderr, *) chi_0
 
-    write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
+    !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
 
 end subroutine testConvolution3
 

@@ -96,21 +96,22 @@ program flex_m2d
     !write(stderr,*) k
 
     ! G0
-    ! 费米频率 pi*(2n-1)
+    ! 费米频率
     G0=complex_0
     do l1=1,nb; do m1=1,nb; !do n1=1,nb
         do ikx=1,nkx; do iky=1,nky
-            do iomegak=-nomega1,nomega1
+            do iomegak=-(2*nomega-1),2*nomega-1,2
                 !G0(l1,m1,ikx,iky,iomegak) = 1d0/(complex_i*pi*(2*iomegak-1)/T_beta-(h0_k(n1,n1,ikx,iky)-mu)) ! 未完成
-                G0(l1,m1,ikx,iky,iomegak) = T_beta / (complex_i*pi*(2*iomegak-1) - (h0_k(l1,m1,ikx,iky)-mu))
+                G0(l1,m1,ikx,iky,iomegak) = T_beta / (complex_i*pi*iomegak - (h0_k(l1,m1,ikx,iky)-mu))
             enddo
         enddo; enddo
     enddo; enddo; !enddo
     G=G0
+    conjgG=conjg(G)
 
-    !call testConvolution3()
+    call testConvolution3()
 
-    return
+    stop
     ! I_chi
     I_chi=complex_0
     do i=1,nb*nb

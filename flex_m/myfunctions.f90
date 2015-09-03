@@ -145,8 +145,8 @@ contains
 
         integer N, fb, l, m, normal, i
         integer(C_INT) direction, direction2
-        complex, dimension(N,N,nkx,nky,-nomega2+1:nomega2) :: input
-        complex, dimension(N,N,nkx,nky,-nomega2+1:nomega2) :: output
+        complex, dimension(N,N,nkx,nky,-nomega2:nomega2-1) :: input
+        complex, dimension(N,N,nkx,nky,-nomega2:nomega2-1) :: output
 
         if (direction >= 0) then
             direction2 = FFTW_FORWARD
@@ -164,10 +164,10 @@ contains
         enddo; enddo
         ! 卷积结果归一化
         if (normal /= 0) then
-            output = output/nkx/nky/nomega2
+            output = output/nkx/nky/nomega2/2
             ! 清空截断频率之外
-            output(:,:,:,:,-nomega2+1:-nomega) = complex_0
-            output(:,:,:,:,nomega:nomega2) = complex_0
+            !output(:,:,:,:,-nomega2+1:-nomega) = complex_0
+            !output(:,:,:,:,nomega:nomega2) = complex_0
         endif
 
         return
