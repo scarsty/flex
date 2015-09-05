@@ -145,8 +145,8 @@ contains
 
         integer N, fb, l, m, normal, i
         integer(C_INT) direction, direction2
-        complex, dimension(N,N,nkx,nky,-nomega2:nomega2-1) :: input
-        complex, dimension(N,N,nkx,nky,-nomega2:nomega2-1) :: output
+        complex, dimension(N,N,nkx,nky,0:totalnomega-1) :: input
+        complex, dimension(N,N,nkx,nky,0:totalnomega-1) :: output
 
         if (direction >= 0) then
             direction2 = FFTW_FORWARD
