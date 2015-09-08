@@ -95,20 +95,6 @@ program flex_m2d
     !write(stderr,*) h0_k
     !write(stderr,*) k
 
-    ! G0
-    ! 费米频率
-    G0=complex_0
-    do l1=1,nb; do m1=1,nb; !do n1=1,nb
-        do ikx=1,nkx; do iky=1,nky
-            do iomegak=-maxomegaf,maxomegaf,2
-                !G0(l1,m1,ikx,iky,iomegak) = 1d0/(complex_i*pi*(2*iomegak-1)/T_beta-(h0_k(n1,n1,ikx,iky)-mu)) ! 未完成
-                G0(l1,m1,ikx,iky,transfer_freq(iomegak)) = T_beta / (complex_i*pi*iomegak - (h0_k(l1,m1,ikx,iky)-mu))
-            enddo
-        enddo; enddo
-    enddo; enddo; !enddo
-    G=G0
-    conjgG=conjg(G)
-
     !call testConvolution3()
     !stop
 
@@ -131,23 +117,39 @@ program flex_m2d
 
 
     density_conv = .false.
-
-    ! base density
-    density_base = 0d0
-    do ib=1,nb; do ikx=1,nkx; do iky=1,nky
-        density_base=density_base+1/(exp(T_beta*(h0_k(ib,ib,ikx,iky)-mu))-1)
-        write(stdout, *) h0_k(ib,ib,ikx,iky), exp(T_beta*(h0_k(ib,ib,ikx,iky)-mu))-1
-    enddo; enddo; enddo
-    density_base=density_base*2
-    write(stdout, *) 'base density is ', density_base, mu
-    !stop
     do while (.not. density_conv)
 
         sigma_conv=.false.
         sigma_iter=0
+
+        ! G0
+        ! 费米频率
+        G0=complex_0
+        do l1=1,nb; do m1=1,nb; !do n1=1,nb
+            do ikx=1,nkx; do iky=1,nky
+                do iomegak=-maxomegaf,maxomegaf,2
+                    !G0(l1,m1,ikx,iky,iomegak) = &
+                        !1d0/(complex_i*pi*(2*iomegak-1)/T_beta-(h0_k(n1,n1,ikx,iky)-mu)) ! 未完成
+                    G0(l1,m1,ikx,iky,transfer_freq(iomegak)) = &
+                        T_beta / (complex_i*pi*iomegak - (h0_k(l1,m1,ikx,iky)-mu))
+                enddo
+            enddo; enddo
+        enddo; enddo; !enddo
+        G=G0
+        conjgG=conjg(G)
+
+        ! base density
+        density_base = 0d0
+        do ib=1,nb; do ikx=1,nkx; do iky=1,nky
+            density_base=density_base+1/(exp(T_beta*(h0_k(ib,ib,ikx,iky)-mu))+1)
+            ! write(stdout, *) h0_k(ib,ib,ikx,iky), exp(T_beta*(h0_k(ib,ib,ikx,iky)-mu))-1
+        enddo; enddo; enddo
+        density_base=density_base*2
+        write(stdout, *) 'base density is ', density_base, mu
+
         do while (.not. sigma_conv)
 
-            write(stdout, *) 'calculating chi_0...'
+            ! write(stdout, *) 'calculating chi_0...'
 
             ! calculate chi_0 with chi(q)= -G1(q-k)G2(-k),
 
@@ -167,8 +169,8 @@ program flex_m2d
             call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
 
 
-            write(stdout, *) 'calculating chi_c, chi_s, V...'
-            !write(stdout, *) chi_0
+            ! write(stdout, *) 'calculating chi_c, chi_s, V...'
+            ! write(stdout, *) chi_0
             !stop
             ! chi_c, chi_s, V, 需要并行和数学库
             ! 含有矩阵乘, 需改写
@@ -197,7 +199,7 @@ program flex_m2d
 
 
 
-            write(stdout, *) 'calculating sigma...'
+            ! write(stdout, *) 'calculating sigma...'
 
             ! dft V to V_r_tau
             call dft(V, V_r_tau, nb*nb, 1, 0)
@@ -214,7 +216,7 @@ program flex_m2d
 
 
 
-            write(stdout, *) 'calculating New G...'
+            ! write(stdout, *) 'calculating New G...'
 
             ! 新的G, dython方程
             G1=G
@@ -227,10 +229,10 @@ program flex_m2d
                     enddo;enddo
                 enddo;enddo;enddo
             enddo;enddo
+            conjgG=conjg(G)
 
 
-
-            write(stdout, *) 'checking convergence of sigma...'
+            ! write(stdout, *) 'checking convergence of sigma...'
 
             ! 第一次迭代, 直接赋值sigma0, 不测试收敛
             if (sigma_iter > 0) then
@@ -247,7 +249,9 @@ program flex_m2d
             sigma0 = sigma
             sigma_iter=sigma_iter+1;
             ! 未收敛处理G?
-        enddo ! sigma loop
+        enddo
+
+        ! sigma loop end
 
         ! 计算density
         cur_density=0d0
@@ -268,7 +272,8 @@ program flex_m2d
             write(stdout,*) 'modified new mu = ', mu
         endif
 
-    enddo ! density loop
+    enddo
+    ! density loop end
 
     ! 迭代部分结束--------------------------------------------------------------
 
