@@ -91,6 +91,18 @@ contains
             A, square_nb, B, square_nb, complex_0, AB, square_nb)
     end function AB
 
+    ! 松原频率转换, 数据结构设计如此
+    function transfer_freq(freq)
+        use constants
+        implicit none
+        integer freq, transfer_freq
+        if (freq>=0) then
+            transfer_freq=freq
+        else
+            transfer_freq=totalnomega+freq
+        endif
+    end function transfer_freq
+
     subroutine matrixProduct(src, dft_matrix, dst, M, N, K)
         use constants
         implicit none
@@ -156,7 +168,7 @@ contains
 
         do l=1,N; do m=1,N
             dft_in = input(l,m,:,:,:)
-            plan=fftwf_plan_dft_3d(nkx, nky, 2*nomega2, dft_in, dft_out, direction2, FFTW_ESTIMATE)
+            plan=fftwf_plan_dft_3d(nkx, nky, totalnomega, dft_in, dft_out, direction2, FFTW_ESTIMATE)
             call fftwf_execute_dft(plan, dft_in, dft_out)
             call fftwf_destroy_plan(plan)
 
@@ -164,10 +176,25 @@ contains
         enddo; enddo
         ! 卷积结果归一化
         if (normal /= 0) then
-            output = output/nkx/nky/nomega2/2
+            output = output/nkx/nky/totalnomega
             ! 清空截断频率之外
-            !output(:,:,:,:,-nomega2+1:-nomega) = complex_0
-            !output(:,:,:,:,nomega:nomega2) = complex_0
+            if (mod(normal,2)==1) then
+                do i=0,2*nomega-2,2
+                    output(:,:,:,:,i) = complex_0
+                enddo
+                do i=totalnomega-2*nomega+2,totalnomega,2
+                    output(:,:,:,:,i) = complex_0
+                enddo
+                output(:,:,:,:,2*nomega:totalnomega-2*nomega) = complex_0
+            else
+                do i=1,4*nomega-3,2
+                    output(:,:,:,:,i) = complex_0
+                enddo
+                do i=totalnomega-(4*nomega-3),totalnomega,2
+                    output(:,:,:,:,i) = complex_0
+                enddo
+                output(:,:,:,:,4*nomega-1:totalnomega-(4*nomega-1)) = complex_0
+            endif
         endif
 
         return

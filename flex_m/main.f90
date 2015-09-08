@@ -47,8 +47,8 @@ program flex_m2d
     zero_k = 1    ! k原点
     do ikx = 1, nkx
         do iky = 1, nky
-            k(ikx, ikx, 1)=-1d0/2+1d0/nkx*ikx
-            k(ikx, iky, 2)=-1d0/2+1d0/nky*iky
+            k(ikx, ikx, 1)=-1d0/2+1d0/nkx*(ikx-1)
+            k(ikx, iky, 2)=-1d0/2+1d0/nky*(iky-1)
             !write(stdout, *) k(count_k,:)
         enddo
     enddo
@@ -100,18 +100,18 @@ program flex_m2d
     G0=complex_0
     do l1=1,nb; do m1=1,nb; !do n1=1,nb
         do ikx=1,nkx; do iky=1,nky
-            do iomegak=-(2*nomega-1),2*nomega-1,2
+            do iomegak=-maxomegaf,maxomegaf,2
                 !G0(l1,m1,ikx,iky,iomegak) = 1d0/(complex_i*pi*(2*iomegak-1)/T_beta-(h0_k(n1,n1,ikx,iky)-mu)) ! 未完成
-                G0(l1,m1,ikx,iky,iomegak) = T_beta / (complex_i*pi*iomegak - (h0_k(l1,m1,ikx,iky)-mu))
+                G0(l1,m1,ikx,iky,transfer_freq(iomegak)) = T_beta / (complex_i*pi*iomegak - (h0_k(l1,m1,ikx,iky)-mu))
             enddo
         enddo; enddo
     enddo; enddo; !enddo
     G=G0
     conjgG=conjg(G)
 
-    call testConvolution3()
+    !call testConvolution3()
+    !stop
 
-    stop
     ! I_chi
     I_chi=complex_0
     do i=1,nb*nb
@@ -136,9 +136,11 @@ program flex_m2d
     density_base = 0d0
     do ib=1,nb; do ikx=1,nkx; do iky=1,nky
         density_base=density_base+1/(exp(T_beta*(h0_k(ib,ib,ikx,iky)-mu))-1)
+        write(stdout, *) h0_k(ib,ib,ikx,iky), exp(T_beta*(h0_k(ib,ib,ikx,iky)-mu))-1
     enddo; enddo; enddo
     density_base=density_base*2
-
+    write(stdout, *) 'base density is ', density_base, mu
+    !stop
     do while (.not. density_conv)
 
         sigma_conv=.false.
@@ -151,42 +153,44 @@ program flex_m2d
 
             ! dft G to G_r_tau
             call dft(G, G_r_tau, nb, 1, 0)
+            call dft(conjgG, conjgG_r_tau, nb, 1, 0)
 
             ! chi_0, 看起来需要并行
             ! 卷积形式, 改成减法  on tau
             chi_0_r_tau=0
             do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
                 chi_0_r_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
-                    = - G_r_tau(l1, m1, :, :, :)*conjg(G_r_tau(m2, l2, :, :, :))
+                    = - G_r_tau(l1, m1, :, :, :)*conjgG_r_tau(m2, l2, :, :, :)
             enddo; enddo; enddo; enddo
 
             ! idft chi_0_r_tau to chi_0
-            call dft(chi_0_r_tau, chi_0, nb*nb, -1, 1)
+            call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
 
 
             write(stdout, *) 'calculating chi_c, chi_s, V...'
-
+            !write(stdout, *) chi_0
+            !stop
             ! chi_c, chi_s, V, 需要并行和数学库
             ! 含有矩阵乘, 需改写
-            do ikx=1,nkx; do iky=1,nky; do iomegaq=-nomega1,nomega1
+            do ikx=1,nkx; do iky=1,nky; do iomegaq=-maxomegab,maxomegab,2
                 ! the same to solve AX=B, where A = (I +(c)/-(s) chi_0) and B = chi_0
 
                 ! chi_c = chi_0 - chi_0*chi_c
-                chi_0_=chi_0(:, :, ikx, iky, iomegaq)
+                chi_0_=chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
 
                 Iminuschi_0_ = I_chi + AB(chi_0_, U_c)
 
-                chi_c_ = chi_0(:, :, ikx, iky, iomegaq)
+                chi_c_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
                 call cgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_c_, square_nb, info)
-                chi_c(:, :, ikx, iky, iomegaq) = chi_c_
+                chi_c(:, :, ikx, iky, transfer_freq(iomegaq)) = chi_c_
 
                 ! chi_s = chi_0 + chi_0*chi_s
                 Iminuschi_0_ = I_chi - AB(chi_0_, U_c)
-                chi_s_ = chi_0(:, :, ikx, iky, iomegaq)
+                chi_s_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
                 call cgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_s_, square_nb, info)
-                chi_s(:, :, ikx, iky, iomegaq) = chi_s_
+                chi_s(:, :, ikx, iky, transfer_freq(iomegaq)) = chi_s_
 
-                V(:, :, ikx, iky, iomegaq) = U_ud - 2*U_uu - ABA(U_ud, chi_0_) &
+                V(:, :, ikx, iky, transfer_freq(iomegaq)) = U_ud - 2*U_uu - ABA(U_ud, chi_0_) &
                     + 1.5*ABA(U_s, chi_s_) + 0.5*ABA(U_c, chi_c_)
 
             enddo; enddo; enddo
@@ -216,7 +220,7 @@ program flex_m2d
             G1=G
             G=G0
             do l1=1,nb; do m1=1,nb;
-                do ikx=1,nkx; do iky=1,nky; do iomegak=-nomega1,nomega1
+                do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
                     do l2=1,nb; do m2=1,nb;
                         G(l1, m1, ikx, iky, iomegak) = G(l1, m1, ikx, iky, iomegak) &
                             + G0(l1,l2,ikx,iky,iomegak)*sigma(l2,m2,ikx,iky,iomegak)*G1(m2,m1,ikx,iky,iomegak)
@@ -248,8 +252,7 @@ program flex_m2d
         ! 计算density
         cur_density=0d0
 
-
-        do ib=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=-nomega,nomega
+        do ib=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
             cur_density=cur_density+G(ib, ib, ikx, iky, iomegak)-G0(ib, ib, ikx, iky, iomegak)
         enddo; enddo; enddo; enddo
 
@@ -262,6 +265,7 @@ program flex_m2d
             !计算结束
         else
             mu = mu + cur_density-target_density
+            write(stdout,*) 'modified new mu = ', mu
         endif
 
     enddo ! density loop

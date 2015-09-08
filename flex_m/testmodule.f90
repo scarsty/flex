@@ -271,9 +271,12 @@ subroutine testConvolution3()
     enddo; enddo; enddo; enddo
 
     ! idft chi_0_r_tau to chi_0
-    call dft(chi_0_r_tau, chi_0, nb*nb, -1, 1)
+    call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
     write(stderr, *) G
+    write(stderr, *) conjgG
+    write(stderr, *)
     write(stderr, *) chi_0
+    write(stderr, *)
 
     chi_0=complex_0
     do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
@@ -289,15 +292,15 @@ subroutine testConvolution3()
                 enddo
                 omegaplus=iomega1+iomega2
                 if (abs(omegaplus)<=2*(2*nomega-1)) then
-                    chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, iomega2) &
-                        = chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, iomega2) &
-                        - G(l1, m1, kxplus, kyplus, omegaplus)*G(m2, l2, ikx1, iky1, iomega1)
+                    chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, transfer_freq(iomega2)) &
+                        = chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, transfer_freq(iomega2)) &
+                        - G(l1, m1, kxplus, kyplus, transfer_freq(omegaplus))*G(m2, l2, ikx1, iky1, transfer_freq(iomega1))
                 endif
             enddo;enddo;enddo
         enddo;enddo;enddo
     enddo;enddo;enddo;enddo
     write(stderr, *) chi_0
-
+    write(stderr, *)
     !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
 
 end subroutine testConvolution3
@@ -310,6 +313,7 @@ subroutine build_h0_k()
     integer l1, m1, ikx, iky
 
     h0_k = complex_0
+    write(stdout,*) k
     do l1=1,nb; do m1=1,nb
         do ikx=1,nkx; do iky=1,nky
             h0_k(l1,m1,ikx,iky) = - cos(k(ikx,iky,1)*pi) - cos(k(ikx,iky,2)*pi)
