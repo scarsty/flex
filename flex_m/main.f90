@@ -248,6 +248,7 @@ program flex_m2d
             endif
             sigma0 = sigma
             sigma_iter=sigma_iter+1;
+            total_iter = total_iter + 1
             ! 未收敛处理G?
         enddo
 
@@ -270,6 +271,10 @@ program flex_m2d
         else
             mu = mu + cur_density-target_density
             write(stdout,*) 'modified new mu = ', mu
+        endif
+
+        if (total_iter>10) then
+            exit
         endif
 
     enddo
