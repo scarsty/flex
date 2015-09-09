@@ -273,9 +273,9 @@ program flex_m2d
             write(stdout,*) 'modified new mu = ', mu
         endif
 
-        !if (total_iter>10000) then
-            !exit
-        !endif
+        if (total_iter>100) then
+            exit
+        endif
 
     enddo
     ! density loop end
