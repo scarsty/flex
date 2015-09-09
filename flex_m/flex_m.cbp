@@ -41,7 +41,7 @@
 			<Add option="-L." />
 			<Add library="liblapack.a" />
 			<Add library="libblas.a" />
-			<Add library="libfftw3f.a" />
+			<Add library="libfftw3.a" />
 			<Add directory="C:/dat/project/flex/flex_m/" />
 		</Linker>
 		<Unit filename=".d">
