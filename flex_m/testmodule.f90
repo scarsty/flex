@@ -72,7 +72,7 @@ subroutine testBand()
             B(i,i)=complex_1
         enddo
         ! write(stdout,*) 'calling cggev...'
-        call cggev('N', 'N', nb, A, nb, B, nb, alpha, beta, vl, 1, vr, 1, work, 2*nb, rwork, info)
+        call zggev('N', 'N', nb, A, nb, B, nb, alpha, beta, vl, 1, vr, 1, work, 2*nb, rwork, info)
         ! write(stdout,*) 'finish state ', info
         ev_band(:,ik) = alpha/beta
     enddo
@@ -260,6 +260,12 @@ subroutine testConvolution3()
     integer l1, l2, m1, m2
     integer ikx1, iky1, ikx2, iky2, iomega1, iomega2, kxplus, kyplus, omegaplus
     complex(8) temp_complex
+
+    real(8) dznrm2
+    external dznrm2
+
+
+
     ! dft G to G_r_tau
     call dft(G, G_r_tau, nb, 1, 0)
     call dft(conjgG, conjgG_r_tau, nb, 1, 0)
@@ -278,6 +284,7 @@ subroutine testConvolution3()
     write(stderr, *) chi_0
     write(stderr, *)
 
+    chi_c = chi_0
     chi_0=complex_0
     do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
         do ikx1=1,nkx;do iky1=1,nky;do iomega1=-(2*nomega-1),2*nomega-1,2
@@ -300,7 +307,11 @@ subroutine testConvolution3()
         enddo;enddo;enddo
     enddo;enddo;enddo;enddo
     write(stderr, *) chi_0
-    write(stderr, *)
+
+    chi_c = chi_0-chi_c
+    write(stderr, *) dznrm2(nb*nb*nb*nb*nkx*nky*totalnomega, chi_c, 1) &
+    /dznrm2(nb*nb*nb*nb*nkx*nky*totalnomega, chi_0, 1)
+    stop
     !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
 
 end subroutine testConvolution3
@@ -319,7 +330,7 @@ subroutine build_h0_k()
             h0_k(l1,m1,ikx,iky) = - cos(k(ikx,iky,1)*pi) - cos(k(ikx,iky,2)*pi)
         enddo; enddo
     enddo; enddo
-    !write(stderr,*) h0_k
+    ! write(stderr,*) h0_k
     return
 
 end subroutine build_h0_k

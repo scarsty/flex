@@ -36,9 +36,6 @@ program flex_m2d
         call testband()
     endif
 
-    ! call testConvolution()
-    ! call testConvolution2()
-
     T_beta = 1d0/kB/T
 
     !计算k点的坐标
@@ -51,7 +48,6 @@ program flex_m2d
             ! write(stdout, *) k(ikx,iky,:)
         enddo
     enddo
-    ! write(stdout, *) zero_k
 
     ! U
     ! 能带下标ab, cd -> (a+(b-1)*nb, c+(d-1)*nb)
@@ -74,7 +70,7 @@ program flex_m2d
     U_s = U_ud-U_uu
     U_c = U_ud+u_uu
 
-    !write (stdout, *) U_s, U_c, U_ud, U_uu
+    ! write (stdout, *) U_s, U_c, U_ud, U_uu
 
     ! 反傅里叶变换h0到k空间
     h0_k = complex_0
@@ -94,22 +90,18 @@ program flex_m2d
     endif
 
 
-    !call testConvolution3()
-
-    ! I_chi
+   ! I_chi
     I_chi=complex_0
     do i=1,nb*nb
         I_chi(i,i)=complex_1
     enddo
 
-    ! call buildDFTMatrix()
 
-
-
-    write(stdout, *) "Temperature in K = ", 1d0/kB/T_beta
 
     ! 迭代部分-----------------------------------------------------------
+    write(stdout, *) "Temperature in K = ", 1d0/kB/T_beta
     write(stdout, *)
+
     write(stdout, *) "Begin to calculate FLEX"
     total_iter = 0
     density_iter = 0
@@ -117,7 +109,6 @@ program flex_m2d
     cur_density = 1000d0
 
     deltamu_per_density=1
-
 
     density_conv = .false.
     do while (.not. density_conv)
@@ -140,6 +131,8 @@ program flex_m2d
         enddo; enddo; !enddo
         G=G0
         conjgG=conjg(G)
+
+call testConvolution3()
 
         ! base density
         density_base = 0d0
@@ -186,13 +179,13 @@ program flex_m2d
                 Iminuschi_0_ = I_chi + AB(chi_0_, U_c)
 
                 chi_c_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
-                call cgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_c_, square_nb, info)
+                call zgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_c_, square_nb, info)
                 chi_c(:, :, ikx, iky, transfer_freq(iomegaq)) = chi_c_
 
                 ! chi_s = chi_0 + chi_0*chi_s
-                Iminuschi_0_ = I_chi - AB(chi_0_, U_c)
+                Iminuschi_0_ = I_chi - AB(chi_0_, U_s)
                 chi_s_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
-                call cgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_s_, square_nb, info)
+                call zgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_s_, square_nb, info)
                 chi_s(:, :, ikx, iky, transfer_freq(iomegaq)) = chi_s_
 
                 V(:, :, ikx, iky, transfer_freq(iomegaq)) = U_ud - 2*U_uu - ABA(U_ud, chi_0_) &
