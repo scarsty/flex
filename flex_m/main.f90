@@ -42,7 +42,7 @@ program flex_m2d
 
     T_beta = 1d0/kB/T
 
-    T_beta = 0.25
+    !T_beta = 0.25
     !计算k点的坐标
     zero_k = 1    ! k原点
     do ikx = 1, nkx
@@ -90,7 +90,9 @@ program flex_m2d
     ! 好像没归一化? a: seems it is ok
 
     ! if (test_band) then
-    call build_h0_k()
+    if (nb==1) then
+        call build_h0_k()
+    endif
     ! endif
     !write(stderr,*) h0_k
     !write(stderr,*) k
@@ -258,7 +260,7 @@ program flex_m2d
         ! sigma loop end
 
         ! 计算density
-density0 = cur_density
+        density0 = cur_density
         cur_density=0d0
 
         do ib=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
@@ -267,22 +269,23 @@ density0 = cur_density
 
 
         cur_density=cur_density*2 + density_base
-if (density_iter>0) then
-deltamu_per_density = (mu-mu0)/(cur_density-density0)
-endif
+        if (density_iter>0) then
+            deltamu_per_density = (mu-mu0)/(cur_density-density0)
+        endif
         write(stdout,*) 'density and mu are', cur_density, '/', target_density, ', ', mu
 
         if (abs(cur_density-target_density)<density_tol) then
             density_conv=.true.
             !计算结束
         else
-mu0=mu
+            ! 计算化学势变化与占据数变化的比值来调整新的化学势
+            mu0 = mu
             mu = mu - (cur_density-target_density)*deltamu_per_density
             write(stdout,*) 'modified new mu = ', mu
         endif
         density_iter = density_iter + 1
         !if (total_iter>10000) then
-            !exit
+        !exit
         !endif
 
     enddo
