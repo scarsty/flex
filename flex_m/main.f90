@@ -13,7 +13,7 @@ program flex_m2d
     integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk
     integer l1,m1,l2,m2,l3,m3,n1,l,m
     integer elia1, elia2, info, lda, ldb, ipiv
-    real rdotk, temp(2), dis
+    real rdotk, temp(2), dis, mu0, deltamu_per_density, density0
     complex temp_complex, fac
 
     ! 迭代sigma次数, density次数
@@ -115,6 +115,8 @@ program flex_m2d
     cur_sigma_tol = 1d0
     cur_density = 1000d0
 
+    deltamu_per_density=1
+
 
     density_conv = .false.
     do while (.not. density_conv)
@@ -145,8 +147,9 @@ program flex_m2d
             ! write(stdout, *) h0_k(ib,ib,ikx,iky), exp(T_beta*(h0_k(ib,ib,ikx,iky)-mu))-1
         enddo; enddo; enddo
         density_base=density_base*2
-        write(stdout, *) 'base density is ', density_base, mu
+        !write(stdout, *) 'base density is ', density_base, mu
 
+        sigma_iter =0
         do while (.not. sigma_conv)
 
             ! write(stdout, *) 'calculating chi_0...'
@@ -239,8 +242,8 @@ program flex_m2d
                 ! 计算sigma0与sigma的符合情况, 向量库
                 ! scnrm2: 欧几里得模，行向量乘以自身转置共轭
                 sigma_minus = sigma0 - sigma
-                cur_sigma_tol = scnrm2(nb*nb*nkx*nky*nomega2, sigma_minus, 1) &
-                    / scnrm2(nb*nb*nkx*nky*nomega2, sigma, 1)
+                cur_sigma_tol = scnrm2(nb*nb*nkx*nky*totalnomega, sigma_minus, 1) &
+                    / scnrm2(nb*nb*nkx*nky*totalnomega, sigma, 1)
                 write(stdout,*) 'sigma tolence is ', cur_sigma_tol, '/', sigma_tol
                 if (cur_sigma_tol < sigma_tol) then
                     sigma_conv = .true.
@@ -255,24 +258,29 @@ program flex_m2d
         ! sigma loop end
 
         ! 计算density
+density0 = cur_density
         cur_density=0d0
 
         do ib=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
             cur_density=cur_density+G(ib, ib, ikx, iky, iomegak)-G0(ib, ib, ikx, iky, iomegak)
         enddo; enddo; enddo; enddo
 
-        cur_density=cur_density*2 + density_base
 
-        write(stdout,*) 'density ', cur_density, '/', target_density
+        cur_density=cur_density*2 + density_base
+if (density_iter>0) then
+deltamu_per_density = (mu-mu0)/(cur_density-density0)
+endif
+        write(stdout,*) 'density and mu are', cur_density, '/', target_density, ', ', mu
 
         if (abs(cur_density-target_density)<density_tol) then
             density_conv=.true.
             !计算结束
         else
-            mu = mu - cur_density+target_density
+mu0=mu
+            mu = mu - (cur_density-target_density)*deltamu_per_density
             write(stdout,*) 'modified new mu = ', mu
         endif
-
+        density_iter = density_iter + 1
         !if (total_iter>10000) then
             !exit
         !endif
