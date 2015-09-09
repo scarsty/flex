@@ -278,17 +278,17 @@ subroutine testConvolution3()
 
     ! idft chi_0_r_tau to chi_0
     call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
-    write(stderr, *) G
-    write(stderr, *) conjgG
-    write(stderr, *)
-    write(stderr, *) chi_0
-    write(stderr, *)
+    !write(stderr, *) G
+    !write(stderr, *) conjgG
+    !write(stderr, *)
+    write(stderr, *) chi_0(:,:,:,:,0)
+    !write(stderr, *)
 
     chi_c = chi_0
     chi_0=complex_0
     do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-        do ikx1=1,nkx;do iky1=1,nky;do iomega1=-(2*nomega-1),2*nomega-1,2
-            do ikx2=1,nkx;do iky2=1,nky;do iomega2=-2*(2*nomega-1),2*(2*nomega-1),2
+        do ikx1=1,nkx;do iky1=1,nky;do iomega1=-maxomegaf,maxomegaf,2
+            do ikx2=1,nkx;do iky2=1,nky;do iomega2=-maxomegab,maxomegab,2
                 kxplus=ikx1+ikx2
                 kyplus=iky1+iky2
                 do while (kxplus<0 .or. kxplus>nkx)
@@ -298,7 +298,7 @@ subroutine testConvolution3()
                     kyplus=kyplus-sign(1, kyplus)*nky
                 enddo
                 omegaplus=iomega1+iomega2
-                if (abs(omegaplus)<=2*(2*nomega-1)) then
+                if (abs(omegaplus)<=maxomegab) then
                     chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, transfer_freq(iomega2)) &
                         = chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, transfer_freq(iomega2)) &
                         - G(l1, m1, kxplus, kyplus, transfer_freq(omegaplus))*G(m2, l2, ikx1, iky1, transfer_freq(iomega1))
@@ -306,11 +306,11 @@ subroutine testConvolution3()
             enddo;enddo;enddo
         enddo;enddo;enddo
     enddo;enddo;enddo;enddo
-    write(stderr, *) chi_0
+    write(stderr, *) chi_0(:,:,:,:,0)
 
     chi_c = chi_0-chi_c
     write(stderr, *) dznrm2(nb*nb*nb*nb*nkx*nky*totalnomega, chi_c, 1) &
-    /dznrm2(nb*nb*nb*nb*nkx*nky*totalnomega, chi_0, 1)
+    / dznrm2(nb*nb*nb*nb*nkx*nky*totalnomega, chi_0, 1)
     stop
     !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
 
