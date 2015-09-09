@@ -2,25 +2,25 @@ module parameters
     implicit none
 
     ! 化学势, 占据数
-    real mu, n_density
+    real(8) mu, n_density
 
     ! 目标占据数, 收敛误差
-    REAL target_density, density_tol
+    REAL(8) target_density, density_tol
 
     ! U, U', J, J' for H1
-    REAL h1_U, h1_Up, h1_J, h1_Jp
+    REAL(8) h1_U, h1_Up, h1_J, h1_Jp
 
     ! 温度
-    real T, T_beta
+    real(8) T, T_beta
 
     ! 保存的自能函数
     LOGICAL sigma_input, sigma_output
     CHARACTER*128 sigma_input_file, sigma_output_file
 
     ! 自能函数收敛判据
-    REAL sigma_tol
+    REAL(8) sigma_tol
     INTEGER max_it
-    REAL alpha
+    REAL(8) alpha
     INTEGER alpha_scheme
 
     ! 自旋态
@@ -44,7 +44,7 @@ module parameters
     ! MPI variables
     INTEGER rank, size
     ! Timing variables
-    Real start_time, end_time
-    Real last_it_time, this_it_time
+    Real(8) start_time, end_time
+    Real(8) last_it_time, this_it_time
 
 end module parameters

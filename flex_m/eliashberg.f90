@@ -15,7 +15,7 @@ subroutine eliashberg()
     integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq,k_kminusq, omega_kminusq, itau, k_0minusq, k_qminusk
     integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk, ikx, iky
     integer l1,m1,l2,m2,l3,m3
-    real lambda, lambda0
+    real(8) lambda, lambda0
     logical elia_conv
     ! complex, dimension (nb*nb*nk*(nomega*2-1), nb*nb*nk*(nomega*2-1)):: Eliashberg
 
@@ -71,9 +71,9 @@ subroutine eliashberg()
             sub_g2chi2 = sub_g2chi(l2,m2)
             do l3=1,nb; do m3=1,nb
                 sub_g2chi3 = sub_g2chi(l3,m3)
-                do ikx=1,nkx; do iky=1,nky; do iomegak = -nomega,nomega
+                do ikx=1,nkx; do iky=1,nky; do iomegak = -maxomegaf,maxomegaf,2
                     GGdelta(sub_g2chi2,sub_g2chi3,ikx,iky,iomegak) = GGdelta(sub_g2chi2,sub_g2chi3,ikx,iky,iomegak) &
-                        + G(l3,l2,ikx,iky,iomegak)*conjg(G(m3,m2,ikx,iky,iomegak))*delta0(l2,m2,ikx,iky,iomegak)
+                        + G(l3,l2,ikx,iky,iomegak)*conjgG(m3,m2,ikx,iky,iomegak)*delta0(l2,m2,ikx,iky,iomegak)
                 enddo; enddo; enddo
             enddo; enddo
         enddo; enddo
@@ -98,7 +98,7 @@ subroutine eliashberg()
         ! 规格化
         lambda = 0
         do l1=1,nb; do m1=1,nb
-            do ikx=1,nkx; do iky=1,nky; do iomegak=-nomega,nomega
+            do ikx=1,nkx; do iky=1,nky; do iomegak=--maxomegaf,maxomegaf,2
                 lambda = max(lambda, abs(delta(l1,m1,ikx,iky,iomegak)))
             enddo; enddo; enddo
         enddo; enddo

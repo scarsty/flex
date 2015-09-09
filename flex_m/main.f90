@@ -13,20 +13,20 @@ program flex_m2d
     integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk
     integer l1,m1,l2,m2,l3,m3,n1,l,m
     integer elia1, elia2, info, lda, ldb, ipiv
-    real rdotk, temp(2), dis, mu0, deltamu_per_density, density0
-    complex temp_complex, fac
+    real(8) rdotk, temp(2), dis, mu0, deltamu_per_density, density0
+    complex(8) temp_complex, fac
 
     ! 迭代sigma次数, density次数
     integer sigma_iter, density_iter, total_iter
-    real cur_sigma_tol, cur_density, density_base
+    real(8) cur_sigma_tol, cur_density, density_base
     logical sigma_conv, density_conv
-    real, dimension(2,2):: a, b
+    real(8), dimension(2,2):: a, b
 
     integer  omega_f, omega_b
-    real tau
+    real(8) tau
 
-    real scnrm2
-    external scnrm2
+    real(8) dznrm2
+    external dznrm2
 
     ! 变量段结束-------------------------------------------------------------------------------
 
@@ -38,18 +38,17 @@ program flex_m2d
 
     ! call testConvolution()
     ! call testConvolution2()
-    ! return
 
     T_beta = 1d0/kB/T
 
-    !T_beta = 0.25
     !计算k点的坐标
+    write(stdout, *) "Building k-points grid..."
     zero_k = 1    ! k原点
     do ikx = 1, nkx
         do iky = 1, nky
-            k(ikx, ikx, 1)=-1d0/2+1d0/nkx*(ikx-1)
+            k(ikx, iky, 1)=-1d0/2+1d0/nkx*(ikx-1)
             k(ikx, iky, 2)=-1d0/2+1d0/nky*(iky-1)
-            !write(stdout, *) k(count_k,:)
+            ! write(stdout, *) k(ikx,iky,:)
         enddo
     enddo
     ! write(stdout, *) zero_k
@@ -89,16 +88,13 @@ program flex_m2d
     enddo; enddo
     ! 好像没归一化? a: seems it is ok
 
-    ! if (test_band) then
     if (nb==1) then
         call build_h0_k()
+        T_beta = 0.25
     endif
-    ! endif
-    !write(stderr,*) h0_k
-    !write(stderr,*) k
+
 
     !call testConvolution3()
-    !stop
 
     ! I_chi
     I_chi=complex_0
@@ -110,8 +106,11 @@ program flex_m2d
 
 
 
-    ! 迭代部分-----------------------------------------------------------
+    write(stdout, *) "Temperature in K = ", 1d0/kB/T_beta
 
+    ! 迭代部分-----------------------------------------------------------
+    write(stdout, *)
+    write(stdout, *) "Begin to calculate FLEX"
     total_iter = 0
     density_iter = 0
     cur_sigma_tol = 1d0
@@ -145,11 +144,11 @@ program flex_m2d
         ! base density
         density_base = 0d0
         do ib=1,nb; do ikx=1,nkx; do iky=1,nky
+            ! write(stdout, *) T_beta*(h0_k(ib,ib,ikx,iky)-mu)
             density_base=density_base+1/(exp(T_beta*(h0_k(ib,ib,ikx,iky)-mu))+1)
-            ! write(stdout, *) h0_k(ib,ib,ikx,iky), exp(T_beta*(h0_k(ib,ib,ikx,iky)-mu))-1
         enddo; enddo; enddo
-        density_base=density_base*2
-        !write(stdout, *) 'base density is ', density_base, mu
+        density_base=density_base*2/nk
+        write(stdout, *) 'base density is ', density_base
 
         sigma_iter =0
         do while (.not. sigma_conv)
@@ -175,8 +174,7 @@ program flex_m2d
 
 
             ! write(stdout, *) 'calculating chi_c, chi_s, V...'
-            ! write(stdout, *) chi_0
-            !stop
+
             ! chi_c, chi_s, V, 需要并行和数学库
             ! 含有矩阵乘, 需改写
             do ikx=1,nkx; do iky=1,nky; do iomegaq=-maxomegab,maxomegab,2
@@ -210,7 +208,7 @@ program flex_m2d
             call dft(V, V_r_tau, nb*nb, 1, 0)
 
             ! sigma_r_tau, 并行
-            sigma_r_tau=0
+            sigma_r_tau = complex_0
             do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
                 sigma_r_tau(l1, m1, :, :, :) = sigma_r_tau(l1, m1, :, :, :) &
                     + V_r_tau(sub_g2chi(l1,l2), sub_g2chi(m1,m2),:,:,:) * G_r_tau(l2,m2,:,:,:)
@@ -219,24 +217,6 @@ program flex_m2d
             ! idft sigma_r_tau to sigma
             call dft(sigma_r_tau, sigma, nb, -1, 1)
 
-
-
-            ! write(stdout, *) 'calculating New G...'
-
-            ! 新的G, dython方程
-            G1=G
-            G=G0
-            do l1=1,nb; do m1=1,nb;
-                do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
-                    do l2=1,nb; do m2=1,nb;
-                        G(l1, m1, ikx, iky, iomegak) = G(l1, m1, ikx, iky, iomegak) &
-                            + G0(l1,l2,ikx,iky,iomegak)*sigma(l2,m2,ikx,iky,iomegak)*G1(m2,m1,ikx,iky,iomegak)
-                    enddo;enddo
-                enddo;enddo;enddo
-            enddo;enddo
-            conjgG=conjg(G)
-
-
             ! write(stdout, *) 'checking convergence of sigma...'
 
             ! 第一次迭代, 直接赋值sigma0, 不测试收敛
@@ -244,17 +224,45 @@ program flex_m2d
                 ! 计算sigma0与sigma的符合情况, 向量库
                 ! scnrm2: 欧几里得模，行向量乘以自身转置共轭
                 sigma_minus = sigma0 - sigma
-                cur_sigma_tol = scnrm2(nb*nb*nkx*nky*totalnomega, sigma_minus, 1) &
-                    / scnrm2(nb*nb*nkx*nky*totalnomega, sigma, 1)
-                write(stdout,*) 'sigma tolence is ', cur_sigma_tol, '/', sigma_tol
+                cur_sigma_tol = dznrm2(nb*nb*nkx*nky*totalnomega, sigma_minus, 1) &
+                    / dznrm2(nb*nb*nkx*nky*totalnomega, sigma, 1)
+                write(stdout,*) 'sigma tolerance is ', cur_sigma_tol, '/', sigma_tol
+                if (cur_sigma_tol>1) then
+                    write(stdout,*) "sigma seems bad, please reset mu."
+                    !stop
+                endif
                 if (cur_sigma_tol < sigma_tol) then
                     sigma_conv = .true.
                 endif
             endif
             sigma0 = sigma
+
+            ! write(stdout, *) 'calculating New G...'
+
+            ! 新的G, dyson方程
+            G1=G
+            G=G0
+            do l1=1,nb; do m1=1,nb;
+                do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
+                    do l2=1,nb; do m2=1,nb;
+                        G(l1, m1, ikx, iky, transfer_freq(iomegak)) &
+                            = G(l1, m1, ikx, iky, transfer_freq(iomegak)) &
+                            + G0(l1, l2, ikx, iky, transfer_freq(iomegak)) &
+                            * sigma(l2, m2, ikx, iky, transfer_freq(iomegak)) &
+                            * G1(m2, m1, ikx, iky, transfer_freq(iomegak))
+                    enddo;enddo
+                enddo;enddo;enddo
+            enddo;enddo
+            conjgG=conjg(G)
+
+
             sigma_iter=sigma_iter+1;
             total_iter = total_iter + 1
-            ! 未收敛处理G?
+
+            if (total_iter>20) then
+                !write(stdout,*) sigma_minus
+                !exit
+            endif
         enddo
 
         ! sigma loop end
@@ -264,15 +272,18 @@ program flex_m2d
         cur_density=0d0
 
         do ib=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
-            cur_density=cur_density+G(ib, ib, ikx, iky, iomegak)-G0(ib, ib, ikx, iky, iomegak)
+            cur_density = cur_density &
+                + G(ib, ib, ikx, iky, transfer_freq(iomegak)) &
+                - G0(ib, ib, ikx, iky, transfer_freq(iomegak))
         enddo; enddo; enddo; enddo
 
+        cur_density=cur_density*2/nk + density_base
 
-        cur_density=cur_density*2 + density_base
         if (density_iter>0) then
             deltamu_per_density = (mu-mu0)/(cur_density-density0)
         endif
-        write(stdout,*) 'density and mu are', cur_density, '/', target_density, ', ', mu
+
+        write(stdout,*) 'density and mu are ', cur_density, '/', target_density, ', ', mu
 
         if (abs(cur_density-target_density)<density_tol) then
             density_conv=.true.
@@ -280,13 +291,19 @@ program flex_m2d
         else
             ! 计算化学势变化与占据数变化的比值来调整新的化学势
             mu0 = mu
-            mu = mu - (cur_density-target_density)*deltamu_per_density
+            if (density_iter>0) then
+                !mu = mu - (cur_density-target_density)
+                mu = mu - (cur_density-target_density)*deltamu_per_density
+            else
+                mu = mu - sign(1.0d0, (cur_density-target_density)*deltamu_per_density)
+            endif
             write(stdout,*) 'modified new mu = ', mu
         endif
         density_iter = density_iter + 1
-        !if (total_iter>10000) then
-        !exit
-        !endif
+
+        if (total_iter>20) then
+            !exit
+        endif
 
     enddo
     ! density loop end

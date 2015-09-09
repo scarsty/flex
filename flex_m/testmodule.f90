@@ -11,18 +11,18 @@ subroutine testBand()
 
     ! 点数36: 1~11~21~36
     integer count_k, i, ik, ix, iy, fileunit
-    complex :: fac
-    real :: rdotk
-    real, dimension (2) :: temp
-    real, dimension (36, 2) :: k_band
-    complex, dimension (nb, nb, 36) :: h0_k_band
-    complex, dimension (nb,nb) :: A, B
-    complex, dimension (nb, 36) :: ev_band
-    complex, dimension (nb) :: alpha, beta
-    complex, dimension (nb, nb) :: vl, vr
-    complex, dimension (nb*2) :: work
+    complex(8) :: fac
+    real(8) :: rdotk
+    real(8), dimension (2) :: temp
+    real(8), dimension (36, 2) :: k_band
+    complex(8), dimension (nb, nb, 36) :: h0_k_band
+    complex(8), dimension (nb,nb) :: A, B
+    complex(8), dimension (nb, 36) :: ev_band
+    complex(8), dimension (nb) :: alpha, beta
+    complex(8), dimension (nb, nb) :: vl, vr
+    complex(8), dimension (nb*2) :: work
     integer lwork, info
-    real, dimension (nb*8) :: rwork
+    real(8), dimension (nb*8) :: rwork
 
 
     ! ------------------------------------------------------------------------
@@ -93,7 +93,7 @@ end subroutine testBand
 subroutine testFunctions()
     implicit none
 
-    real, dimension (512) :: k1, k2
+    real(8), dimension (512) :: k1, k2
 
 
 
@@ -108,8 +108,8 @@ subroutine testConvolution()
 
     integer, parameter:: n=8,n1=n-1
     integer, parameter:: m=4,m1=m-1
-    complex, dimension (-n1:n) :: f, g
-    complex, dimension (-m1:m) :: f_ft
+    complex(8), dimension (-n1:n) :: f, g
+    complex(8), dimension (-m1:m) :: f_ft
 
     integer i, x, t, i1, i2, x_minus_t
 
@@ -176,11 +176,11 @@ subroutine testConvolution2()
 
     integer i, x, t, i1, i2, j1, j2, i_minus_j1, i_minus_j2, num
     type(C_PTR) :: plan
-    real :: start, finish, summary
+    real(8) :: start, finish, summary
     integer,parameter:: n=8,n1=n-1
 
-    complex, dimension (0:n-1,0:n-1) :: f, g, g1
-    complex, dimension (0:n-1,0:n-1) :: f_ft
+    complex(8), dimension (0:n-1,0:n-1) :: f, g, g1
+    complex(8), dimension (0:n-1,0:n-1) :: f_ft
 
     ! calculate 2D convolution g(x)=f(t)f(x-t) with 2 methods
 
@@ -217,16 +217,16 @@ subroutine testConvolution2()
     call cpu_time(start)
     do num=1,10000
         f_ft=0
-        plan=fftwf_plan_dft_2d(n, n, f, f_ft, FFTW_BACKWARD, FFTW_ESTIMATE)
-        call fftwf_execute_dft(plan, f, f_ft)
-        call fftwf_destroy_plan(plan)
+        plan=fftw_plan_dft_2d(n, n, f, f_ft, FFTW_BACKWARD, FFTW_ESTIMATE)
+        call fftw_execute_dft(plan, f, f_ft)
+        call fftw_destroy_plan(plan)
         !write(0, *) f_ft
 
         f_ft=f_ft*f_ft
 
-        plan=fftwf_plan_dft_2d(n, n, f_ft, g, FFTW_FORWARD, FFTW_ESTIMATE)
-        call fftwf_execute_dft(plan, f_ft, g)
-        call fftwf_destroy_plan(plan)
+        plan=fftw_plan_dft_2d(n, n, f_ft, g, FFTW_FORWARD, FFTW_ESTIMATE)
+        call fftw_execute_dft(plan, f_ft, g)
+        call fftw_destroy_plan(plan)
         g=g/n/n
     enddo
 
@@ -259,7 +259,7 @@ subroutine testConvolution3()
 
     integer l1, l2, m1, m2
     integer ikx1, iky1, ikx2, iky2, iomega1, iomega2, kxplus, kyplus, omegaplus
-    complex temp_complex
+    complex(8) temp_complex
     ! dft G to G_r_tau
     call dft(G, G_r_tau, nb, 1, 0)
     call dft(conjgG, conjgG_r_tau, nb, 1, 0)
@@ -313,13 +313,13 @@ subroutine build_h0_k()
     integer l1, m1, ikx, iky
 
     h0_k = complex_0
-    write(stdout,*) k
+
     do l1=1,nb; do m1=1,nb
         do ikx=1,nkx; do iky=1,nky
             h0_k(l1,m1,ikx,iky) = - cos(k(ikx,iky,1)*pi) - cos(k(ikx,iky,2)*pi)
         enddo; enddo
     enddo; enddo
-    ! write(stderr,*) h0_k
+    !write(stderr,*) h0_k
     return
 
 end subroutine build_h0_k

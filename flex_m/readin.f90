@@ -5,7 +5,7 @@
     use myfunctions
     IMPLICIT NONE
 
-    real eigen_value(5)
+    real(8) eigen_value(5)
     namelist /band/ eigen_value
 
     integer ix, iy, iz, ib1, ib2, tempb1, tempb2
@@ -14,7 +14,7 @@
 
     integer fileunit;
 
-    complex temp_h0
+    complex(8) temp_h0
 
     !rank=mpi_rank()
     !读取
@@ -26,9 +26,6 @@
 #endif
     read(fileunit, nml=basic)
     read(fileunit, nml=band)
-
-
-    write(stdout, *) "Temperature in K = ", T
 
     if (.not. test_band) then
         return

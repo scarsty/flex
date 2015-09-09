@@ -6,7 +6,7 @@ contains
     integer function mpi_rank()
         implicit none
         integer rank
-        real ierr
+        real(8) ierr
 #ifdef USE_MPI
         call MPI_COMM_RANK(MPI_COMM_WORLD, rank, ierr)
 #else
@@ -49,7 +49,7 @@ contains
         implicit none
         integer k1, omega1, fb1, k2, omega2, fb2, k3, omega3, fb3, sign_omega3, zero_k
         integer f1, f2, f3
-        real, dimension (nk, 2) :: k
+        real(8), dimension (nk, 2) :: k
         integer, dimension (nk, nk) :: k_minus
 
         f1=calfreq(omega1, fb1)
@@ -65,7 +65,7 @@ contains
     function inverseAbyB(A0, B0)
         use constants
         implicit none
-        complex, dimension (nb*nb, nb*nb) :: A0, B0, A, B, inverseAbyB
+        complex(8), dimension (nb*nb, nb*nb) :: A0, B0, A, B, inverseAbyB
         integer info, lda, ldb, ipiv
         call cgesv(square_nb, square_nb, A, square_nb, ipiv, B, square_nb, info)
     end function inverseAbyB
@@ -75,10 +75,10 @@ contains
     function ABA(A, B)
         use constants
         implicit none
-        complex, dimension (nb*nb, nb*nb) :: A, B, ABA, C
-        call cgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
+        complex(8), dimension (nb*nb, nb*nb) :: A, B, ABA, C
+        call zgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
             A, square_nb, B, square_nb, complex_0, C, square_nb)
-        call cgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
+        call zgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
             C, square_nb, A, square_nb, complex_0, ABA, square_nb)
     end function ABA
 
@@ -86,8 +86,8 @@ contains
     function AB(A, B)
         use constants
         implicit none
-        complex, dimension (nb*nb, nb*nb) :: A, B, AB
-        call cgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
+        complex(8), dimension (nb*nb, nb*nb) :: A, B, AB
+        call zgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
             A, square_nb, B, square_nb, complex_0, AB, square_nb)
     end function AB
 
@@ -107,8 +107,8 @@ contains
         use constants
         implicit none
         integer M,N,K
-        complex dft_matrix(K,N), src(M,K), dst(M,N)
-        call cgemm('N', 'N', M, N, K, complex_1, &
+        complex(8) dft_matrix(K,N), src(M,K), dst(M,N)
+        call zgemm('N', 'N', M, N, K, complex_1, &
             src, M, dft_matrix, K, complex_0, dst, M)
     end subroutine matrixProduct
 
@@ -157,8 +157,8 @@ contains
 
         integer N, fb, l, m, normal, i
         integer(C_INT) direction, direction2
-        complex, dimension(N,N,nkx,nky,0:totalnomega-1) :: input
-        complex, dimension(N,N,nkx,nky,0:totalnomega-1) :: output
+        complex(8), dimension(N,N,nkx,nky,0:totalnomega-1) :: input
+        complex(8), dimension(N,N,nkx,nky,0:totalnomega-1) :: output
 
         if (direction >= 0) then
             direction2 = FFTW_FORWARD
@@ -168,9 +168,9 @@ contains
 
         do l=1,N; do m=1,N
             dft_in = input(l,m,:,:,:)
-            plan=fftwf_plan_dft_3d(nkx, nky, totalnomega, dft_in, dft_out, direction2, FFTW_ESTIMATE)
-            call fftwf_execute_dft(plan, dft_in, dft_out)
-            call fftwf_destroy_plan(plan)
+            plan=fftw_plan_dft_3d(nkx, nky, totalnomega, dft_in, dft_out, direction2, FFTW_ESTIMATE)
+            call fftw_execute_dft(plan, dft_in, dft_out)
+            call fftw_destroy_plan(plan)
 
             output(l,m,:,:,:) = dft_out
         enddo; enddo
