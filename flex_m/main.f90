@@ -90,7 +90,7 @@ program flex_m2d
     endif
 
 
-   ! I_chi
+    ! I_chi
     I_chi=complex_0
     do i=1,nb*nb
         I_chi(i,i)=complex_1
@@ -132,7 +132,9 @@ program flex_m2d
         G=G0
         conjgG=conjg(G)
 
-call testConvolution3()
+        !call testConvolution()
+        call testConvolution3()
+        call testConvolution3G()
 
         ! base density
         density_base = 0d0
