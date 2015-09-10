@@ -103,12 +103,14 @@ end subroutine testFunctions
 
 function regionParameter(p,a,b)
     implicit none
-    integer p,a,b,regionParameter
+    integer p,a,b,regionParameter,c
 
-    regionParameter=p
-    do while (regionParameter<a .or. regionParameter>b)
-        regionParameter=regionParameter-sign(1, regionParameter)*(b-a+1)
+    c=p
+    do while (c<a .or. c>b)
+        if (c>b) c=c-(b-a+1)
+        if (c<a) c=c+(b-a+1)
     enddo
+    regionParameter=c
 
 end function regionParameter
 
@@ -177,88 +179,6 @@ subroutine testConvolution()
 
 end subroutine testConvolution
 
-! 卷积测试快速傅立叶变换3D
-subroutine testConvolution3()
-    use constants
-    use, intrinsic :: iso_c_binding
-    implicit none
-
-    include 'fftw3.f03'
-
-    integer i, x, t, i1, i2, i3, j1, j2, j3, i_minus_j1, i_minus_j2, i_minus_j3, num
-    type(C_PTR) :: plan
-    real(8) :: start, finish, summary
-    integer,parameter:: n=2,n1=n-1
-
-    complex(8), dimension (0:n-1,0:n-1,0:n-1) :: f, g, g1
-    complex(8), dimension (0:n-1,0:n-1,0:n-1) :: f_ft
-
-    integer regionParameter
-    external regionParameter
-
-    ! calculate 2D convolution g(x)=f(t)f(x-t) with 2 methods
-
-    do i1=0,n1; do i2=0,n1; do i3=0,n1
-        f(i1,i2,i3)=cmplx(i1*i2*i3,i1+i2+i3)
-    enddo; enddo; enddo
-
-    call cpu_time(start)
-    do num=1,1
-        g=0
-        do i1=0,n1; do i2=0,n1; do i3=0,n1
-            do j1=0,n1; do j2=0,n1; do j3=0,n1
-                i_minus_j1 = regionParameter(i1-j1,0,n1)
-                i_minus_j2 = regionParameter(i2-j2,0,n1)
-                i_minus_j3 = regionParameter(i3-j3,0,n1)
-                g(i1,i2,i3)=g(i1,i2,i3)+f(j1,j2,j3)*f(i_minus_j1,i_minus_j2,i_minus_j3)
-            enddo; enddo; enddo
-        enddo; enddo; enddo
-    enddo
-    call cpu_time(finish)
-    !write (0,*) finish-start
-
-    write(0, *) 'directly calculated with period: '
-    do i=0,n1
-        write(0, *) g(i,:,:)
-    enddo
-
-    g1=g
-    call cpu_time(start)
-    do num=1,1
-        f_ft=0
-        plan=fftw_plan_dft_3d(n, n, n, f, f_ft, FFTW_FORWARD, FFTW_ESTIMATE)
-        call fftw_execute_dft(plan, f, f_ft)
-        call fftw_destroy_plan(plan)
-        !write(0, *) f_ft
-
-        f_ft=f_ft*f_ft
-
-        plan=fftw_plan_dft_3d(n, n, n, f_ft, g, FFTW_BACKWARD, FFTW_ESTIMATE)
-        call fftw_execute_dft(plan, f_ft, g)
-        call fftw_destroy_plan(plan)
-        g=g/n/n/n
-    enddo
-
-    call cpu_time(finish)
-    !write (0,*) finish-start
-
-    write(0, *) 'calculated by fft: '
-    do i=0,n1
-        write(0, *) g(i,:,:)
-    enddo
-
-    g=g-g1
-    summary=0d0
-    do i1=0,n1; do i2=0,n1; do i3=0,n1
-        summary=summary+abs(g(i1,i2,i3))
-    enddo; enddo; enddo
-
-    write(0, *) 'error is ', summary
-    write(0, *)
-
-    return
-
-end subroutine testConvolution3
 
 ! 卷积测试快速傅立叶变换2D
 subroutine testConvolution2()
@@ -344,6 +264,97 @@ subroutine testConvolution2()
 
 end subroutine testConvolution2
 
+
+! 卷积测试快速傅立叶变换3D
+subroutine testConvolution3()
+    use constants
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    include 'fftw3.f03'
+
+    integer i, x, t, i1, i2, i3, j1, j2, j3, i_minus_j1, i_minus_j2, i_minus_j3, num
+    type(C_PTR) :: plan
+    real(8) :: start, finish, summary
+    integer,parameter:: n=2,n1=3,n2=1, n3=0
+
+    !complex(8), dimension (n,n,n) :: f, g, g1, conjg_f
+    !complex(8), dimension (n,n,n1) :: f_ft, conjg_f_ft
+    complex(8), dimension (0:n1,0:n2,0:n3) :: f, g, g1, conjg_f
+    complex(8), dimension (0:n1,0:n2,0:n3) :: f_ft, conjg_f_ft
+
+    integer regionParameter
+    external regionParameter
+
+    ! calculate 2D convolution g(x)=f(t)f(x-t) with 2 methods
+    f=1
+    do i1=0,n1; do i2=0,n2; do i3=0,n3
+        f(i1,i2,i3)=cmplx(-i1/(1+i2*i3),i1-i2+i3)
+    enddo; enddo; enddo
+
+    conjg_f=conjg(f)
+
+    call cpu_time(start)
+    do num=1,1
+        g=complex_0
+        !do i1=1,n; do i2=1,n; do i3=1,n
+        !do j1=1,n; do j2=1,n; do j3=1,n
+        do i1=0,n1; do i2=0,n2; do i3=0,n3
+            do j1=0,n1; do j2=0,n2; do j3=0,n3
+                i_minus_j1 = regionParameter(i1-j1,0,n1)
+                i_minus_j2 = regionParameter(i2-j2,0,n2)
+                i_minus_j3 = regionParameter(i3-j3,0,n3)
+                g(i1,i2,i3)=g(i1,i2,i3)+f(j1,j2,j3)*conjg_f(i_minus_j1,i_minus_j2,i_minus_j3)
+            enddo; enddo; enddo
+        enddo; enddo; enddo
+    enddo
+    call cpu_time(finish)
+    !write (0,*) finish-start
+
+    write(0, *) 'directly calculated with period: '
+    write(0, *) g
+
+    g1=g
+    call cpu_time(start)
+    do num=1,1
+        !f_ft=0
+        plan=fftw_plan_dft_3d(n1+1, n2+1, n3+1, f, f_ft, FFTW_FORWARD, FFTW_ESTIMATE)
+        call fftw_execute_dft(plan, f, f_ft)
+        call fftw_destroy_plan(plan)
+
+        plan=fftw_plan_dft_3d(n1+1, n2+1, n3+1, conjg_f, conjg_f_ft, FFTW_FORWARD, FFTW_ESTIMATE)
+        call fftw_execute_dft(plan, conjg_f, conjg_f_ft)
+        call fftw_destroy_plan(plan)
+        !write(0, *) f_ft
+
+        f_ft=f_ft*conjg_f_ft
+
+        plan=fftw_plan_dft_3d(n1+1, n2+1, n3+1, f_ft, g, FFTW_BACKWARD, FFTW_ESTIMATE)
+        call fftw_execute_dft(plan, f_ft, g)
+        call fftw_destroy_plan(plan)
+        g=g/(n1+1)/(n2+1)/(n3+1)
+    enddo
+
+    call cpu_time(finish)
+    !write (0,*) finish-start
+
+    write(0, *) 'calculated by fft: '
+    write(0, *) g
+
+    g=g-g1
+    summary=0d0
+    do i1=0,n1; do i2=0,n2; do i3=0,n3
+        summary=summary+abs(g(i1,i2,i3))
+    enddo; enddo; enddo
+
+    write(0, *) 'error is ', summary
+    write(0, *)
+
+    return
+
+end subroutine testConvolution3
+
+
 ! 实际卷积测试
 subroutine testConvolution3G()
     use constants
@@ -358,7 +369,8 @@ subroutine testConvolution3G()
     real(8) dznrm2
     external dznrm2
 
-
+    integer regionParameter
+    external regionParameter
 
     ! dft G to G_r_tau
     call dft(G, G_r_tau, nb, 1, 0)
@@ -383,18 +395,9 @@ subroutine testConvolution3G()
     do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
         do ikx1=1,nkx;do iky1=1,nky;do iomega1=0,totalnomega-1,1
             do ikx2=1,nkx;do iky2=1,nky;do iomega2=0,totalnomega-1,1
-                kxplus=ikx1+ikx2
-                kyplus=iky1+iky2
-                do while (kxplus<=0 .or. kxplus>nkx)
-                    kxplus=kxplus-sign(1, kxplus)*nkx
-                enddo
-                do while (kyplus<=0 .or. kyplus>nky)
-                    kyplus=kyplus-sign(1, kyplus)*nky
-                enddo
-                omegaplus=iomega1+iomega2
-                do while (omegaplus<0 .or. omegaplus>=totalnomega)
-                    omegaplus=omegaplus-sign(1, omegaplus)*totalnomega
-                enddo
+                kxplus=regionParameter(ikx1+ikx2-1,1,nkx)
+                kyplus=regionParameter(iky1+iky2-1,1,nky)
+                omegaplus=regionParameter(iomega1+iomega2,0,totalnomega-1)
                 !if (abs(omegaplus)<=maxomegab) then
                 chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, (iomega2)) &
                     = chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, (iomega2)) &
