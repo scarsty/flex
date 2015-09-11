@@ -250,7 +250,8 @@ program flex_m2d
                     do l2=1,nb; do m2=1,nb;
                         G(l1, m1, ikx, iky, transfer_freq(iomegak)) &
                             = G(l1, m1, ikx, iky, transfer_freq(iomegak)) &
-                            + G0(l1, l2, ikx, iky, transfer_freq(iomegak)) &
+                            + &
+                            G0(l1, l2, ikx, iky, transfer_freq(iomegak)) &
                             * sigma(l2, m2, ikx, iky, transfer_freq(iomegak)) &
                             * G1(m2, m1, ikx, iky, transfer_freq(iomegak))
                     enddo;enddo
@@ -331,9 +332,10 @@ program flex_m2d
         call eliashberg()
     endif
 
+    write(stdout,*)
+    write(stdout,*) 'good night.'
+    write(stdout,*)
 
-    print *, 'good night.'
-    ! return
 
 end program
 

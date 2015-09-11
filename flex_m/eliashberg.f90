@@ -73,8 +73,12 @@ subroutine eliashberg()
             do l3=1,nb; do m3=1,nb
                 sub_g2chi3 = sub_g2chi(l3,m3)
                 do ikx=1,nkx; do iky=1,nky; do iomegak = -maxomegaf,maxomegaf,2
-                    GGdelta(sub_g2chi2,sub_g2chi3,ikx,iky,iomegak) = GGdelta(sub_g2chi2,sub_g2chi3,ikx,iky,iomegak) &
-                        + G(l3,l2,ikx,iky,iomegak)*conjgG(m3,m2,ikx,iky,iomegak)*delta0(l2,m2,ikx,iky,iomegak)
+                    GGdelta(sub_g2chi2,sub_g2chi3,ikx,iky,transfer_freq(iomegak)) &
+                        = GGdelta(sub_g2chi2,sub_g2chi3,ikx,iky,transfer_freq(iomegak)) &
+                        + &
+                        G(l3,l2,ikx,iky,transfer_freq(iomegak)) &
+                        *conjgG(m3,m2,ikx,iky,transfer_freq(iomegak)) &
+                        *delta0(l2,m2,ikx,iky,transfer_freq(iomegak))
                 enddo; enddo; enddo
             enddo; enddo
         enddo; enddo
@@ -100,7 +104,7 @@ subroutine eliashberg()
         lambda = 0
         do l1=1,nb; do m1=1,nb
             do ikx=1,nkx; do iky=1,nky; do iomegak=--maxomegaf,maxomegaf,2
-                lambda = max(lambda, abs(delta(l1,m1,ikx,iky,iomegak)))
+                lambda = max(lambda, abs(delta(l1,m1,ikx,iky,transfer_freq(iomegak))))
             enddo; enddo; enddo
         enddo; enddo
         delta = delta/lambda
@@ -119,8 +123,5 @@ subroutine eliashberg()
 
     ! output delta_nn (gap function)
 
-
-    ! 求特征值和特征向量, 调用数学库, (取消)
-    !call ()
 
 end subroutine eliashberg
