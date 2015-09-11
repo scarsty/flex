@@ -25,6 +25,8 @@ program flex_m2d
     integer  omega_f, omega_b
     real(8) tau
 
+    real(8) norm_sigma_minus, norm_sigma, norm_sigma0
+
     real(8) dznrm2
     external dznrm2
 
@@ -43,8 +45,8 @@ program flex_m2d
     zero_k = 1    ! k原点
     do ikx = 1, nkx
         do iky = 1, nky
-            k(ikx, iky, 1)=-1d0/2+1d0/nkx*(ikx-1)
-            k(ikx, iky, 2)=-1d0/2+1d0/nky*(iky-1)
+            k(ikx, iky, 1)=1d0/nkx*(ikx-1)
+            k(ikx, iky, 2)=1d0/nky*(iky-1)
             ! write(stdout, *) k(ikx,iky,:)
         enddo
     enddo
@@ -86,7 +88,7 @@ program flex_m2d
 
     if (nb==1) then
         call build_h0_k()
-        T_beta = 0.25
+        !T_beta = 0.25
     endif
 
 
@@ -133,8 +135,8 @@ program flex_m2d
         conjgG=conjg(G)
 
         !call testConvolution()
-        call testConvolution3()
-        call testConvolution3G()
+        !call testConvolution3()
+        !call testConvolution3G()
 
         ! base density
         density_base = 0d0
@@ -219,9 +221,15 @@ program flex_m2d
                 ! 计算sigma0与sigma的符合情况, 向量库
                 ! scnrm2: 欧几里得模，行向量乘以自身转置共轭
                 sigma_minus = sigma0 - sigma
-                cur_sigma_tol = dznrm2(nb*nb*nkx*nky*totalnomega, sigma_minus, 1) &
-                    / dznrm2(nb*nb*nkx*nky*totalnomega, sigma, 1)
-                write(stdout,*) 'sigma tolerance is ', cur_sigma_tol, '/', sigma_tol
+
+                norm_sigma_minus = dznrm2(nb*nb*nkx*nky*totalnomega, sigma_minus, 1)
+                norm_sigma = dznrm2(nb*nb*nkx*nky*totalnomega, sigma, 1)
+                cur_sigma_tol = norm_sigma_minus / norm_sigma
+                write(stdout,*) 'sigma tolerance is ', cur_sigma_tol !, '/', sigma_tol
+
+                !norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
+                !write(stdout,*)  norm_sigma0, norm_sigma, norm_sigma_minus
+
                 if (cur_sigma_tol>1) then
                     write(stdout,*) "sigma seems bad, please reset mu."
                     !stop
@@ -278,7 +286,8 @@ program flex_m2d
             deltamu_per_density = (mu-mu0)/(cur_density-density0)
         endif
 
-        write(stdout,*) 'density and mu are ', cur_density, '/', target_density, ', ', mu
+        write(stdout,*) 'density and mu are ', cur_density, mu
+        write(stdout,*)
 
         if (abs(cur_density-target_density)<density_tol) then
             density_conv=.true.
@@ -307,13 +316,13 @@ program flex_m2d
 
     ! output chi_s(q,0)
     write(stdout,*) 'chi_s at omega = 0'
-
-    do l1=1,nb; do l2=1,nb
+    write(stdout,*) 'kx, ky, chi_s(real and imag)'
+    do ikx=1,nkx; do iky=1,nky
         temp_complex=complex_0
-        do ikx=1,nkx; do iky=1,nky
-            temp_complex=temp_complex+chi_s(sub_g2chi(l1,l1),sub_g2chi(l2,l2),ikx,iky,0)
+        do l1=1,nb; do m1=1,nb
+            temp_complex=temp_complex+chi_s(sub_g2chi(l1,l1),sub_g2chi(m1,m1),ikx,iky,0)
         enddo; enddo
-        write(stdout,*) k(ikx,iky,:), temp_complex
+        write(stdout, '(4F11.5)') k(ikx,iky,:), temp_complex
     enddo; enddo
 
 

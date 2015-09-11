@@ -276,7 +276,7 @@ subroutine testConvolution3()
     integer i, x, t, i1, i2, i3, j1, j2, j3, i_minus_j1, i_minus_j2, i_minus_j3, num
     type(C_PTR) :: plan
     real(8) :: start, finish, summary
-    integer,parameter:: n=2,n1=3,n2=1, n3=0
+    integer,parameter:: n=2,n1=3,n2=1, n3=1
 
     !complex(8), dimension (n,n,n) :: f, g, g1, conjg_f
     !complex(8), dimension (n,n,n1) :: f_ft, conjg_f_ft
@@ -304,21 +304,21 @@ subroutine testConvolution3()
                 i_minus_j1 = regionParameter(i1-j1,0,n1)
                 i_minus_j2 = regionParameter(i2-j2,0,n2)
                 i_minus_j3 = regionParameter(i3-j3,0,n3)
-                g(i1,i2,i3)=g(i1,i2,i3)+f(j1,j2,j3)*conjg_f(i_minus_j1,i_minus_j2,i_minus_j3)
+                g(i1,i2,i3)=g(i1,i2,i3)+f(j1,j2,j3)*f(i_minus_j1,i_minus_j2,i_minus_j3)
             enddo; enddo; enddo
         enddo; enddo; enddo
     enddo
+    g1=g
     call cpu_time(finish)
     !write (0,*) finish-start
 
     write(0, *) 'directly calculated with period: '
     write(0, *) g
 
-    g1=g
     call cpu_time(start)
     do num=1,1
         !f_ft=0
-        plan=fftw_plan_dft_3d(n1+1, n2+1, n3+1, f, f_ft, FFTW_FORWARD, FFTW_ESTIMATE)
+        plan=fftw_plan_dft_3d(n3+1, n2+1, n1+1, f, f_ft, FFTW_FORWARD, FFTW_ESTIMATE)
         call fftw_execute_dft(plan, f, f_ft)
         call fftw_destroy_plan(plan)
 
@@ -327,9 +327,9 @@ subroutine testConvolution3()
         call fftw_destroy_plan(plan)
         !write(0, *) f_ft
 
-        f_ft=f_ft*conjg_f_ft
+        f_ft=f_ft*f_ft
 
-        plan=fftw_plan_dft_3d(n1+1, n2+1, n3+1, f_ft, g, FFTW_BACKWARD, FFTW_ESTIMATE)
+        plan=fftw_plan_dft_3d(n3+1, n2+1, n1+1, f_ft, g, FFTW_BACKWARD, FFTW_ESTIMATE)
         call fftw_execute_dft(plan, f_ft, g)
         call fftw_destroy_plan(plan)
         g=g/(n1+1)/(n2+1)/(n3+1)
@@ -411,7 +411,7 @@ subroutine testConvolution3G()
     chi_c = chi_0-chi_c
     write(stderr, *) dznrm2(nb*nb*nb*nb*nkx*nky*totalnomega, chi_c, 1) &
         / dznrm2(nb*nb*nb*nb*nkx*nky*totalnomega, chi_0, 1)
-    stop
+    !stop
     !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
 
 end subroutine testConvolution3G

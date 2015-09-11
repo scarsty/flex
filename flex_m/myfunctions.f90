@@ -169,7 +169,7 @@ contains
         do l=1,N; do m=1,N
             dft_in = input(l,m,:,:,:)
 
-            plan=fftw_plan_dft_3d(nkx, nky, totalnomega, dft_in, dft_out, direction2, FFTW_ESTIMATE)
+            plan=fftw_plan_dft_3d(totalnomega, nkx, nky , dft_in, dft_out, direction2, FFTW_ESTIMATE)
             call fftw_execute_dft(plan, dft_in, dft_out)
             call fftw_destroy_plan(plan)
 

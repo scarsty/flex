@@ -26,7 +26,7 @@ module parameters
     ! 自旋态
     integer spin_state
 
-    logical, parameter :: solve_eliashberg = .false.
+    logical, parameter :: solve_eliashberg = .true.
     logical, parameter :: test_band = .false.
 
     namelist /basic/ T, target_density, density_tol, mu,&

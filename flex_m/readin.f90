@@ -27,7 +27,7 @@
     read(fileunit, nml=basic)
     read(fileunit, nml=band)
 
-    if (.not. test_band) then
+    if (nb/=5) then
         return
     endif
 

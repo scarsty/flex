@@ -21,6 +21,7 @@ subroutine eliashberg()
 
     ! ---------------------------------------------------------------------------------------------
 
+    write(stdout,*)
     write(stdout,*) 'Solving Eliashberg equation...'
     ! 文献中自旋3态有区别, 需自行推导
     do ikx=1,nkx; do iky=1,nky; do iomegaq=-nomega,nomega
@@ -56,7 +57,7 @@ subroutine eliashberg()
 
     ! 初始值
 
-    delta0 = complex_1 / (nb*nb*nk*(2*nomega+1))
+    delta0 = complex_1 / (nb*nb*nk*totalnomega)
     lambda0=1d0
     elia_conv = .false.
 
