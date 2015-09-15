@@ -5,11 +5,11 @@ subroutine eliashberg()
     use parameters2
     implicit none
 
-    ! æœªå®Œæˆ
-    ! å„ç«‹å¸Œä¼¯æ ¼æ–¹ç¨‹, ç›´æ¥åº”ç”¨ä¸Šé¢å¾—åˆ°çš„ç»„åˆ
+    ! Î´Íê³É
+    ! ¶òÁ¢Ï£²®¸ñ·½³Ì, Ö±½ÓÓ¦ÓÃÉÏÃæµÃµ½µÄ×éºÏ
 
-    ! è‡ªæ—‹æ€ä¸æ˜¯3å°±æ˜¯1
-    ! å«çŸ©é˜µä¹˜, éœ€æ”¹å†™
+    ! ×ÔĞıÌ¬²»ÊÇ3¾ÍÊÇ1
+    ! º¬¾ØÕó³Ë, Ğè¸ÄĞ´
 
     integer elia1, elia2, sub_g2chi1, sub_g2chi2, sub_g2chi3, maxindex
     integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq,k_kminusq, omega_kminusq, itau, k_0minusq, k_qminusk
@@ -23,11 +23,11 @@ subroutine eliashberg()
 
     write(stdout,*)
     write(stdout,*) 'Solving Eliashberg equation...'
-    ! æ–‡çŒ®ä¸­è‡ªæ—‹3æ€æœ‰åŒºåˆ«, éœ€è‡ªè¡Œæ¨å¯¼
+    ! ÎÄÏ×ÖĞ×ÔĞı3Ì¬ÓĞÇø±ğ, Ğè×ÔĞĞÍÆµ¼
     V_s = complex_0
     do ikx=1,nkx; do iky=1,nky; do iomegaq=-maxomegab,maxomegab,2
-        chi_c_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
-        chi_s_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
+        chi_c_ = chi_c(:, :, ikx, iky, transfer_freq(iomegaq))
+        chi_s_ = chi_s(:, :, ikx, iky, transfer_freq(iomegaq))
         if (spin_state==3) then
             V_s(:, :, ikx, iky, transfer_freq(iomegaq)) &
             = U_ud - 0.5*ABA(U_s,chi_s_) - 0.5*ABA(U_c, chi_c_)
@@ -45,9 +45,9 @@ subroutine eliashberg()
     ! enddo; enddo
 
     ! dft V_s to V_s_r_tau
-    call dft(V_s, V_r_tau, nb*nb, 1,0)
+    call dft(V_s, V_s_r_tau, nb*nb, 1,0)
 
-    ! è§„æ ¼åŒ–å¹‚æ³•æ±‚è§£LEV
+    ! ¹æ¸ñ»¯Ãİ·¨Çó½âLEV
     ! u=v
     ! while not converge do
     !     v=Au
@@ -56,7 +56,7 @@ subroutine eliashberg()
     ! end
 
 
-    ! åˆå§‹å€¼
+    ! ³õÊ¼Öµ
 
     delta0 = complex_1 / (nb*nb*nk*totalnomega)
     lambda0=1d0
@@ -65,9 +65,9 @@ subroutine eliashberg()
 
     do while (.not.elia_conv)
 
-        ! ç”¨ä¸Šä¸€ä¸ªå€¼è®¡ç®—å‡ºæ–°çš„delta_r_tau
+        ! ÓÃÉÏÒ»¸öÖµ¼ÆËã³öĞÂµÄdelta_r_tau
 
-        ! é¢‘åŸŸä¸ŠG*G*delta, ä¸‹æ ‡l2,m2,l3,m3
+        ! ÆµÓòÉÏG*G*delta, ÏÂ±êl2,m2,l3,m3
         GGdelta = complex_0
         do l2=1,nb; do m2=1,nb
             sub_g2chi2 = sub_g2chi(l2,m2)
@@ -84,10 +84,10 @@ subroutine eliashberg()
             enddo; enddo
         enddo; enddo
 
-        ! å˜æ¢è‡³æ—¶åŸŸä¸ŠG*G*delta
+        ! ±ä»»ÖÁÊ±ÓòÉÏG*G*delta
         call dft(GGdelta, GGdelta_r_tau, nb*nb, 1, 0)
 
-        ! åŸæ–¹ç¨‹åŒ…å«è´Ÿå·, ä½¿ç”¨å‡æ³•
+        ! Ô­·½³Ì°üº¬¸ººÅ, Ê¹ÓÃ¼õ·¨
         delta_r_tau = complex_0
         do l1=1,nb; do m1=1,nb
             do l3=1,nb; do m3=1,nb
@@ -98,24 +98,24 @@ subroutine eliashberg()
             enddo; enddo
         enddo; enddo
 
-        ! å˜æ¢å›é¢‘åŸŸ
+        ! ±ä»»»ØÆµÓò
         call dft(delta_r_tau, delta, nb, -1, 1)
 
-        ! è§„æ ¼åŒ–
+        ! ¹æ¸ñ»¯
         lambda = 0
         do l1=1,nb; do m1=1,nb
-            do ikx=1,nkx; do iky=1,nky; do iomegak=--maxomegaf,maxomegaf,2
+            do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
                 lambda = max(lambda, abs(delta(l1,m1,ikx,iky,transfer_freq(iomegak))))
             enddo; enddo; enddo
         enddo; enddo
         delta = delta/lambda
-
-        ! æ£€æµ‹æ”¶æ•›æ€§, è®¡ç®—lambda
+    write(stdout, *) lambda
+        ! ¼ì²âÊÕÁ²ĞÔ, ¼ÆËãlambda
         if (abs(lambda0 - lambda) < 1e-5) then
             elia_conv=.true.
         endif
 
-        ! ä¸‹ä¸€æ­¥
+        ! ÏÂÒ»²½
         delta0 = delta
         lambda0 = lambda
     enddo
