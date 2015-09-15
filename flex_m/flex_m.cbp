@@ -56,6 +56,14 @@
 		<Unit filename="eliashberg.f90">
 			<Option weight="3" />
 		</Unit>
+		<Unit filename="fftw3.f03">
+			<Option weight="0" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="fftw3l.f03">
+			<Option weight="0" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
 		<Unit filename="flex_m.cbp">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
