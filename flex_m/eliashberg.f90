@@ -24,15 +24,16 @@ subroutine eliashberg()
     write(stdout,*)
     write(stdout,*) 'Solving Eliashberg equation...'
     ! 文献中自旋3态有区别, 需自行推导
-    do ikx=1,nkx; do iky=1,nky; do iomegaq=-nomega,nomega
-        chi_c_ = chi_0(:, :, ikx, iky, iomegaq)
-        chi_s_ = chi_0(:, :, ikx, iky, iomegaq)
+    V_s = complex_0
+    do ikx=1,nkx; do iky=1,nky; do iomegaq=-maxomegab,maxomegab,2
+        chi_c_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
+        chi_s_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
         if (spin_state==3) then
-            V_s(:, :, ikx, iky, iomegaq) = U_ud - 0.5*ABA(U_s,chi_s_) &
-                - 0.5*ABA(U_c, chi_c_)
+            V_s(:, :, ikx, iky, transfer_freq(iomegaq)) &
+            = U_ud - 0.5*ABA(U_s,chi_s_) - 0.5*ABA(U_c, chi_c_)
         else
-            V_s(:, :, ikx, iky, iomegaq) = U_ud + 1.5*ABA(U_s,chi_s_) &
-                - 0.5*ABA(U_c, chi_c_)
+            V_s(:, :, ikx, iky, transfer_freq(iomegaq)) &
+            = U_ud + 1.5*ABA(U_s,chi_s_) - 0.5*ABA(U_c, chi_c_)
         endif
     enddo; enddo; enddo
 
