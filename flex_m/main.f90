@@ -47,7 +47,9 @@ program flex_m2d
         do iky = 1, nky
             k(ikx, iky, 1)=1d0/nkx*(ikx-1)
             k(ikx, iky, 2)=1d0/nky*(iky-1)
-            ! write(stdout, *) k(ikx,iky,:)
+            if (k(ikx, iky, 1)>0.5) k(ikx, iky, 1)=k(ikx, iky, 1)-1
+            if (k(ikx, iky, 2)>0.5) k(ikx, iky, 2)=k(ikx, iky, 2)-1
+            write(stdout, '(2I3,2F9.4)') ikx, iky, k(ikx,iky,:)
         enddo
     enddo
 
@@ -74,6 +76,18 @@ program flex_m2d
 
     ! write (stdout, *) U_s, U_c, U_ud, U_uu
 
+    ! 辅助变换
+    i_minus = complex_0
+    i_plus = complex_0
+    do ix=1,nb
+        i_plus(ix,ix)=complex_1
+        i_minus(ix,ix)=complex_1
+        if (ix==2 .or. ix==3) then
+            i_plus(ix,ix)=complex_i
+            i_minus(ix,ix)=-complex_i
+        endif
+    enddo
+
     ! 反傅里叶变换h0到k空间
     h0_k = complex_0
     do ikx=1,nkx; do iky=1,nky
@@ -83,9 +97,24 @@ program flex_m2d
             fac=exp(complex_i*rdotk)
             h0_k(:,:,ikx,iky)=h0_k(:,:,ikx,iky)+fac*h0_r(:,:,irx,iry)
         enddo; enddo
-    enddo; enddo
-    ! 好像没归一化? a: seems it is ok
 
+        ! 构造h0_tilde和u_tilde
+        h0_k_=h0_k(:,:,ikx,iky)
+        if (k(ikx,iky,1)>=k(ikx,iky,2)) then
+            h0_tilde_k(:,:,ikx,iky)=AHBA(i_plus,h0_k_)
+        else
+            h0_tilde_k(:,:,ikx,iky)=AHBA(i_minus,h0_k_)
+        endif
+    enddo; enddo
+
+    ! 输出部分结果测试
+    do ikx=1,nb
+        do iky=1,nb
+            write(stdout, '(A,2F7.3,A,$)') '(',h0_k(ikx,iky,4,4),' )  '
+        enddo
+        write(stdout,*)
+    enddo
+    stop
     if (nb==1) then
         call build_h0_k()
         !T_beta = 0.25
@@ -196,8 +225,6 @@ program flex_m2d
                     + 1.5*ABA(U_s, chi_s_) + 0.5*ABA(U_c, chi_c_)
 
             enddo; enddo; enddo
-
-
 
             ! write(stdout, *) 'calculating sigma...'
 

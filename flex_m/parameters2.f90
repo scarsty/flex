@@ -19,7 +19,7 @@ module parameters2
 
     ! H0
     complex(8), dimension (nb, nb, -rx:rx, -ry:ry) :: h0_r
-    complex(8), dimension (nb, nb, nkx, nky):: h0_k
+    complex(8), dimension (nb, nb, nkx, nky):: h0_k, u_tilde_k, h0_tilde_k
 
     ! k空间对应
     real(8), dimension (nkx, nky, 2) :: k
@@ -27,7 +27,7 @@ module parameters2
     integer, dimension (nk, nk) :: k_minus, k_plus
 
     ! 计算g0的辅助
-    complex(8), dimension (nb, nb) :: I_g0
+    complex(8), dimension (nb, nb) :: I_g0, i_plus, i_minus, h0_k_, u_tilde_k_, h0_tilde_k_
     real(8), dimension (nb, nb) :: u_g0
 
     ! 计算chi的辅助

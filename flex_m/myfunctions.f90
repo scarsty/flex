@@ -91,6 +91,17 @@ contains
             A, square_nb, B, square_nb, complex_0, AB, square_nb)
     end function AB
 
+    ! 需要测试, 考虑内存模式
+    function AHBA(A, B)
+        use constants
+        implicit none
+        complex(8), dimension (nb, nb) :: A, B, AHBA, C
+        call zgemm('C', 'N', nb, nb, nb, complex_1, &
+            A, nb, B, nb, complex_0, C, nb)
+        call zgemm('N', 'N', nb, nb, nb, complex_1, &
+            C, nb, A, nb, complex_0, AHBA, nb)
+    end function AB
+
     ! 松原频率转换, 数据结构设计如此
     function transfer_freq(freq)
         use constants

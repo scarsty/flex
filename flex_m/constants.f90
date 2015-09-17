@@ -3,7 +3,7 @@ MODULE constants
 	implicit none
 
 	public
-	integer, parameter :: nb=1 ! number of bands
+	integer, parameter :: nb=5 ! number of bands
 	integer, parameter :: square_nb=nb*nb ! number of bands
 
 	! Lattice and frequency grid parameters. (all must be 2^n!)
@@ -14,7 +14,7 @@ MODULE constants
 	! 总费米频率个数 2nomega, 总玻色频率个数4nomega-2
 	! 计算范围取-(4*nomega-1):4*nomega, 共8nomega个 (待测试是否能够避开周期)
 	! 费米频率循环 -(2*nomega-1),2*nomega-1,2, 玻色频率循环 -2*(2*nomega-1),2*(2*nomega-1),2
-	integer, parameter :: nomega=2048, nomega1 = nomega-1, nomega2 = 8*nomega
+	integer, parameter :: nomega=16, nomega1 = nomega-1, nomega2 = 8*nomega
 	integer, parameter :: totalnomega=16*nomega
 	integer, parameter :: maxomegaf = 2*nomega-1, maxomegab = 2*(2*nomega-1)
 
