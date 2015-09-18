@@ -10,3 +10,4 @@ flex_m/obj/
 *.o
 *.dat
 flex_m/~$*
+*.tmp
