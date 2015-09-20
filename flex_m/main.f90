@@ -101,10 +101,14 @@ program flex_m2d
         ! 构造h0_tilde和u_tilde
         h0_k_=h0_k(:,:,ikx,iky)
         if (k(ikx,iky,1)>=k(ikx,iky,2)) then
-            h0_tilde_k(:,:,ikx,iky)=AHBA(i_plus,h0_k_)
+            h0_tilde_k(:,:,ikx,iky)=real(AHBA(i_plus,h0_k_))
         else
-            h0_tilde_k(:,:,ikx,iky)=AHBA(i_minus,h0_k_)
+            h0_tilde_k(:,:,ikx,iky)=real(AHBA(i_minus,h0_k_))
         endif
+        h0_tilde_k_=h0_tilde_k(:,:,ikx,iky)
+        ! 这里h0_tilde变成一个实对称矩阵, 特征值全为实数, u为对应的正交变换阵
+        call dsyev()
+
     enddo; enddo
 
     ! 输出部分结果测试
