@@ -29,7 +29,9 @@ module parameters2
 
     ! 计算g0的辅助
     complex(8), dimension (nb, nb) :: I_g0, i_plus, i_minus, h0_k_
-    real(8), dimension (nb, nb) :: u_g0, u_tilde_k_, h0_tilde_k_
+    real(8), dimension (nb, nb) :: u_g0, u_tilde_k_, h0_tilde_k_, diag_h0_tilde_k_lwork, diag_test
+    real(8), dimension (nb, nkx, nky) :: diag_h0_tilde_k
+    real(8), dimension (nb) :: diag_h0_tilde_k_
 
     ! 计算chi的辅助
     complex(8), dimension (nb*nb, nb*nb) :: chi_0_, chi_c_, chi_s_, Iminuschi_0_

@@ -106,18 +106,46 @@ program flex_m2d
             h0_tilde_k(:,:,ikx,iky)=real(AHBA(i_minus,h0_k_))
         endif
         h0_tilde_k_=h0_tilde_k(:,:,ikx,iky)
+        u_tilde_k_=h0_tilde_k_
         ! 这里h0_tilde变成一个实对称矩阵, 特征值全为实数, u为对应的正交变换阵
-        call dsyev()
-
+        call dsyev('V','U',nb,u_tilde_k_,nb,diag_h0_tilde_k_,diag_h0_tilde_k_lwork,nb*nb,info)
+        u_tilde_k(:,:,ikx,iky)=u_tilde_k_
+        diag_h0_tilde_k(:,ikx,iky)=diag_h0_tilde_k_
+        !write(stdout,*) diag_h0_tilde_k_
     enddo; enddo
 
     ! 输出部分结果测试
-    do ikx=1,nb
-        do iky=1,nb
-            write(stdout, '(A,2F7.3,A,$)') '(',h0_k(ikx,iky,4,4),' )  '
+    !write(stdout,*) dot_product(u_tilde_k_(1,:),u_tilde_k_(5,:))
+
+    ikx=2;iky=2
+    write(stdout,*) 'unitary matrix:'
+    write(stdout,'(5F8.3)') u_tilde_k(:,:,ikx,iky)
+    write(stdout,*) 'eigenvalue:'
+    write(stdout,'(5F8.3)') diag_h0_tilde_k(:,ikx,iky)
+
+    do ix=1,nb
+        do iy=1,nb
+            write(stdout, '(A,2F7.3,A,$)') '(',h0_k(ix,iy,ikx,iky),' )  '
         enddo
         write(stdout,*)
     enddo
+
+    write(stdout,*) 'h:'
+    write(stdout, '(5F8.3)') h0_tilde_k(:,:,ikx,iky)
+
+    write(stdout,*) 'u back to h'
+    diag_test=0d0
+    do ix=1,nb
+        diag_test(ix,ix)=diag_h0_tilde_k(ix,ikx,iky)
+    enddo
+    !write(stdout, '(5F8.3)') diag_test
+        do ix=1,nb
+        do iy=1,nb
+            u_tilde_k_(ix,iy)=u_tilde_k(iy,ix,ikx,iky)
+        enddo
+    enddo
+    !write(stdout, '(5F8.3)') u_tilde_k_
+    write(stdout, '(5F8.3)') matmul(matmul(u_tilde_k_,diag_test), u_tilde_k(:,:,ikx,iky))
     stop
     if (nb==1) then
         call build_h0_k()

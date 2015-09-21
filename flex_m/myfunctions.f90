@@ -100,7 +100,7 @@ contains
             A, nb, B, nb, complex_0, C, nb)
         call zgemm('N', 'N', nb, nb, nb, complex_1, &
             C, nb, A, nb, complex_0, AHBA, nb)
-    end function AB
+    end function AHBA
 
     ! 松原频率转换, 数据结构设计如此
     function transfer_freq(freq)
