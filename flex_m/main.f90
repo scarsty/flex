@@ -117,12 +117,12 @@ program flex_m2d
     ! 输出部分结果测试
     !write(stdout,*) dot_product(u_tilde_k_(1,:),u_tilde_k_(5,:))
 
-    ikx=2;iky=2
+    ikx=2;iky=4
     write(stdout,*) 'unitary matrix:'
     write(stdout,'(5F8.3)') u_tilde_k(:,:,ikx,iky)
     write(stdout,*) 'eigenvalue:'
     write(stdout,'(5F8.3)') diag_h0_tilde_k(:,ikx,iky)
-
+    write(stdout,*) 'h:'
     do ix=1,nb
         do iy=1,nb
             write(stdout, '(A,2F7.3,A,$)') '(',h0_k(ix,iy,ikx,iky),' )  '
@@ -130,16 +130,16 @@ program flex_m2d
         write(stdout,*)
     enddo
 
-    write(stdout,*) 'h:'
+    write(stdout,*) 'h~:'
     write(stdout, '(5F8.3)') h0_tilde_k(:,:,ikx,iky)
 
-    write(stdout,*) 'u back to h'
+    write(stdout,*) 'u~ back to h~'
     diag_test=0d0
     do ix=1,nb
         diag_test(ix,ix)=diag_h0_tilde_k(ix,ikx,iky)
     enddo
     !write(stdout, '(5F8.3)') diag_test
-        do ix=1,nb
+    do ix=1,nb
         do iy=1,nb
             u_tilde_k_(ix,iy)=u_tilde_k(iy,ix,ikx,iky)
         enddo
@@ -151,7 +151,6 @@ program flex_m2d
         call build_h0_k()
         !T_beta = 0.25
     endif
-
 
     ! I_chi
     I_chi=complex_0

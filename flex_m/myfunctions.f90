@@ -68,7 +68,7 @@ contains
         integer n
         complex(8), dimension (n, n) :: A0, B0, A, B, inverseAbyB
         integer info, lda, ldb, ipiv
-        call cgesv(n, n, A, n, ipiv, B, n, info)
+        call zgesv(n, n, A, n, ipiv, B, n, info)
     end function inverseAbyB
 
     ! 需要测试, 考虑内存模式
