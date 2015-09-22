@@ -101,9 +101,9 @@ program flex_m2d
         ! 构造h0_tilde和u_tilde
         h0_k_=h0_k(:,:,ikx,iky)
         if (k(ikx,iky,1)>=k(ikx,iky,2)) then
-            h0_tilde_k(:,:,ikx,iky)=real(AHBA(i_plus,h0_k_))
+            h0_tilde_k(:,:,ikx,iky)=real(AHBA(i_plus,h0_k_,nb))
         else
-            h0_tilde_k(:,:,ikx,iky)=real(AHBA(i_minus,h0_k_))
+            h0_tilde_k(:,:,ikx,iky)=real(AHBA(i_minus,h0_k_,nb))
         endif
         h0_tilde_k_=h0_tilde_k(:,:,ikx,iky)
         u_tilde_k_=h0_tilde_k_
@@ -241,20 +241,20 @@ program flex_m2d
                 ! chi_c = chi_0 - chi_0*chi_c
                 chi_0_=chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
 
-                Iminuschi_0_ = I_chi + AB(chi_0_, U_c)
+                Iminuschi_0_ = I_chi + AB(chi_0_, U_c,nb*nb)
 
                 chi_c_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
                 call zgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_c_, square_nb, info)
                 chi_c(:, :, ikx, iky, transfer_freq(iomegaq)) = chi_c_
 
                 ! chi_s = chi_0 + chi_0*chi_s
-                Iminuschi_0_ = I_chi - AB(chi_0_, U_s)
+                Iminuschi_0_ = I_chi - AB(chi_0_, U_s,nb*nb)
                 chi_s_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
                 call zgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_s_, square_nb, info)
                 chi_s(:, :, ikx, iky, transfer_freq(iomegaq)) = chi_s_
 
-                V(:, :, ikx, iky, transfer_freq(iomegaq)) = U_ud - 2*U_uu - ABA(U_ud, chi_0_) &
-                    + 1.5*ABA(U_s, chi_s_) + 0.5*ABA(U_c, chi_c_)
+                V(:, :, ikx, iky, transfer_freq(iomegaq)) = U_ud - 2*U_uu - ABA(U_ud, chi_0_,nb*nb) &
+                    + 1.5*ABA(U_s, chi_s_,nb*nb) + 0.5*ABA(U_c, chi_c_,nb*nb)
 
             enddo; enddo; enddo
 

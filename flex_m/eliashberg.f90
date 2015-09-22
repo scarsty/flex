@@ -30,10 +30,10 @@ subroutine eliashberg()
         chi_s_ = chi_s(:, :, ikx, iky, transfer_freq(iomegaq))
         if (spin_state==3) then
             V_s(:, :, ikx, iky, transfer_freq(iomegaq)) &
-            = U_ud - 0.5*ABA(U_s,chi_s_) - 0.5*ABA(U_c, chi_c_)
+            = U_ud - 0.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c, chi_c_,nb*nb)
         else
             V_s(:, :, ikx, iky, transfer_freq(iomegaq)) &
-            = U_ud + 1.5*ABA(U_s,chi_s_) - 0.5*ABA(U_c, chi_c_)
+            = U_ud + 1.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c, chi_c_,nb*nb)
         endif
     enddo; enddo; enddo
 

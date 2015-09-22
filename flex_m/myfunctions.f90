@@ -62,44 +62,48 @@ contains
 
     end subroutine komega_minus
 
-    function inverseAbyB(A0, B0)
+    function inverseAbyB(A0, B0, n)
         use constants
         implicit none
-        complex(8), dimension (nb*nb, nb*nb) :: A0, B0, A, B, inverseAbyB
+        integer n
+        complex(8), dimension (n, n) :: A0, B0, A, B, inverseAbyB
         integer info, lda, ldb, ipiv
-        call cgesv(square_nb, square_nb, A, square_nb, ipiv, B, square_nb, info)
+        call cgesv(n, n, A, n, ipiv, B, n, info)
     end function inverseAbyB
 
     ! 需要测试, 考虑内存模式
     ! 因为都是方阵, 可考虑换函数
-    function ABA(A, B)
+    function ABA(A, B, n)
         use constants
         implicit none
-        complex(8), dimension (nb*nb, nb*nb) :: A, B, ABA, C
-        call zgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
-            A, square_nb, B, square_nb, complex_0, C, square_nb)
-        call zgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
-            C, square_nb, A, square_nb, complex_0, ABA, square_nb)
+        integer n
+        complex(8), dimension (n, n) :: A, B, ABA, C
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            A, n, B, n, complex_0, C, n)
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            C, n, A, n, complex_0, ABA, n)
     end function ABA
 
     ! 需要测试, 考虑内存模式
-    function AB(A, B)
+    function AB(A, B, n)
         use constants
         implicit none
-        complex(8), dimension (nb*nb, nb*nb) :: A, B, AB
-        call zgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
-            A, square_nb, B, square_nb, complex_0, AB, square_nb)
+        integer n
+        complex(8), dimension (n, n) :: A, B, AB
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            A, n, B, n, complex_0, AB, n)
     end function AB
 
     ! 需要测试, 考虑内存模式
-    function AHBA(A, B)
+    function AHBA(A, B, n)
         use constants
         implicit none
-        complex(8), dimension (nb, nb) :: A, B, AHBA, C
-        call zgemm('C', 'N', nb, nb, nb, complex_1, &
-            A, nb, B, nb, complex_0, C, nb)
-        call zgemm('N', 'N', nb, nb, nb, complex_1, &
-            C, nb, A, nb, complex_0, AHBA, nb)
+        integer n
+        complex(8), dimension (n, n) :: A, B, AHBA, C
+        call zgemm('C', 'N', n, n, n, complex_1, &
+            A, n, B, n, complex_0, C, n)
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            C, n, A, n, complex_0, AHBA, n)
     end function AHBA
 
     ! 松原频率转换, 数据结构设计如此
