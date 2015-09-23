@@ -107,7 +107,7 @@ program flex_m2d
         ! write(stdout,*) diag_h0_tilde_k_
     enddo; enddo
 
-    ! 输出部分结果测试
+    ! 输出部分结果检查
     !write(stdout,*) dot_product(u_tilde_k_(1,:),u_tilde_k_(5,:))
     !
     !    ikx=2;iky=4
@@ -192,7 +192,7 @@ program flex_m2d
             do iomegak=-maxomegaf,maxomegaf,2
                 diag_h0_G0_=complex_0
                 do ib=1,nb
-                    diag_h0_G0_(ib,ib)=1/(complex_i*iomegak-(ev_h0_k(ib,ikx,iky)-mu))
+                    diag_h0_G0_(ib,ib)=1/(complex_i*iomegak*pi*T_beta-(ev_h0_k(ib,ikx,iky)-mu))
                 enddo
                 u_h0_k_=u_h0_k(:,:,ikx,iky)
                 diag_h0_G0_=ABAH(u_h0_k_,diag_h0_G0_,nb)
@@ -260,11 +260,12 @@ program flex_m2d
                 chi_s_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
                 chi_s(:, :, ikx, iky, transfer_freq(iomegaq)) = inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
 
-
                 V(:, :, ikx, iky, transfer_freq(iomegaq)) = U_ud - 2*U_uu - ABA(U_ud, chi_0_,nb*nb) &
                     + 1.5*ABA(U_s, chi_s_,nb*nb) + 0.5*ABA(U_c, chi_c_,nb*nb)
 
             enddo; enddo; enddo
+            !write(stdout,*) V(:, :, 1, 1, 0)
+            !stop
 
             ! write(stdout, *) 'calculating sigma...'
 
@@ -294,18 +295,21 @@ program flex_m2d
                 cur_sigma_tol = norm_sigma_minus / norm_sigma
                 write(stdout,*) 'sigma tolerance is ', cur_sigma_tol !, '/', sigma_tol
 
-                norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
-                write(stdout,*)  norm_sigma0, norm_sigma, norm_sigma_minus
-
                 if (cur_sigma_tol>1) then
                     write(stdout,*) "sigma seems bad, please reset mu."
                     !stop
+                endif
+                if (isnan(cur_sigma_tol)) then
+                    write(stdout,*) "sigma seems bad."
+                    stop
                 endif
                 if (cur_sigma_tol < sigma_tol) then
                     sigma_conv = .true.
                 endif
             endif
             sigma0 = sigma
+            !norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
+            !write(stdout,*)  norm_sigma0, norm_sigma, norm_sigma_minus
 
             ! write(stdout, *) 'calculating New G...'
 
@@ -313,16 +317,16 @@ program flex_m2d
             G1=G
             G=G0
             do l1=1,nb; do m1=1,nb;
-                do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
+                !do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
                     do l2=1,nb; do m2=1,nb;
-                        G(l1, m1, ikx, iky, transfer_freq(iomegak)) &
-                            = G(l1, m1, ikx, iky, transfer_freq(iomegak)) &
+                        G(l1, m1, :,:,:) &
+                            = G(l1, m1, :,:,:) &
                             + &
-                            G0(l1, l2, ikx, iky, transfer_freq(iomegak)) &
-                            * sigma(l2, m2, ikx, iky, transfer_freq(iomegak)) &
-                            * G1(m2, m1, ikx, iky, transfer_freq(iomegak))
+                            G0(l1, l2, :,:,:) &
+                            * sigma(l2, m2, :,:,:) &
+                            * G1(m2, m1, :,:,:)
                     enddo;enddo
-                enddo;enddo;enddo
+                !enddo;enddo;enddo
             enddo;enddo
             conjgG=conjg(G)
 
@@ -354,7 +358,7 @@ program flex_m2d
             deltamu_per_density = (mu-mu0)/(cur_density-density0)
         endif
 
-        write(stdout,*) 'density and mu are ', cur_density, mu
+        write(stdout,*) 'density and mu are ', cur_density,'/', mu
         write(stdout,*)
 
         if (abs(cur_density-target_density)<density_tol) then

@@ -120,7 +120,7 @@ subroutine eliashberg()
         lambda0 = lambda
     enddo
 
-    write(stdout,*) 'Solving ended, the eigenvalue is ', lambda
+    write(stdout,*) 'Solving ended, the maximum eigenvalue is ', lambda
 
     ! output delta_nn (gap function)
 
