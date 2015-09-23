@@ -98,55 +98,61 @@ program flex_m2d
             h0_k(:,:,ikx,iky)=h0_k(:,:,ikx,iky)+fac*h0_r(:,:,irx,iry)
         enddo; enddo
 
-        ! 构造h0_tilde和u_tilde
+        ! 计算特征值和特征向量
         h0_k_=h0_k(:,:,ikx,iky)
-        if (k(ikx,iky,1)>=k(ikx,iky,2)) then
-            h0_tilde_k(:,:,ikx,iky)=real(AHBA(i_plus,h0_k_,nb))
-        else
-            h0_tilde_k(:,:,ikx,iky)=real(AHBA(i_minus,h0_k_,nb))
-        endif
-        h0_tilde_k_=h0_tilde_k(:,:,ikx,iky)
-        u_tilde_k_=h0_tilde_k_
-        ! 这里h0_tilde变成一个实对称矩阵, 特征值全为实数, u为对应的正交变换阵
-        call dsyev('V','U',nb,u_tilde_k_,nb,diag_h0_tilde_k_,diag_h0_tilde_k_lwork,nb*nb,info)
-        u_tilde_k(:,:,ikx,iky)=u_tilde_k_
-        diag_h0_tilde_k(:,ikx,iky)=diag_h0_tilde_k_
-        !write(stdout,*) diag_h0_tilde_k_
+        u_h0_k_=h0_k_
+        call zheev('V','L',nb,u_h0_k_,nb,ev_h0_k_,ev_h0_k_lwork,nb*nb,ev_h0_k_rwork,info)
+        u_h0_k(:,:,ikx,iky)=u_h0_k_
+        ev_h0_k(:,ikx,iky)=ev_h0_k_
+        ! write(stdout,*) diag_h0_tilde_k_
     enddo; enddo
 
     ! 输出部分结果测试
     !write(stdout,*) dot_product(u_tilde_k_(1,:),u_tilde_k_(5,:))
+    !
+    !    ikx=2;iky=4
+    !    write(stdout,*) 'h:'
+    !    call writematrix(h0_k(:,:,ikx,iky),nb)
+    !    write(stdout,*) 'unitary matrix:'
+    !    call writematrix(u_h0_k(:,:,ikx,iky),nb)
+    !
+    !    write(stdout,*) 'eigenvalue:'
+    !    write(stdout,*) ev_h0_k(:,ikx,iky)
+    !
+    !    write(stdout,*) 'u back to h'
+    !    diag_h0_G0_=0d0
+    !    do ix=1,nb
+    !        !diag_h0_G0_(ix,ix)=complex_1
+    !        diag_h0_G0_(ix,ix)=ev_h0_k(ix,ikx,iky)
+    !        !diag_h0_G0_(ix,ix)=1-complex_i*ix
+    !    enddo
+    !    !write(stdout, '(5F8.3)') diag_test
+    !    u_h0_k_=u_h0_k(:,:,ikx,iky)
+    !
+    !    !u_h0_k_=u_h0_k(:,:,ikx,iky)
+    !    !call writematrix(matmul(u_h0_k_,u_h0_k(:,:,ikx,iky)),nb)
+    !
+    !    call writematrix(ABAH(u_h0_k_,diag_h0_G0_,nb),nb)
+    !
+    !
+    !    write(stdout, *)'next'
+    !
+    !    h0_k_=h0_k(:,:,ikx,iky)
+    !    h0_tilde_k_=real(AHBA(i_plus,h0_k_,nb))
+    !    write(stdout, *)'h~'
+    !    call writematrix(AHBA(i_plus,h0_k_,nb),nb)
+    !    u_tilde_k_=h0_tilde_k_
+    !    call dsyev('V','U',nb,u_tilde_k_,nb,ev_h0_k_,diag_h0_tilde_k_lwork,nb*nb,info)
+    !    write(stdout,*) 'eigenvalue:'
+    !    write(stdout,*) ev_h0_k_
+    !    u_h0_k_=u_tilde_k_
+    !
+    !    u_h0_k_=AB(i_plus,u_h0_k_,nb)
+    !    write(stdout,*) 'unitary matrix:'
+    !    call writematrix(u_h0_k_,nb)
+    !    write(stdout,*) 'u~ back to h~'
+    !    call writematrix(ABAH(u_h0_k_,diag_h0_G0_,nb),nb)
 
-    ikx=2;iky=4
-    write(stdout,*) 'unitary matrix:'
-    write(stdout,'(5F8.3)') u_tilde_k(:,:,ikx,iky)
-    write(stdout,*) 'eigenvalue:'
-    write(stdout,'(5F8.3)') diag_h0_tilde_k(:,ikx,iky)
-    write(stdout,*) 'h:'
-    do ix=1,nb
-        do iy=1,nb
-            write(stdout, '(A,2F7.3,A,$)') '(',h0_k(ix,iy,ikx,iky),' )  '
-        enddo
-        write(stdout,*)
-    enddo
-
-    write(stdout,*) 'h~:'
-    write(stdout, '(5F8.3)') h0_tilde_k(:,:,ikx,iky)
-
-    write(stdout,*) 'u~ back to h~'
-    diag_test=0d0
-    do ix=1,nb
-        diag_test(ix,ix)=diag_h0_tilde_k(ix,ikx,iky)
-    enddo
-    !write(stdout, '(5F8.3)') diag_test
-    do ix=1,nb
-        do iy=1,nb
-            u_tilde_k_(ix,iy)=u_tilde_k(iy,ix,ikx,iky)
-        enddo
-    enddo
-    !write(stdout, '(5F8.3)') u_tilde_k_
-    write(stdout, '(5F8.3)') matmul(matmul(u_tilde_k_,diag_test), u_tilde_k(:,:,ikx,iky))
-    stop
     if (nb==1) then
         call build_h0_k()
         !T_beta = 0.25
@@ -181,16 +187,20 @@ program flex_m2d
         ! G0
         ! 费米频率
         G0=complex_0
-        do l1=1,nb; do m1=1,nb; !do n1=1,nb
-            do ikx=1,nkx; do iky=1,nky
-                do iomegak=-maxomegaf,maxomegaf,2
-                    !G0(l1,m1,ikx,iky,iomegak) = &
-                        !1d0/(complex_i*pi*(2*iomegak-1)/T_beta-(h0_k(n1,n1,ikx,iky)-mu)) ! 未完成
-                    G0(l1,m1,ikx,iky,transfer_freq(iomegak)) = &
-                        T_beta / (complex_i*pi*iomegak - (h0_k(l1,m1,ikx,iky)-mu))
+
+        do ikx=1,nkx; do iky=1,nky
+            do iomegak=-maxomegaf,maxomegaf,2
+                diag_h0_G0_=complex_0
+                do ib=1,nb
+                    diag_h0_G0_(ib,ib)=1/(complex_i*iomegak-(ev_h0_k(ib,ikx,iky)-mu))
                 enddo
-            enddo; enddo
-        enddo; enddo; !enddo
+                u_h0_k_=u_h0_k(:,:,ikx,iky)
+                diag_h0_G0_=ABAH(u_h0_k_,diag_h0_G0_,nb)
+                G0(:,:,ikx,iky,transfer_freq(iomegak))=diag_h0_G0_
+                !G0(l1,m1,ikx,iky,transfer_freq(iomegak)) = &
+                    !T_beta / (complex_i*pi*iomegak - (h0_k(l1,m1,ikx,iky)-mu))
+            enddo
+        enddo; enddo
         G=G0
         conjgG=conjg(G)
 
@@ -240,17 +250,16 @@ program flex_m2d
                 ! chi_c = chi_0 - chi_0*chi_c
                 chi_0_=chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
 
-                Iminuschi_0_ = I_chi + AB(chi_0_, U_c,nb*nb)
+                Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
 
                 chi_c_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
-                call zgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_c_, square_nb, info)
-                chi_c(:, :, ikx, iky, transfer_freq(iomegaq)) = chi_c_
+                chi_c(:, :, ikx, iky, transfer_freq(iomegaq))= inverseAbyB(Iminuschi_0_,chi_c_,nb*nb)
 
                 ! chi_s = chi_0 + chi_0*chi_s
-                Iminuschi_0_ = I_chi - AB(chi_0_, U_s,nb*nb)
+                Iminuschi_0_ = I_chi - AB(chi_0_,U_s,nb*nb)
                 chi_s_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
-                call zgesv(square_nb, square_nb, Iminuschi_0_, square_nb, ipiv, chi_s_, square_nb, info)
-                chi_s(:, :, ikx, iky, transfer_freq(iomegaq)) = chi_s_
+                chi_s(:, :, ikx, iky, transfer_freq(iomegaq)) = inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
+
 
                 V(:, :, ikx, iky, transfer_freq(iomegaq)) = U_ud - 2*U_uu - ABA(U_ud, chi_0_,nb*nb) &
                     + 1.5*ABA(U_s, chi_s_,nb*nb) + 0.5*ABA(U_c, chi_c_,nb*nb)
@@ -285,8 +294,8 @@ program flex_m2d
                 cur_sigma_tol = norm_sigma_minus / norm_sigma
                 write(stdout,*) 'sigma tolerance is ', cur_sigma_tol !, '/', sigma_tol
 
-                !norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
-                !write(stdout,*)  norm_sigma0, norm_sigma, norm_sigma_minus
+                norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
+                write(stdout,*)  norm_sigma0, norm_sigma, norm_sigma_minus
 
                 if (cur_sigma_tol>1) then
                     write(stdout,*) "sigma seems bad, please reset mu."

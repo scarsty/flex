@@ -18,8 +18,9 @@ module parameters2
     complex(8), dimension (nb*nb, nb*nb) :: U_s, U_c, U_ud, U_uu, I_chi
 
     ! H0
+    ! u_h0_k是计算G0所使用的辅助幺正阵, G0=u_h0_k**H*diag(1/(i*omage-e+mu))*u_h0_k
     complex(8), dimension (nb, nb, -rx:rx, -ry:ry) :: h0_r
-    complex(8), dimension (nb, nb, nkx, nky):: h0_k
+    complex(8), dimension (nb, nb, nkx, nky) :: h0_k
     real(8), dimension(nb, nb, nkx, nky) :: u_tilde_k, h0_tilde_k
 
     ! k空间对应
@@ -28,10 +29,11 @@ module parameters2
     integer, dimension (nk, nk) :: k_minus, k_plus
 
     ! 计算g0的辅助
-    complex(8), dimension (nb, nb) :: I_g0, i_plus, i_minus, h0_k_, G0_
-    real(8), dimension (nb, nb) :: u_g0, u_tilde_k_, h0_tilde_k_, diag_h0_tilde_k_lwork, diag_test
-    real(8), dimension (nb, nkx, nky) :: diag_h0_tilde_k
-    real(8), dimension (nb) :: diag_h0_tilde_k_
+    complex(8), dimension (nb, nb, nkx, nky) :: u_h0_k
+    complex(8), dimension (nb, nb) :: I_g0, i_plus, i_minus, h0_k_, diag_h0_G0_, u_h0_k_, ev_h0_k_lwork
+    real(8), dimension (nb, nb) :: u_g0, u_tilde_k_, h0_tilde_k_, diag_h0_tilde_k_lwork, diag_test, ev_h0_k_rwork
+    real(8), dimension (nb, nkx, nky) :: ev_h0_k
+    real(8), dimension (nb) :: ev_h0_k_
 
     ! 计算chi的辅助
     complex(8), dimension (nb*nb, nb*nb) :: chi_0_, chi_c_, chi_s_, Iminuschi_0_
