@@ -53,7 +53,7 @@ program flex_m2d
             write(stdout, '(2I3,2F9.4)') ikx, iky, k(ikx,iky,:)
         enddo
     enddo
-
+    write(stdout, *)
     ! U
     ! 能带下标ab, cd -> (a+(b-1)*nb, c+(d-1)*nb)
     ! real, dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu
@@ -195,7 +195,7 @@ program flex_m2d
             do iomegak=-maxomegaf,maxomegaf,2
                 diag_h0_G0_=complex_0
                 do ib=1,nb
-                    diag_h0_G0_(ib,ib)=1/(complex_i*iomegak*pi/T_eV-(ev_h0_k(ib,ikx,iky)-mu))
+                    diag_h0_G0_(ib,ib)=1/(complex_i*iomegak*pi*T_eV-(ev_h0_k(ib,ikx,iky)-mu))
                     !write(stdout,*)diag_h0_G0_(ib,ib)
                 enddo
                 u_h0_k_=u_h0_k(:,:,ikx,iky)
@@ -322,14 +322,14 @@ program flex_m2d
             G=G0
             do l1=1,nb; do m1=1,nb;
                 !do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
-                    do l2=1,nb; do m2=1,nb;
-                        G(l1, m1, :,:,:) &
-                            = G(l1, m1, :,:,:) &
-                            + &
-                            G0(l1, l2, :,:,:) &
-                            * sigma(l2, m2, :,:,:) &
-                            * G1(m2, m1, :,:,:)
-                    enddo;enddo
+                do l2=1,nb; do m2=1,nb;
+                    G(l1, m1, :,:,:) &
+                        = G(l1, m1, :,:,:) &
+                        + &
+                        G0(l1, l2, :,:,:) &
+                        * sigma(l2, m2, :,:,:) &
+                        * G1(m2, m1, :,:,:)
+                enddo;enddo
                 !enddo;enddo;enddo
             enddo;enddo
             conjgG=conjg(G)
