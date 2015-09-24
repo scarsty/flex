@@ -11,7 +11,7 @@ module parameters
     REAL(8) h1_U, h1_Up, h1_J, h1_Jp
 
     ! 温度
-    real(8) T, T_beta
+    real(8) T, T_beta, T_eV
 
     ! 保存的自能函数
     LOGICAL sigma_input, sigma_output

@@ -39,6 +39,7 @@ program flex_m2d
     endif
 
     T_beta = 1d0/kB/T
+    T_eV = kB*T
 
     !计算k点的坐标
     write(stdout, *) "Building k-points grid..."
@@ -167,7 +168,9 @@ program flex_m2d
 
 
     ! 迭代部分-----------------------------------------------------------
-    write(stdout, *) "Temperature in K = ", 1d0/kB/T_beta
+    write(stdout, *) "Temperature in K = ", T
+    write(stdout, *) "Temperature in eV = ", T_eV
+    write(stdout, *) "Temperature in beta = ", T_beta
     write(stdout, *)
 
     write(stdout, *) "Begin to calculate FLEX"
@@ -192,7 +195,8 @@ program flex_m2d
             do iomegak=-maxomegaf,maxomegaf,2
                 diag_h0_G0_=complex_0
                 do ib=1,nb
-                    diag_h0_G0_(ib,ib)=1/(complex_i*iomegak*pi*T_beta-(ev_h0_k(ib,ikx,iky)-mu))
+                    diag_h0_G0_(ib,ib)=1/(complex_i*iomegak*pi/T_eV-(ev_h0_k(ib,ikx,iky)-mu))
+                    !write(stdout,*)diag_h0_G0_(ib,ib)
                 enddo
                 u_h0_k_=u_h0_k(:,:,ikx,iky)
                 diag_h0_G0_=ABAH(u_h0_k_,diag_h0_G0_,nb)
@@ -394,7 +398,7 @@ program flex_m2d
         do l1=1,nb; do m1=1,nb
             temp_complex=temp_complex+chi_s(sub_g2chi(l1,l1),sub_g2chi(m1,m1),ikx,iky,0)
         enddo; enddo
-        write(stdout, '(4F11.5)') k(ikx,iky,:), temp_complex
+        write(stdout, '(2F10.4,2F14.8)') k(ikx,iky,:), temp_complex
     enddo; enddo
 
 
