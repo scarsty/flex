@@ -312,9 +312,10 @@ program flex_m2d
                 endif
             endif
             sigma0 = sigma
-            !norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
-            !write(stdout,*)  norm_sigma0, norm_sigma, norm_sigma_minus
-
+#ifdef _DEBUG
+            norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
+            write(stdout,*)  norm_sigma0, norm_sigma, norm_sigma_minus
+#endif
             ! write(stdout, *) 'calculating New G...'
 
             ! 新的G, dyson方程

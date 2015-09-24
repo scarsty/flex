@@ -42,7 +42,7 @@ MODULE constants
 	!integer, parameter :: m1 = m - 1
 
 	! Mathematical and physical constants
-	real(8), parameter :: kB = 8.61734315d-05  ! eV/K, 玻尔兹曼常数
+	real(8), parameter :: kB = 8.61733035d-05  ! eV/K, 玻尔兹曼常数
 	real(8), parameter :: mub = 5.788381755d-5 ! eV/T, 磁导率, 此处无用
 	real(8), parameter :: gs = 2.002319 !不知道
 
