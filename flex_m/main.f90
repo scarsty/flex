@@ -312,7 +312,7 @@ program flex_m2d
                 endif
 #ifdef _DEBUG
                 norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
-                write(stdout,*)  '0:',norm_sigma0, '1:',norm_sigma, '0-1:',norm_sigma_minus
+                write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma, '0-1:',norm_sigma_minus
 #endif
             endif
             sigma0 = sigma
