@@ -215,8 +215,8 @@ program flex_m2d
         ! base density
         density_base = 0d0
         do ib=1,nb; do ikx=1,nkx; do iky=1,nky
-            ! write(stdout, *) T_beta*(h0_k(ib,ib,ikx,iky)-mu)
-            density_base=density_base+1/(exp(T_beta*(h0_k(ib,ib,ikx,iky)-mu))+1)
+            !write(stdout, *) T_beta*(h0_k(ib,ib,ikx,iky)-mu)
+            density_base=density_base+1/(exp(T_beta*(real(h0_k(ib,ib,ikx,iky))-mu))+1)
         enddo; enddo; enddo
         density_base=density_base*2/nk
         write(stdout, *) 'base density is ', density_base
@@ -242,7 +242,7 @@ program flex_m2d
 
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
-
+            chi_0 = chi_0*T_ev
 
             ! write(stdout, *) 'calculating chi_c, chi_s, V...'
 
@@ -285,7 +285,7 @@ program flex_m2d
 
             ! idft sigma_r_tau to sigma
             call dft(sigma_r_tau, sigma, nb, -1, 1)
-
+sigma=T_eV*sigma
             ! write(stdout, *) 'checking convergence of sigma...'
 
             ! 第一次迭代, 直接赋值sigma0, 不测试收敛
@@ -311,8 +311,8 @@ program flex_m2d
                     sigma_conv = .true.
                 endif
 #ifdef _DEBUG
-                norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
-                write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma, '0-1:',norm_sigma_minus
+                !norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
+                !write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma, '0-1:',norm_sigma_minus
 #endif
             endif
             sigma0 = sigma
@@ -354,8 +354,8 @@ program flex_m2d
 
         do ib=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
             cur_density = cur_density &
-                + G(ib, ib, ikx, iky, transfer_freq(iomegak)) &
-                - G0(ib, ib, ikx, iky, transfer_freq(iomegak))
+                + real(G(ib, ib, ikx, iky, transfer_freq(iomegak))) &
+                - real(G0(ib, ib, ikx, iky, transfer_freq(iomegak)))
         enddo; enddo; enddo; enddo
 
         cur_density=cur_density*2/nk + density_base
