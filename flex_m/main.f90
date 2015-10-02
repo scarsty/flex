@@ -41,7 +41,7 @@ program flex_m2d
     T_beta = 1d0/kB/T
     T_eV = kB*T
 
-    !计算k点的坐标
+    ! 计算k点的坐标
     write(stdout, *) "Building k-points grid..."
     zero_k = 1    ! k原点
     do ikx = 1, nkx
@@ -108,8 +108,8 @@ program flex_m2d
         ! write(stdout,*) diag_h0_tilde_k_
     enddo; enddo
 
-    ! 输出部分结果检查
-    !write(stdout,*) dot_product(u_tilde_k_(1,:),u_tilde_k_(5,:))
+    !    输出部分结果检查
+    !    write(stdout,*) dot_product(u_tilde_k_(1,:),u_tilde_k_(5,:))
     !
     !    ikx=2;iky=4
     !    write(stdout,*) 'h:'
@@ -242,7 +242,7 @@ program flex_m2d
 
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
-            chi_0 = chi_0*T_ev
+            chi_0 = chi_0/nk*T_ev
 
             ! write(stdout, *) 'calculating chi_c, chi_s, V...'
 
@@ -285,13 +285,13 @@ program flex_m2d
 
             ! idft sigma_r_tau to sigma
             call dft(sigma_r_tau, sigma, nb, -1, 1)
-sigma=T_eV*sigma
+            sigma=T_eV/nk*sigma
             ! write(stdout, *) 'checking convergence of sigma...'
 
             ! 第一次迭代, 直接赋值sigma0, 不测试收敛
             if (sigma_iter > 0) then
                 ! 计算sigma0与sigma的符合情况, 向量库
-                ! scnrm2: 欧几里得模，行向量乘以自身转置共轭
+                ! dznrm2: 欧几里得模，行向量乘以自身转置共轭
                 sigma_minus = sigma0 - sigma
 
                 norm_sigma_minus = dznrm2(nb*nb*nkx*nky*totalnomega, sigma_minus, 1)
@@ -311,8 +311,8 @@ sigma=T_eV*sigma
                     sigma_conv = .true.
                 endif
 #ifdef _DEBUG
-                !norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
-                !write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma, '0-1:',norm_sigma_minus
+                norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
+                write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma, '0-1:',norm_sigma_minus
 #endif
             endif
             sigma0 = sigma

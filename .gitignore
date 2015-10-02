@@ -11,3 +11,4 @@ flex_m/obj/
 *.dat
 flex_m/~$*
 *.tmp
+flex_m/.settings/org.eclipse.core.resources.prefs

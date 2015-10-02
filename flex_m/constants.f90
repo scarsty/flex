@@ -46,7 +46,7 @@ MODULE constants
     real(8), parameter :: mub = 5.788381755d-5 ! eV/T, 磁导率, 此处无用
     real(8), parameter :: gs = 2.002319 !不知道
 
-    real(8), parameter, public    :: pi=3.141592653589793238462643383279
+    real(8), parameter, public    :: pi=3.141592653589793238462643383279d0
     real(8), parameter, public    :: two_pi = 2*pi
 
     complex(8), parameter, public :: complex_i = (0.0d0,1.0d0)
