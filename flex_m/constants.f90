@@ -11,12 +11,13 @@ MODULE constants
     ! 松原频率
     ! 这里的数据结构比较特殊, 对于格林函数和自能, 玻色频率上都是0, 对于极化率, 费米频率上都是0
     ! nomega 为正的费米频率个数
-    ! 总费米频率个数 2nomega, 总玻色频率个数4nomega-2
-    ! 计算范围取-(4*nomega-1):4*nomega, 共8nomega个 (待测试是否能够避开周期)
+    ! 总费米频率个数 2*nomega, 总玻色频率个数4*nomega-2
+    ! 计算范围较大值以避开周期
     ! 费米频率循环 -(2*nomega-1),2*nomega-1,2, 玻色频率循环 -2*(2*nomega-1),2*(2*nomega-1),2
-    integer, parameter :: nomega=1, nomega1 = nomega-1, nomega2 = 8*nomega
+    integer, parameter :: nomega=16, nomega1 = nomega-1, nomega2 = 8*nomega
     integer, parameter :: totalnomega=16*nomega
     integer, parameter :: maxomegaf = 2*nomega-1, maxomegab = 2*(2*nomega-1)
+    integer, parameter :: nomegef = 2*nomega, nomegeb = 4*nomega-2
 
     ! 虚时间离散的点数
     ! integer, parameter :: ntau=256

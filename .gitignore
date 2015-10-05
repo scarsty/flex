@@ -13,3 +13,4 @@ flex_m/~$*
 *.tmp
 flex_m/.settings/org.eclipse.core.resources.prefs
 flex_m/bin/
+input_file

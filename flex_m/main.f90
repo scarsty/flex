@@ -242,7 +242,7 @@ program flex_m2d
 
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
-            chi_0 = chi_0/nk*T_ev
+            chi_0 = chi_0/nk*T_ev/nomegef
 
             ! write(stdout, *) 'calculating chi_c, chi_s, V...'
 
@@ -265,9 +265,9 @@ program flex_m2d
                 chi_s(:, :, ikx, iky, transfer_freq(iomegaq)) = inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
 
                 V(:, :, ikx, iky, transfer_freq(iomegaq)) = U_ud - 2*U_uu &
-                - ABA(U_ud, chi_0(:, :, ikx, iky, transfer_freq(iomegaq)),nb*nb) &
-                    + 1.5*ABA(U_s, chi_c(:, :, ikx, iky, transfer_freq(iomegaq)),nb*nb) &
-                    + 0.5*ABA(U_c, chi_c(:, :, ikx, iky, transfer_freq(iomegaq)),nb*nb)
+                    - ABA(U_ud, chi_0(:, :, ikx, iky, transfer_freq(iomegaq)), nb*nb) &
+                    + 1.5*ABA(U_s, chi_s(:, :, ikx, iky, transfer_freq(iomegaq)), nb*nb) &
+                    + 0.5*ABA(U_c, chi_c(:, :, ikx, iky, transfer_freq(iomegaq)), nb*nb)
 
             enddo; enddo; enddo
             !write(stdout,*) V(:, :, 1, 1, 0)
@@ -287,7 +287,7 @@ program flex_m2d
 
             ! idft sigma_r_tau to sigma
             call dft(sigma_r_tau, sigma, nb, -1, 1)
-            sigma=T_eV/nk*sigma
+            sigma=T_eV/nk*sigma/nomegeb
             ! write(stdout, *) 'checking convergence of sigma...'
 
             ! 第一次迭代, 直接赋值sigma0, 不测试收敛
@@ -313,8 +313,8 @@ program flex_m2d
                     sigma_conv = .true.
                 endif
 #ifdef _DEBUG
-                norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
-                write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma, '0-1:',norm_sigma_minus
+                !norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
+                !write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma, '0-1:',norm_sigma_minus
 #endif
             endif
             sigma0 = sigma
@@ -379,7 +379,7 @@ program flex_m2d
                 !mu = mu - (cur_density-target_density)
                 mu = mu - (cur_density-target_density)*deltamu_per_density
             else
-                mu = mu - sign(1.0d0, (cur_density-target_density)*deltamu_per_density)
+                mu = mu - 1.0d-2*sign(1.0d0, (cur_density-target_density)*deltamu_per_density)
             endif
             write(stdout,*) 'modified new mu = ', mu
         endif

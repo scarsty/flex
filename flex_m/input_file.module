@@ -2,7 +2,7 @@
 !------------Basic thermodynamic parameters -----------------------
 T=58.0226d0            ! temperature (K)
 target_density=6d0, density_tol=1.0d-4    ! electron density, tolerance
-mu=10.99d+0   ! guess for unrenormalized chemical potential (eV)
+mu=10.9d+0   ! guess for unrenormalized chemical potential (eV)
 
 !-------------------- Interaction parameters  ------------------------------
 h1_U=2d0, h1_Up= 1.2d0, h1_J= 0.15d0, h1_Jp= 0.15d0 ! U , U' , J , J' (eV) for H1
