@@ -1,6 +1,6 @@
 &BASIC
 !------------Basic thermodynamic parameters -----------------------
-T=50000.0226d0            ! temperature (K)
+T=58000.0226d0            ! temperature (K)
 target_density=6d0, density_tol=1.0d-4    ! electron density, tolerance
 mu=10.9d+0   ! guess for unrenormalized chemical potential (eV)
 

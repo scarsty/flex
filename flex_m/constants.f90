@@ -22,8 +22,8 @@ MODULE constants
     ! integer, parameter :: ntau=256
 
     ! k点
-    integer, parameter :: nkx = 8
-    integer, parameter :: nky = 8
+    integer, parameter :: nkx = 4
+    integer, parameter :: nky = 4
     integer, parameter :: nkz = 1
     integer, parameter :: nk = nkx*nky*nkz
 

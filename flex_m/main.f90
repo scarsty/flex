@@ -264,8 +264,10 @@ program flex_m2d
                 chi_s_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
                 chi_s(:, :, ikx, iky, transfer_freq(iomegaq)) = inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
 
-                V(:, :, ikx, iky, transfer_freq(iomegaq)) = U_ud - 2*U_uu - ABA(U_ud, chi_0_,nb*nb) &
-                    + 1.5*ABA(U_s, chi_s_,nb*nb) + 0.5*ABA(U_c, chi_c_,nb*nb)
+                V(:, :, ikx, iky, transfer_freq(iomegaq)) = U_ud - 2*U_uu &
+                - ABA(U_ud, chi_0(:, :, ikx, iky, transfer_freq(iomegaq)),nb*nb) &
+                    + 1.5*ABA(U_s, chi_c(:, :, ikx, iky, transfer_freq(iomegaq)),nb*nb) &
+                    + 0.5*ABA(U_c, chi_c(:, :, ikx, iky, transfer_freq(iomegaq)),nb*nb)
 
             enddo; enddo; enddo
             !write(stdout,*) V(:, :, 1, 1, 0)
@@ -358,7 +360,7 @@ program flex_m2d
                 - real(G0(ib, ib, ikx, iky, transfer_freq(iomegak)))
         enddo; enddo; enddo; enddo
 
-        cur_density=cur_density*2/nk + density_base
+        cur_density=cur_density*2*T_eV/nk + density_base
 
         if (density_iter>0) then
             deltamu_per_density = (mu-mu0)/(cur_density-density0)
