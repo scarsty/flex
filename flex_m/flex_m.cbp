@@ -13,6 +13,7 @@
 				<Option compiler="gfortran" />
 				<Compiler>
 					<Add option="-cpp" />
+					<Add option="-ffree-line-length-none" />
 					<Add option="-w" />
 					<Add option="-g" />
 					<Add option="-D_DEBUG" />
