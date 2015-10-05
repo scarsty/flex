@@ -86,6 +86,7 @@ subroutine eliashberg()
 
         ! 变换至时域上G*G*delta
         call dft(GGdelta, GGdelta_r_tau, nb*nb, 1, 0)
+        GGdelta_r_tau = T_eV/nk*GGdelta_r_tau
 
         ! 原方程包含负号, 使用减法
         delta_r_tau = complex_0
