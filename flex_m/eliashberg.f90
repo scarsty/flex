@@ -30,10 +30,10 @@ subroutine eliashberg()
         chi_s_ = chi_s(:, :, ikx, iky, transfer_freq(iomegaq))
         if (spin_state==3) then
             V_s(:, :, ikx, iky, transfer_freq(iomegaq)) &
-            = U_ud - 0.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c, chi_c_,nb*nb)
+                = U_ud - 0.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c, chi_c_,nb*nb)
         else
             V_s(:, :, ikx, iky, transfer_freq(iomegaq)) &
-            = U_ud + 1.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c, chi_c_,nb*nb)
+                = U_ud + 1.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c, chi_c_,nb*nb)
         endif
     enddo; enddo; enddo
 
@@ -110,7 +110,7 @@ subroutine eliashberg()
             enddo; enddo; enddo
         enddo; enddo
         delta = delta/lambda
-    write(stdout, *) lambda
+        write(stdout, *) lambda
         ! 检测收敛性, 计算lambda
         if (abs(lambda0 - lambda) < 1e-5) then
             elia_conv=.true.
