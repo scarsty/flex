@@ -11,7 +11,7 @@ module parameters
     REAL(8) h1_U, h1_Up, h1_J, h1_Jp
 
     ! 温度
-    real(8) T, T_beta
+    real(8) T, T_beta, T_eV
 
     ! 保存的自能函数
     LOGICAL sigma_input, sigma_output
@@ -27,7 +27,7 @@ module parameters
     integer spin_state
 
     logical, parameter :: solve_eliashberg = .true.
-    logical, parameter :: test_band = .false.
+    logical, parameter :: test_band = .true.
 
     namelist /basic/ T, target_density, density_tol, mu,&
         h1_U, h1_Up, h1_J, h1_Jp,&

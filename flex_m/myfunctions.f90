@@ -62,34 +62,62 @@ contains
 
     end subroutine komega_minus
 
-    function inverseAbyB(A0, B0)
+    function inverseAbyB(A, B, n)
         use constants
         implicit none
-        complex(8), dimension (nb*nb, nb*nb) :: A0, B0, A, B, inverseAbyB
-        integer info, lda, ldb, ipiv
-        call cgesv(square_nb, square_nb, A, square_nb, ipiv, B, square_nb, info)
+        integer n
+        complex(8), dimension (n, n) :: A, B, inverseAbyB
+        integer info, lda, ldb
+        integer ipiv(n)
+        call zgesv(n, n, A, n, ipiv, B, n, info)
+        inverseAbyB=B
     end function inverseAbyB
 
     ! 需要测试, 考虑内存模式
     ! 因为都是方阵, 可考虑换函数
-    function ABA(A, B)
+    function ABA(A, B, n)
         use constants
         implicit none
-        complex(8), dimension (nb*nb, nb*nb) :: A, B, ABA, C
-        call zgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
-            A, square_nb, B, square_nb, complex_0, C, square_nb)
-        call zgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
-            C, square_nb, A, square_nb, complex_0, ABA, square_nb)
+        integer n
+        complex(8), dimension (n, n) :: A, B, ABA, C
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            A, n, B, n, complex_0, C, n)
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            C, n, A, n, complex_0, ABA, n)
     end function ABA
 
     ! 需要测试, 考虑内存模式
-    function AB(A, B)
+    function AB(A, B, n)
         use constants
         implicit none
-        complex(8), dimension (nb*nb, nb*nb) :: A, B, AB
-        call zgemm('N', 'N', square_nb, square_nb, square_nb, complex_1, &
-            A, square_nb, B, square_nb, complex_0, AB, square_nb)
+        integer n
+        complex(8), dimension (n, n) :: A, B, AB
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            A, n, B, n, complex_0, AB, n)
     end function AB
+
+    ! 需要测试, 考虑内存模式
+    function AHBA(A, B, n)
+        use constants
+        implicit none
+        integer n
+        complex(8), dimension (n, n) :: A, B, AHBA, C
+        call zgemm('C', 'N', n, n, n, complex_1, &
+            A, n, B, n, complex_0, C, n)
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            C, n, A, n, complex_0, AHBA, n)
+    end function AHBA
+
+    function ABAH(A, B, n)
+        use constants
+        implicit none
+        integer n
+        complex(8), dimension (n, n) :: A, B, ABAH, C
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            A, n, B, n, complex_0, C, n)
+        call zgemm('N', 'C', n, n, n, complex_1, &
+            C, n, A, n, complex_0, ABAH, n)
+    end function ABAH
 
     ! 松原频率转换, 数据结构设计如此
     function transfer_freq(freq)
@@ -202,47 +230,104 @@ contains
 
     end subroutine dft
 
-    subroutine buildkminus()
+    subroutine writematrix(A,n)
         use constants
-        use parameters2
         implicit none
-        ! k减法矩阵
-        ! seems of no use
-        !        k_minus=0
-        !        do i1=1,nk
-        !            do i2=1,nk
-        !                temp = k(i1,:) - k(i2,:)
-        !                !write(stdout, *) temp
-        !                do while (abs(temp(1)+real_error)>0.5)
-        !                    temp(1) = temp(1) -sign(1., temp(1))
-        !                enddo
-        !                do while (abs(temp(2)+real_error)>0.5)
-        !                    temp(2) = temp(2) -sign(1., temp(2))
-        !                enddo
-        !                !write(stdout, *) temp
-        !                do i = 1,nk
-        !                    dis = norm2(temp-k(i,:))
-        !                    if (dis<real_error) then
-        !                        k_minus(i1, i2) = i
-        !                        exit
-        !                    endif
-        !                enddo
-        !                if (k_minus(i1, i2)<=0 .or. k_minus(i1, i2)>nk) then
-        !                    write(stdout, *) 'Wrong k_minus at', i1, i2
-        !                endif
-        !            enddo
-        !        enddo
-        !
-        !        ! k加法矩阵, k_minus(k1, k_minus(zero_k, k2))
-        !        do i1=1,nk
-        !            do i2=1,nk
-        !                k_plus(i1, i2) = k_minus(i1, k_minus(zero_k, i2))
-        !                if (k_plus(i1, i2)==0 .or. k_plus(i1, i2)>nk) then
-        !                    write(stdout, *) 'Wrong k_plus at', i1, i2
-        !                endif
-        !            enddo
-        !        enddo
-    end subroutine buildkminus
+
+        integer ix, iy, n
+        complex(8), dimension(n,n) :: A
+
+        do ix=1,n
+            do iy=1,n
+                write(stdout, '(A,2F7.3,A,$)') '(',A(ix,iy),' )  '
+            enddo
+            write(stdout,*)
+        enddo
+
+    end subroutine writematrix
+
+
+    ! 部分废弃代码
+    !subroutine buildkminus()
+    !    use constants
+    !    use parameters2
+    !    implicit none
+    ! k减法矩阵
+    ! seems of no use
+    !        k_minus=0
+    !        do i1=1,nk
+    !            do i2=1,nk
+    !                temp = k(i1,:) - k(i2,:)
+    !                !write(stdout, *) temp
+    !                do while (abs(temp(1)+real_error)>0.5)
+    !                    temp(1) = temp(1) -sign(1., temp(1))
+    !                enddo
+    !                do while (abs(temp(2)+real_error)>0.5)
+    !                    temp(2) = temp(2) -sign(1., temp(2))
+    !                enddo
+    !                !write(stdout, *) temp
+    !                do i = 1,nk
+    !                    dis = norm2(temp-k(i,:))
+    !                    if (dis<real_error) then
+    !                        k_minus(i1, i2) = i
+    !                        exit
+    !                    endif
+    !                enddo
+    !                if (k_minus(i1, i2)<=0 .or. k_minus(i1, i2)>nk) then
+    !                    write(stdout, *) 'Wrong k_minus at', i1, i2
+    !                endif
+    !            enddo
+    !        enddo
+    !
+    !        ! k加法矩阵, k_minus(k1, k_minus(zero_k, k2))
+    !        do i1=1,nk
+    !            do i2=1,nk
+    !                k_plus(i1, i2) = k_minus(i1, k_minus(zero_k, i2))
+    !                if (k_plus(i1, i2)==0 .or. k_plus(i1, i2)>nk) then
+    !                    write(stdout, *) 'Wrong k_plus at', i1, i2
+    !                endif
+    !            enddo
+    !        enddo
+    !end subroutine buildkminus
+
+
+    !        h0_k_=h0_k(:,:,ikx,iky)
+    !        if (k(ikx,iky,1)>=k(ikx,iky,2)) then
+    !            h0_tilde_k(:,:,ikx,iky)=real(AHBA(i_plus,h0_k_,nb))
+    !        else
+    !            h0_tilde_k(:,:,ikx,iky)=real(AHBA(i_minus,h0_k_,nb))
+    !        endif
+    !        h0_tilde_k_=h0_tilde_k(:,:,ikx,iky)
+    !        u_tilde_k_=h0_tilde_k_
+    !        ! 这里h0_tilde变成一个实对称矩阵, 特征值全为实数, u为对应的正交变换阵
+    !        call dsyev('V','U',nb,u_tilde_k_,nb,diag_h0_tilde_k_,diag_h0_tilde_k_lwork,nb*nb,info)
+    !        u_tilde_k(:,:,ikx,iky)=u_tilde_k_
+    !        diag_h0_tilde_k(:,ikx,iky)=diag_h0_tilde_k_
+    !
+    !    write(stdout,*) 'unitary matrix:'
+    !    write(stdout,'(5F8.3)') u_tilde_k(:,:,ikx,iky)
+    !    write(stdout,'(5F8.3)') u_tilde_k(:,:,ikx,iky)
+    !    write(stdout,*) 'eigenvalue:'
+    !    write(stdout,'(5F8.3)') diag_h0_tilde_k(:,ikx,iky)
+    !    write(stdout,*) 'h:'
+    !    call writematrix(h0_k(:,:,ikx,iky),nb)
+    !
+    !    write(stdout,*) 'h~:'
+    !    write(stdout, '(5F8.3)') h0_tilde_k(:,:,ikx,iky)
+    !
+    !    write(stdout,*) 'u~ back to h~'
+    !    diag_test=0d0
+    !    do ix=1,nb
+    !        diag_test(ix,ix)=diag_h0_tilde_k(ix,ikx,iky)
+    !    enddo
+    !    !write(stdout, '(5F8.3)') diag_test
+    !    do ix=1,nb
+    !        do iy=1,nb
+    !            u_tilde_k_(ix,iy)=u_tilde_k(iy,ix,ikx,iky)
+    !        enddo
+    !    enddo
+    !    !write(stdout, '(5F8.3)') u_tilde_k_
+    !    write(stdout, '(5F8.3)') matmul(matmul(u_tilde_k_,diag_test), u_tilde_k(:,:,ikx,iky))
 
 #ifdef _DEBUG
     ! sometimes the linker cannot find this blas function

@@ -26,14 +26,14 @@ subroutine eliashberg()
     ! 文献中自旋3态有区别, 需自行推导
     V_s = complex_0
     do ikx=1,nkx; do iky=1,nky; do iomegaq=-maxomegab,maxomegab,2
-        chi_c_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
-        chi_s_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
+        chi_c_ = chi_c(:, :, ikx, iky, transfer_freq(iomegaq))
+        chi_s_ = chi_s(:, :, ikx, iky, transfer_freq(iomegaq))
         if (spin_state==3) then
             V_s(:, :, ikx, iky, transfer_freq(iomegaq)) &
-            = U_ud - 0.5*ABA(U_s,chi_s_) - 0.5*ABA(U_c, chi_c_)
+            = U_ud - 0.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c, chi_c_,nb*nb)
         else
             V_s(:, :, ikx, iky, transfer_freq(iomegaq)) &
-            = U_ud + 1.5*ABA(U_s,chi_s_) - 0.5*ABA(U_c, chi_c_)
+            = U_ud + 1.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c, chi_c_,nb*nb)
         endif
     enddo; enddo; enddo
 
@@ -45,7 +45,7 @@ subroutine eliashberg()
     ! enddo; enddo
 
     ! dft V_s to V_s_r_tau
-    call dft(V_s, V_r_tau, nb*nb, 1,0)
+    call dft(V_s, V_s_r_tau, nb*nb, 1,0)
 
     ! 规格化幂法求解LEV
     ! u=v
@@ -104,12 +104,12 @@ subroutine eliashberg()
         ! 规格化
         lambda = 0
         do l1=1,nb; do m1=1,nb
-            do ikx=1,nkx; do iky=1,nky; do iomegak=--maxomegaf,maxomegaf,2
+            do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
                 lambda = max(lambda, abs(delta(l1,m1,ikx,iky,transfer_freq(iomegak))))
             enddo; enddo; enddo
         enddo; enddo
         delta = delta/lambda
-
+    write(stdout, *) lambda
         ! 检测收敛性, 计算lambda
         if (abs(lambda0 - lambda) < 1e-5) then
             elia_conv=.true.
@@ -120,7 +120,7 @@ subroutine eliashberg()
         lambda0 = lambda
     enddo
 
-    write(stdout,*) 'Solving ended, the eigenvalue is ', lambda
+    write(stdout,*) 'Solving ended, the maximum eigenvalue is ', lambda
 
     ! output delta_nn (gap function)
 
