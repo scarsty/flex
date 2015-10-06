@@ -86,7 +86,7 @@ subroutine eliashberg()
 
         ! 变换至时域上G*G*delta
         call dft(GGdelta, GGdelta_r_tau, nb*nb, 1, 0)
-        GGdelta_r_tau = T_eV/nk*GGdelta_r_tau/nomegef
+        !GGdelta_r_tau = GGdelta_r_tau
 
         ! 原方程包含负号, 使用减法
         delta_r_tau = complex_0
@@ -101,7 +101,7 @@ subroutine eliashberg()
 
         ! 变换回频域
         call dft(delta_r_tau, delta, nb, -1, 1)
-        !delta=delta
+        delta=T_eV/nk*delta
         ! 规格化
         lambda = 0
         do l1=1,nb; do m1=1,nb

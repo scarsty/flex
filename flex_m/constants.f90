@@ -14,7 +14,7 @@ MODULE constants
     ! 总费米频率个数 2*nomega, 总玻色频率个数4*nomega-2
     ! 计算范围较大值以避开周期
     ! 费米频率循环 -(2*nomega-1),2*nomega-1,2, 玻色频率循环 -2*(2*nomega-1),2*(2*nomega-1),2
-    integer, parameter :: nomega=16, nomega1 = nomega-1, nomega2 = 8*nomega
+    integer, parameter :: nomega=1, nomega1 = nomega-1, nomega2 = 8*nomega
     integer, parameter :: totalnomega=16*nomega
     integer, parameter :: maxomegaf = 2*nomega-1, maxomegab = 2*(2*nomega-1)
     integer, parameter :: nomegef = 2*nomega, nomegeb = 4*nomega-2

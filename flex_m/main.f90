@@ -242,7 +242,7 @@ program flex_m2d
 
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
-            chi_0 = chi_0/nk*T_ev/nomegef
+            chi_0 = chi_0/nk*T_ev
 
             ! write(stdout, *) 'calculating chi_c, chi_s, V...'
 
@@ -287,7 +287,7 @@ program flex_m2d
 
             ! idft sigma_r_tau to sigma
             call dft(sigma_r_tau, sigma, nb, -1, 1)
-            sigma=T_eV/nk*sigma/nomegeb
+            sigma=T_eV/nk*sigma
             ! write(stdout, *) 'checking convergence of sigma...'
 
             ! 第一次迭代, 直接赋值sigma0, 不测试收敛
