@@ -1,3 +1,8 @@
+!   Compute Green function for superconductive properties
+!   author  : Sun TY (scarsty@gmail.com)
+!   status  : constructing
+!   version : none
+
 program flex_m2d
     use constants
     use myfunctions
@@ -73,7 +78,7 @@ program flex_m2d
         enddo
     enddo
     U_s = U_ud-U_uu
-    U_c = U_ud+u_uu
+    U_c = U_ud+U_uu
 
     ! write (stdout, *) U_s, U_c, U_ud, U_uu
 
@@ -221,7 +226,7 @@ program flex_m2d
         density_base=density_base*2/nk
         write(stdout, *) 'base density is ', density_base
 
-        sigma_iter =0
+        sigma_iter = 0
         do while (.not. sigma_conv)
 
             ! write(stdout, *) 'calculating chi_0...'
@@ -242,7 +247,8 @@ program flex_m2d
 
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
-            chi_0 = chi_0/nk*T_ev
+            chi_0 = T_ev/nk*chi_0
+            !call cleanError(chi_0, nb**4*nk*totalnomega)
 
             ! write(stdout, *) 'calculating chi_c, chi_s, V...'
 
@@ -254,13 +260,13 @@ program flex_m2d
                 ! chi_c = chi_0 - chi_0*chi_c
                 chi_0_=chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
 
-                Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
+                Iminuschi_0_ = I_chi + AB(U_c,chi_0_,nb*nb)
 
                 chi_c_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
                 chi_c(:, :, ikx, iky, transfer_freq(iomegaq))= inverseAbyB(Iminuschi_0_,chi_c_,nb*nb)
 
                 ! chi_s = chi_0 + chi_0*chi_s
-                Iminuschi_0_ = I_chi - AB(chi_0_,U_s,nb*nb)
+                Iminuschi_0_ = I_chi - AB(U_s,chi_0_,nb*nb)
                 chi_s_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
                 chi_s(:, :, ikx, iky, transfer_freq(iomegaq)) = inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
 
@@ -288,6 +294,7 @@ program flex_m2d
             ! idft sigma_r_tau to sigma
             call dft(sigma_r_tau, sigma, nb, -1, 1)
             sigma=T_eV/nk*sigma
+            !call cleanError(sigma, nb**2*nk*totalnomega)
             ! write(stdout, *) 'checking convergence of sigma...'
 
             ! 第一次迭代, 直接赋值sigma0, 不测试收敛
@@ -323,19 +330,27 @@ program flex_m2d
 
             ! 新的G, dyson方程
             G1=G
-            G=G0
-            do l1=1,nb; do m1=1,nb;
-                !do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
-                do l2=1,nb; do m2=1,nb;
-                    G(l1, m1, :,:,:) &
-                        = G(l1, m1, :,:,:) &
-                        + &
-                        G0(l1, l2, :,:,:) &
-                        * sigma(l2, m2, :,:,:) &
-                        * G1(m2, m1, :,:,:)
-                enddo;enddo
-                !enddo;enddo;enddo
-            enddo;enddo
+            !G=G0
+            ! 这里可以优化
+            do ikx=1,nkx;do iky=1,nky;do iomegak=-maxomegaf,maxomegaf,2
+                G(:,:,ikx,iky,transfer_freq(iomegak)) &
+                = &
+                G0(:,:,ikx,iky,transfer_freq(iomegak)) &
+                + ABC(G0(:,:,ikx,iky,transfer_freq(iomegak)), &
+                    sigma(:,:,ikx,iky,transfer_freq(iomegak)), &
+                    G1(:,:,ikx,iky,transfer_freq(iomegak)), nb)
+            enddo;enddo;enddo
+            !do l1=1,nb; do m1=1,nb;
+            !
+            !    do l2=1,nb; do m2=1,nb;
+            !G(l1, m1, :,:,:) &
+            !    = G(l1, m1, :,:,:) &
+            !    + &
+            !    G0(l1, l2, :,:,:) &
+            !    * sigma(l2, m2, :,:,:) &
+            !    * G1(m2, m1, :,:,:)
+            !    enddo;enddo
+            !enddo;enddo
             conjgG=conjg(G)
 
 

@@ -7,7 +7,7 @@ contains
     integer function mpi_rank()
         implicit none
         integer r
-        real(8) ierr
+        integer ierr
 #ifdef USE_MPI
         call mpi_comm_rank(MPI_COMM_WORLD, r, ierr)
 #else
@@ -120,6 +120,17 @@ contains
         call zgemm('N', 'N', n, n, n, complex_1, &
             C, n, A, n, complex_0, ABA, n)
     end function ABA
+
+    function ABC(A, B, C, n)
+        use constants
+        implicit none
+        integer n
+        complex(8), dimension (n, n) :: A, B, C, AB, ABC
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            A, n, B, n, complex_0, AB, n)
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            AB, n, C, n, complex_0, ABC, n)
+    end function ABC
 
     ! 需要测试, 考虑内存模式
     function AB(A, B, n)
@@ -281,6 +292,21 @@ contains
 
     end subroutine writematrix
 
+
+    subroutine cleanError(A,n)
+        use constants
+        implicit none
+
+        integer i, n
+        complex(8), dimension(n) :: A
+
+        do i=1,n
+            if (abs(A(i))<real_error) then
+                A(i)=0d0
+            endif
+        enddo
+
+    end subroutine cleanError
 
     ! 部分废弃代码
     !subroutine buildkminus()
