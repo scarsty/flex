@@ -3,17 +3,52 @@ module myfunctions
     include 'mpif.h'
 #endif
 contains
+    ! mpi函数系列
     integer function mpi_rank()
         implicit none
-        integer rank
+        integer r
         real(8) ierr
 #ifdef USE_MPI
-        call MPI_COMM_RANK(MPI_COMM_WORLD, rank, ierr)
+        call mpi_comm_rank(MPI_COMM_WORLD, r, ierr)
 #else
-        rank = 0
+        r = 0
 #endif /* USE_MPI */
-        mpi_rank = rank
+        mpi_rank = r
     end function mpi_rank
+
+    integer function mpi_size()
+        implicit none
+        integer s
+        integer ierr
+#ifdef USE_MPI
+        call mpi_comm_size(MPI_COMM_WORLD, s, ierr)
+#else
+        s = 1
+#endif /* USE_MPI */
+        mpi_size = s
+    end function mpi_size
+
+    integer function mpi_init1()
+        implicit none
+        integer ierr
+#ifdef USE_MPI
+        call mpi_init(ierr)
+#else
+        ierr = 0
+#endif /* USE_MPI */
+        mpi_init1 = ierr
+    end function mpi_init1
+
+    integer function mpi_finalize1()
+        implicit none
+        integer ierr
+#ifdef USE_MPI
+        call mpi_finalize(ierr)
+#else
+        ierr = 0
+#endif /* USE_MPI */
+        mpi_finalize1 = ierr
+    end function mpi_finalize1
 
     integer function sub_g2chi(a,b)
         use constants, only: nb
