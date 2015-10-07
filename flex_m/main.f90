@@ -164,11 +164,17 @@ program flex_m2d
         !T_beta = 0.25
     endif
 
-    ! I_chi
+    ! I_chi, (nb*nb) order
     I_chi=complex_0
     do i=1,nb*nb
         I_chi(i,i)=complex_1
     enddo
+    ! I_G, nb order
+    I_G=complex_0
+    do i=1,nb
+        I_G(i,i)=complex_1
+    enddo
+
 
 
 
@@ -260,13 +266,13 @@ program flex_m2d
                 ! chi_c = chi_0 - chi_0*chi_c
                 chi_0_=chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
 
-                Iminuschi_0_ = I_chi + AB(U_c,chi_0_,nb*nb)
+                Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
 
                 chi_c_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
                 chi_c(:, :, ikx, iky, transfer_freq(iomegaq))= inverseAbyB(Iminuschi_0_,chi_c_,nb*nb)
 
                 ! chi_s = chi_0 + chi_0*chi_s
-                Iminuschi_0_ = I_chi - AB(U_s,chi_0_,nb*nb)
+                Iminuschi_0_ = I_chi - AB(chi_0_,U_s,nb*nb)
                 chi_s_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
                 chi_s(:, :, ikx, iky, transfer_freq(iomegaq)) = inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
 
@@ -329,16 +335,27 @@ program flex_m2d
             ! write(stdout, *) 'calculating New G...'
 
             ! 新的G, dyson方程
-            G1=G
-            !G=G0
-            ! 这里可以优化
+             G1=G
+            ! G=G0
+            ! G=G0+G0*sigma*G, then we have G=(I-G0*sigma)**(-1)*G0
             do ikx=1,nkx;do iky=1,nky;do iomegak=-maxomegaf,maxomegaf,2
-                G(:,:,ikx,iky,transfer_freq(iomegak)) &
-                = &
-                G0(:,:,ikx,iky,transfer_freq(iomegak)) &
-                + ABC(G0(:,:,ikx,iky,transfer_freq(iomegak)), &
-                    sigma(:,:,ikx,iky,transfer_freq(iomegak)), &
-                    G1(:,:,ikx,iky,transfer_freq(iomegak)), nb)
+                G0_=G0(:,:,ikx,iky,transfer_freq(iomegak))
+                sigma_=sigma(:,:,ikx,iky,transfer_freq(iomegak))
+                G_=AB(G0_,sigma_,nb)
+                G_=I_G - G_
+                !call writematrix(G_,nb)
+                !call writematrix(G0_,nb)
+                G_=inverseAbyB(G_,G0_,nb)
+                !call writematrix(G_,nb)
+                G(:,:,ikx,iky,transfer_freq(iomegak)) = G_
+                !call writematrix(I_G,nb)
+                !stop
+                !G(:,:,ikx,iky,transfer_freq(iomegak)) &
+                !    = &
+                !    G0(:,:,ikx,iky,transfer_freq(iomegak)) &
+                !    + ABC(G0(:,:,ikx,iky,transfer_freq(iomegak)), &
+                !    sigma(:,:,ikx,iky,transfer_freq(iomegak)), &
+                !    G1(:,:,ikx,iky,transfer_freq(iomegak)), nb)
             enddo;enddo;enddo
             !do l1=1,nb; do m1=1,nb;
             !
