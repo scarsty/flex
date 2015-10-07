@@ -17,7 +17,7 @@ MODULE constants
     integer, parameter :: nomega=2, nomega1 = nomega-1, nomega2 = 8*nomega
     integer, parameter :: totalnomega=16*nomega
     integer, parameter :: maxomegaf = 2*nomega-1, maxomegab = 2*(2*nomega-1)
-    integer, parameter :: nomegef = 2*nomega, nomegeb = 4*nomega-2
+    integer, parameter :: nomegaf = 2*nomega, nomegab = 4*nomega-2
 
     ! 虚时间离散的点数
     ! integer, parameter :: ntau=256

@@ -309,8 +309,8 @@ program flex_m2d
                 ! dznrm2: 欧几里得模，行向量乘以自身转置共轭
                 sigma_minus = sigma0 - sigma
 
-                norm_sigma_minus = dznrm2(nb*nb*nkx*nky*totalnomega, sigma_minus, 1)
-                norm_sigma = dznrm2(nb*nb*nkx*nky*totalnomega, sigma, 1)
+                norm_sigma_minus = dznrm2(nb*nb*nkx*nky*nomegaf, sigma_minus, 1)
+                norm_sigma = dznrm2(nb*nb*nkx*nky*nomegaf, sigma, 1)
                 cur_sigma_tol = norm_sigma_minus / norm_sigma
                 write(stdout,*) 'sigma tolerance is ', cur_sigma_tol !, '/', sigma_tol
 
@@ -326,8 +326,8 @@ program flex_m2d
                     sigma_conv = .true.
                 endif
 #ifdef _DEBUG
-                !norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
-                !write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma, '0-1:',norm_sigma_minus
+                norm_sigma0 = dznrm2(nb*nb*nkx*nky*nomegaf, sigma0, 1)
+                write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma, '0-1:',norm_sigma_minus
 #endif
             endif
             sigma0 = sigma

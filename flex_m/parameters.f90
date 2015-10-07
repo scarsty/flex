@@ -22,7 +22,7 @@ module parameters
     INTEGER max_it
     REAL(8) alpha
     INTEGER alpha_scheme
-
+    integer sigma_state
     ! 自旋态
     integer spin_state
 

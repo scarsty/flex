@@ -1,6 +1,6 @@
 FC=ifort
 MPIF90=mpif90
-FFLAGS=-I. -O2 -mcmodel=medium -shared-intel -w -mkl -fpp -ffree-line-length-none
+FFLAGS=-I. -O2 -mcmodel=medium -shared-intel -w -mkl -fpp -ffree-line-length-none -D_DEBUG
 SOURCES=$(wildcard *.f90)
 OBJECTS=$(SOURCES:.f90=.o)
 TARGET=ffff
