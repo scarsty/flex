@@ -55,9 +55,9 @@
             do ib1 = 1, nb
                 do ib2 = 1, nb
                     read(fileunit,*) tempb1, tempb2, temp_h0
-                    if (ix/=0 .or. iy/=0) then
-                        !h0_r(tempb1, tempb2, ix, iy)=temp_h0
-                    endif
+                    !if (ix/=0 .or. iy/=0) then
+                        h0_r(tempb1, tempb2, ix, iy)=temp_h0
+                    !endif
                     !write(stdout,*) ix,iy,ib1,ib2,h0_r(ix,iy,ib1,ib2)
                 enddo
             enddo
