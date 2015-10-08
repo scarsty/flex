@@ -1,9 +1,10 @@
-!   Compute Green function for superconductive properties
-!   author  : Sun TY (scarsty@gmail.com)
-!   status  : constructing
-!   version : none
-
 program flex_m2d
+
+    !   Compute Green function for superconductive properties
+    !   author  : Sun TY (scarsty@gmail.com)
+    !   status  : constructing
+    !   version : none
+
     use constants
     use myfunctions
     use parameters
@@ -79,8 +80,6 @@ program flex_m2d
     enddo
     U_s = U_ud-U_uu
     U_c = U_ud+U_uu
-
-    ! write (stdout, *) U_s, U_c, U_ud, U_uu
 
     ! 辅助变换
     i_minus = complex_0
@@ -233,6 +232,7 @@ program flex_m2d
         write(stdout, *) 'base density is ', density_base
 
         sigma_iter = 0
+        sigma_state = 0
         do while (.not. sigma_conv)
 
             ! write(stdout, *) 'calculating chi_0...'
@@ -253,7 +253,7 @@ program flex_m2d
 
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
-            chi_0 = T_ev/nk*chi_0
+            chi_0 = T_ev/NN*chi_0
             !call cleanError(chi_0, nb**4*nk*totalnomega)
 
             ! write(stdout, *) 'calculating chi_c, chi_s, V...'
@@ -299,7 +299,10 @@ program flex_m2d
 
             ! idft sigma_r_tau to sigma
             call dft(sigma_r_tau, sigma, nb, -1, 1)
-            sigma=T_eV/nk*sigma
+
+            !call testConvolution3sigma()
+
+            sigma=T_eV/NN*sigma
             !call cleanError(sigma, nb**2*nk*totalnomega)
             ! write(stdout, *) 'checking convergence of sigma...'
 
@@ -315,7 +318,7 @@ program flex_m2d
                 write(stdout,*) 'sigma tolerance is ', cur_sigma_tol !, '/', sigma_tol
 
                 if (cur_sigma_tol>1) then
-                    write(stdout,*) "sigma seems bad, please reset mu."
+                    write(stdout,*) "sigma seems bad, please reset mu.", mu
                     !stop
                 endif
                 if (isnan(cur_sigma_tol)) then
@@ -326,8 +329,10 @@ program flex_m2d
                     sigma_conv = .true.
                 endif
 #ifdef _DEBUG
-                norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
-                write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma, '0-1:',norm_sigma_minus
+                !norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
+                !write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma
+                !write(stdout,*) '0-1:',norm_sigma_minus
+                !write(stdout,*) dznrm2(nb*nb*nkx*nky*totalnomega, G, 1), dznrm2(nb*nb*nkx*nky*totalnomega, G0, 1)
 #endif
             endif
             sigma0 = sigma
@@ -335,37 +340,40 @@ program flex_m2d
             ! write(stdout, *) 'calculating New G...'
 
             ! 新的G, dyson方程
-             G1=G
+            G1=G
             ! G=G0
             ! G=G0+G0*sigma*G, then we have G=(I-G0*sigma)**(-1)*G0
             do ikx=1,nkx;do iky=1,nky;do iomegak=-maxomegaf,maxomegaf,2
-                G0_=G0(:,:,ikx,iky,transfer_freq(iomegak))
-                sigma_=sigma(:,:,ikx,iky,transfer_freq(iomegak))
-                G_=AB(G0_,sigma_,nb)
-                G_=I_G - G_
-                !call writematrix(G_,nb)
-                !call writematrix(G0_,nb)
-                G_=inverseAbyB(G_,G0_,nb)
-                !call writematrix(G_,nb)
-                G(:,:,ikx,iky,transfer_freq(iomegak)) = G_
-                !call writematrix(I_G,nb)
-                !stop
-                !G(:,:,ikx,iky,transfer_freq(iomegak)) &
-                !    = &
-                !    G0(:,:,ikx,iky,transfer_freq(iomegak)) &
-                !    + ABC(G0(:,:,ikx,iky,transfer_freq(iomegak)), &
-                !    sigma(:,:,ikx,iky,transfer_freq(iomegak)), &
-                !    G1(:,:,ikx,iky,transfer_freq(iomegak)), nb)
+                if (sigma_state==0)then
+                    G0_=G0(:,:,ikx,iky,transfer_freq(iomegak))
+                    sigma_=sigma(:,:,ikx,iky,transfer_freq(iomegak))
+                    G_=AB(G0_,sigma_,nb)
+                    G_=I_G - G_
+                    !call writematrix(G_,nb)
+                    !call writematrix(G0_,nb)
+                    G_=inverseAbyB(G_,G0_,nb)
+                    !call writematrix(G_,nb)
+                    G(:,:,ikx,iky,transfer_freq(iomegak)) = G_
+                    !call writematrix(I_G,nb)
+                    !stop
+                else
+                    G(:,:,ikx,iky,transfer_freq(iomegak)) &
+                        = &
+                        G0(:,:,ikx,iky,transfer_freq(iomegak)) &
+                        + ABC(G0(:,:,ikx,iky,transfer_freq(iomegak)), &
+                        sigma(:,:,ikx,iky,transfer_freq(iomegak)), &
+                        G1(:,:,ikx,iky,transfer_freq(iomegak)), nb)
+                endif
             enddo;enddo;enddo
             !do l1=1,nb; do m1=1,nb;
             !
             !    do l2=1,nb; do m2=1,nb;
             !G(l1, m1, :,:,:) &
-            !    = G(l1, m1, :,:,:) &
-            !    + &
-            !    G0(l1, l2, :,:,:) &
-            !    * sigma(l2, m2, :,:,:) &
-            !    * G1(m2, m1, :,:,:)
+                !    = G(l1, m1, :,:,:) &
+                !    + &
+                !    G0(l1, l2, :,:,:) &
+                !    * sigma(l2, m2, :,:,:) &
+                !    * G1(m2, m1, :,:,:)
             !    enddo;enddo
             !enddo;enddo
             conjgG=conjg(G)
@@ -398,7 +406,7 @@ program flex_m2d
             deltamu_per_density = (mu-mu0)/(cur_density-density0)
         endif
 
-        write(stdout,*) 'density and mu are ', cur_density,'/', mu
+        write(stdout,*) 'density and mu: ', cur_density,'/', mu
         write(stdout,*)
 
         if (abs(cur_density-target_density)<density_tol) then
@@ -411,7 +419,7 @@ program flex_m2d
                 !mu = mu - (cur_density-target_density)
                 mu = mu - (cur_density-target_density)*deltamu_per_density
             else
-                mu = mu - 1.0d-2*sign(1.0d0, (cur_density-target_density)*deltamu_per_density)
+                mu = mu - 1.0d-1*sign(1.0d0, (cur_density-target_density)*deltamu_per_density)
             endif
             write(stdout,*) 'modified new mu = ', mu
         endif

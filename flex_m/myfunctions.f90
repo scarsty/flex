@@ -106,6 +106,7 @@ contains
         integer ipiv(n)
         call zgesv(n, n, A, n, ipiv, B, n, info)
         inverseAbyB=B
+        !write(stderr,*) info
     end function inverseAbyB
 
     ! 需要测试, 考虑内存模式

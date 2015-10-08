@@ -3,7 +3,7 @@ MODULE constants
     implicit none
 
     public
-    integer, parameter :: nb=5 ! number of bands
+    integer, parameter :: nb = 5 ! number of bands
     integer, parameter :: square_nb=nb*nb ! order of chi
 
     ! Lattice and frequency grid parameters. (all must be 2^n!)
@@ -27,6 +27,9 @@ MODULE constants
     integer, parameter :: nky = 4
     integer, parameter :: nkz = 1
     integer, parameter :: nk = nkx*nky*nkz
+
+    ! 归一化常数
+    integer, parameter :: NN = nk*nb
 
     ! r点, 表示r坐标 -r to r
     integer, parameter :: rx = 2

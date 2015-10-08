@@ -416,6 +416,48 @@ subroutine testConvolution3G()
 
 end subroutine testConvolution3G
 
+subroutine testConvolution3sigma()
+    use constants
+    use parameters2
+    use myfunctions
+    implicit none
+
+    integer l1, l2, m1, m2
+    integer ikx1, iky1, ikx2, iky2, iomega1, iomega2, kxplus, kyplus, omegaplus
+    complex(8) temp_complex
+
+    real(8) dznrm2
+    external dznrm2
+
+    integer regionParameter
+    external regionParameter
+
+    sigma0=sigma
+
+    do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
+        do ikx1=1,nkx;do iky1=1,nky;do iomega1=-maxomegaf,maxomegaf,2
+            do ikx2=1,nkx;do iky2=1,nky;do iomega2=-maxomegab,maxomegab,2
+                kxplus=regionParameter(ikx1-ikx2-1,1,nkx)
+                kyplus=regionParameter(iky1-iky2-1,1,nky)
+                omegaplus=iomega1-iomega2
+                if (abs(omegaplus)<=maxomegaf) then
+                sigma(l1,m1, ikx1, iky1, transfer_freq(iomega1)) &
+                    = sigma(l1,m1, ikx1, iky1, transfer_freq(iomega1)) &
+                    + V(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2,transfer_freq(iomega2)) &
+                    * G(l2, m2, kxplus, kyplus, transfer_freq(omegaplus))
+                endif
+            enddo;enddo;enddo
+        enddo;enddo;enddo
+    enddo;enddo;enddo;enddo
+
+    write(stderr, *) dznrm2(nb*nb*nkx*nky*totalnomega, sigma, 1) &
+        / dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
+    write(stderr, *) dznrm2(nb*nb*nkx*nky*totalnomega, sigma-sigma0, 1)
+    stop
+    !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
+
+end subroutine testConvolution3sigma
+
 subroutine build_h0_k()
     use constants
     use parameters2
@@ -430,7 +472,7 @@ subroutine build_h0_k()
             h0_k(l1,m1,ikx,iky) = - cos(k(ikx,iky,1)*pi) - cos(k(ikx,iky,2)*pi)
         enddo; enddo
     enddo; enddo
-    ! write(stderr,*) h0_k
+    write(stderr,*) h0_k
     return
 
 end subroutine build_h0_k

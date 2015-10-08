@@ -16,6 +16,7 @@ subroutine eliashberg()
     integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk, ikx, iky
     integer l1,m1,l2,m2,l3,m3
     real(8) lambda, lambda0
+    complex(8) temp_complex
     logical elia_conv
     ! complex, dimension (nb*nb*nk*(nomega*2-1), nb*nb*nk*(nomega*2-1)):: Eliashberg
 
@@ -70,14 +71,11 @@ subroutine eliashberg()
         ! 频域上G*G*delta, 下标l2,m2,l3,m3
         GGdelta = complex_0
         do l2=1,nb; do m2=1,nb
-            sub_g2chi2 = sub_g2chi(l2,m2)
             do l3=1,nb; do m3=1,nb
-                sub_g2chi3 = sub_g2chi(l3,m3)
                 do ikx=1,nkx; do iky=1,nky; do iomegak = -maxomegaf,maxomegaf,2
-                    GGdelta(sub_g2chi2,sub_g2chi3,ikx,iky,transfer_freq(iomegak)) &
-                        = GGdelta(sub_g2chi2,sub_g2chi3,ikx,iky,transfer_freq(iomegak)) &
-                        + &
-                        G(l3,l2,ikx,iky,transfer_freq(iomegak)) &
+                    GGdelta(l3,m3,ikx,iky,transfer_freq(iomegak)) &
+                        = GGdelta(l3,m3,ikx,iky,transfer_freq(iomegak)) &
+                        + G(l3,l2,ikx,iky,transfer_freq(iomegak)) &
                         *conjgG(m3,m2,ikx,iky,transfer_freq(iomegak)) &
                         *delta0(l2,m2,ikx,iky,transfer_freq(iomegak))
                 enddo; enddo; enddo
@@ -85,7 +83,7 @@ subroutine eliashberg()
         enddo; enddo
 
         ! 变换至时域上G*G*delta
-        call dft(GGdelta, GGdelta_r_tau, nb*nb, 1, 0)
+        call dft(GGdelta, GGdelta_r_tau, nb, 1, 0)
         !GGdelta_r_tau = GGdelta_r_tau
 
         ! 原方程包含负号, 使用减法
@@ -93,15 +91,14 @@ subroutine eliashberg()
         do l1=1,nb; do m1=1,nb
             do l3=1,nb; do m3=1,nb
                 delta_r_tau(l1,m1,:,:,:) = delta_r_tau(l1,m1,:,:,:) &
-                    - &
-                    V_s_r_tau(sub_g2chi(l1,l3),sub_g2chi(m3,m1),:,:,:) &
+                    - V_s_r_tau(sub_g2chi(l1,l3),sub_g2chi(m3,m1),:,:,:) &
                     * GGdelta_r_tau(l3,m3,:,:,:)
             enddo; enddo
         enddo; enddo
 
         ! 变换回频域
         call dft(delta_r_tau, delta, nb, -1, 1)
-        delta=T_eV/nk*delta
+        delta=T_eV/NN*delta
         ! 规格化
         lambda = 0
         do l1=1,nb; do m1=1,nb
@@ -122,8 +119,17 @@ subroutine eliashberg()
     enddo
 
     write(stdout,*) 'Solving ended, the maximum eigenvalue is ', lambda
+    write(stdout,*)
 
     ! output delta_nn (gap function)
-
+    write(stdout,*) 'gap function'
+    write(stdout,*) 'kx, ky, delta(real and imag)'
+    do ikx=1,nkx; do iky=1,nky
+        temp_complex=complex_0
+        do l1=1,nb
+            temp_complex=temp_complex+delta(l1,l1,ikx,iky,1)
+        enddo
+        write(stdout, '(2F10.4,2F14.8)') k(ikx,iky,:), temp_complex
+    enddo; enddo
 
 end subroutine eliashberg
