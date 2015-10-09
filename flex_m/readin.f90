@@ -25,7 +25,7 @@
     fileunit = stdin
 #endif
     read(fileunit, nml=basic)
-    read(fileunit, nml=band)
+    ! read(fileunit, nml=band)
 
     if (nb/=5) then
         return
@@ -42,7 +42,7 @@
     enddo
 
     ! w-s原胞点阵上的哈密顿量
-    write(stdout,*)eigen_value
+    ! write(stdout,*)eigen_value
     h0_r = complex_0
     do ib1 = 1, nb
         !h0_r(ib1, ib1, 0, 0)=eigen_value(ib1)
