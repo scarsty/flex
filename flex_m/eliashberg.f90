@@ -98,7 +98,7 @@ subroutine eliashberg()
 
         ! 变换回频域
         call dft(delta_r_tau, delta, nb, -1, 1)
-        delta=T_eV/NN*delta
+        delta=T_eV/nk*delta
         ! 规格化
         lambda = 0
         do l1=1,nb; do m1=1,nb
