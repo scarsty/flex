@@ -29,7 +29,7 @@ MODULE constants
     integer, parameter :: nk = nkx*nky*nkz
 
     ! 归一化常数
-    integer, parameter :: NN = nk*nb
+    integer, parameter :: NN = nk*nb*nb
 
     ! r点, 表示r坐标 -r to r
     integer, parameter :: rx = 2
