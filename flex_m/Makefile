@@ -9,7 +9,7 @@ TARGET=../ffff
 
 all: $(TARGET)
 
-mpi: FC=$(MPIF90)
+mpi: FC=$(MPIF90) all
 
 $(TARGET): $(OBJECTS)
 	$(FC) $(FFLAGS) $(OBJECTS) -o $(TARGET)

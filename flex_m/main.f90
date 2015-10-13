@@ -253,7 +253,7 @@ program flex_m2d
 
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
-            chi_0 = T_ev/NN*chi_0
+            chi_0 = T_ev/nk*chi_0
             !call cleanError(chi_0, nb**4*nk*totalnomega)
 
             ! write(stdout, *) 'calculating chi_c, chi_s, V...'
@@ -266,13 +266,15 @@ program flex_m2d
                 ! chi_c = chi_0 - chi_0*chi_c
                 chi_0_=chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
 
-                Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
+                !Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
+                Iminuschi_0_ = I_chi + AB(U_c,chi_0_,nb*nb)
 
                 chi_c_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
                 chi_c(:, :, ikx, iky, transfer_freq(iomegaq))= inverseAbyB(Iminuschi_0_,chi_c_,nb*nb)
 
                 ! chi_s = chi_0 + chi_0*chi_s
-                Iminuschi_0_ = I_chi - AB(chi_0_,U_s,nb*nb)
+                !Iminuschi_0_ = I_chi - AB(chi_0_,U_s,nb*nb)
+                Iminuschi_0_ = I_chi - AB(U_s,chi_0_,nb*nb)
                 chi_s_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
                 chi_s(:, :, ikx, iky, transfer_freq(iomegaq)) = inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
 
@@ -302,7 +304,7 @@ program flex_m2d
 
             !call testConvolution3sigma()
 
-            sigma=T_eV/NN*sigma
+            sigma=T_eV/nk*sigma
             !call cleanError(sigma, nb**2*nk*totalnomega)
             ! write(stdout, *) 'checking convergence of sigma...'
 
@@ -318,7 +320,7 @@ program flex_m2d
                 write(stdout,*) 'sigma tolerance is ', cur_sigma_tol !, '/', sigma_tol
 
                 if (cur_sigma_tol>1) then
-                    write(stdout,*) "sigma seems bad, please reset mu.", mu
+                    !write(stdout,*) "sigma seems bad, please reset mu.", mu
                     !stop
                 endif
                 if (isnan(cur_sigma_tol)) then
