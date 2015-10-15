@@ -5,24 +5,25 @@ module parameters
     real(8) mu, n_density
 
     ! 目标占据数, 收敛误差
-    REAL(8) target_density, density_tol
+    real(8) target_density, density_tol
 
     ! U, U', J, J' for H1
-    REAL(8) h1_U, h1_Up, h1_J, h1_Jp
+    real(8) h1_U, h1_Up, h1_J, h1_Jp
 
     ! 温度
     real(8) T, T_beta, T_eV
 
     ! 保存的自能函数
-    LOGICAL sigma_input, sigma_output
-    CHARACTER*128 sigma_input_file, sigma_output_file
+    logical sigma_input, sigma_output
+    character*128 sigma_input_file, sigma_output_file
 
     ! 自能函数收敛判据
-    REAL(8) sigma_tol
-    INTEGER max_it
-    REAL(8) alpha
-    INTEGER alpha_scheme
+    real(8) sigma_tol
+    integer max_it
+    real(8) alpha
+    integer alpha_scheme
     integer sigma_state
+    real(8) mixing_beta
     ! 自旋态
     integer spin_state
 

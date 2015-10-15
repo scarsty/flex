@@ -233,6 +233,7 @@ program flex_m2d
 
         sigma_iter = 0
         sigma_state = 0
+        mixing_beta = 1
         do while (.not. sigma_conv)
 
             ! write(stdout, *) 'calculating chi_0...'
@@ -317,7 +318,7 @@ program flex_m2d
                 norm_sigma_minus = dznrm2(nb*nb*nkx*nky*totalnomega, sigma_minus, 1)
                 norm_sigma = dznrm2(nb*nb*nkx*nky*totalnomega, sigma, 1)
                 cur_sigma_tol = norm_sigma_minus / norm_sigma
-                write(stdout,*) 'sigma tolerance is ', cur_sigma_tol !, '/', sigma_tol
+                write(stdout,*) 'sigma tolerance is ', cur_sigma_tol , '/', sigma_iter
 
                 if (cur_sigma_tol>1) then
                     !write(stdout,*) "sigma seems bad, please reset mu.", mu
@@ -342,7 +343,7 @@ program flex_m2d
             ! write(stdout, *) 'calculating New G...'
 
             ! 新的G, dyson方程
-            G1=G
+            ! G1=G
             ! G=G0
             ! G=G0+G0*sigma*G, then we have G=(I-G0*sigma)**(-1)*G0
             do ikx=1,nkx;do iky=1,nky;do iomegak=-maxomegaf,maxomegaf,2
@@ -355,7 +356,7 @@ program flex_m2d
                     !call writematrix(G0_,nb)
                     G_=inverseAbyB(G_,G0_,nb)
                     !call writematrix(G_,nb)
-                    G(:,:,ikx,iky,transfer_freq(iomegak)) = G_
+                    G1(:,:,ikx,iky,transfer_freq(iomegak)) = G_
                     !call writematrix(I_G,nb)
                     !stop
                 else
@@ -378,6 +379,7 @@ program flex_m2d
                 !    * G1(m2, m1, :,:,:)
             !    enddo;enddo
             !enddo;enddo
+            G=mixing_beta*G1+(1-mixing_beta)*G
             conjgG=conjg(G)
 
 

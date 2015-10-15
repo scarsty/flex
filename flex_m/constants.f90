@@ -29,7 +29,7 @@ MODULE constants
     integer, parameter :: nk = nkx*nky*nkz
 
     ! 归一化常数
-    integer, parameter :: NN = nk*nb*nb
+    integer, parameter :: NN = nk
 
     ! r点, 表示r坐标 -r to r
     integer, parameter :: rx = 2
@@ -49,6 +49,7 @@ MODULE constants
     real(8), parameter :: kB = 8.61733035d-05  ! eV/K, 玻尔兹曼常数
     real(8), parameter :: mub = 5.788381755d-5 ! eV/T, 磁导率, 此处无用
     real(8), parameter :: gs = 2.002319 !不知道
+    real(8), parameter :: h_bar  =6.582119514d-16 ! eV s, 普朗克常数
 
     real(8), parameter, public    :: pi=3.141592653589793238462643383279d0
     real(8), parameter, public    :: two_pi = 2*pi
