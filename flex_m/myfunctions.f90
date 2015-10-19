@@ -328,14 +328,27 @@ contains
         Pulay_b(mix_num+1) = -1
     end subroutine mixerInit
 
+	! G1是新的, G是上一步
     subroutine mixer()
         use constants
         use parameters
         use parameters2
         implicit none
-
-        !call zgesv(n, n, A, n, ipiv, B, n, info)
-
+		integer n，i, ipiv, info
+		
+		n=mix_num+1
+		
+		G_mixer(:,:,:,:,:,mixer_pointer)=G1
+		
+		do i=1,mix_num
+			
+		enddo
+        call dgesv(n, n, Pulay_A, n, ipiv, Pulay_B, n, info)
+		
+		mixer_pointer=mixer_pointer + 1
+		if mixer_pointer>mix_num then
+			mixer_pointer=1
+		endif
     end subroutine mixer
 
     ! 部分废弃代码
