@@ -47,4 +47,9 @@ module parameters2
     complex(8), dimension (nkx, nky, 0:totalnomega-1) :: dft_in
     complex(8), dimension (nkx, nky, 0:totalnomega-1) :: dft_out
 
+    integer, parameter :: mix_num  = 10
+    complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1, mix_num) :: G_mixer
+    real(8), dimension (mix_num+1, mix_num+1) :: Pulay_A
+    real(8), dimension(mix_num+1) :: Pulay_x, Pulay_b
+
 end module parameters2

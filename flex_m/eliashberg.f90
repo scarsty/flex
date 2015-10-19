@@ -118,7 +118,7 @@ subroutine eliashberg()
         lambda0 = lambda
     enddo
 
-    write(stdout,*) 'Solving ended, the maximum eigenvalue is ', lambda
+    write(stdout,*) 'Solving ended'
     write(stdout,*)
 
     ! output delta_nn (gap function)
@@ -131,5 +131,9 @@ subroutine eliashberg()
         enddo
         write(stdout, '(2F10.4,2F14.8)') k(ikx,iky,:), temp_complex
     enddo; enddo
+
+    write(stdout,*)
+    write(stdout,*) 'The maximum eigenvalue is ', lambda
+    write(stdout,*)
 
 end subroutine eliashberg

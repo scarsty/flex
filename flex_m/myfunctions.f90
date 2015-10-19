@@ -293,7 +293,6 @@ contains
 
     end subroutine writematrix
 
-
     subroutine cleanError(A,n)
         use constants
         implicit none
@@ -308,6 +307,35 @@ contains
         enddo
 
     end subroutine cleanError
+
+
+    !pulay mixer 相关
+    subroutine mixerInit()
+        use constants
+        use parameters
+        use parameters2
+        implicit none
+        integer i
+
+        G_mixer = 0
+        Pulay_A = 0
+        do i=1,mix_num
+            Pulay_A(mix_num+1,i)=-1
+            Pulay_A(i,mix_num+1)=-1
+        enddo
+        Pulay_b = 0
+        Pulay_b(mix_num+1) = -1
+    end subroutine mixerInit
+
+    subroutine mixer()
+        use constants
+        use parameters
+        use parameters2
+        implicit none
+
+        call zgesv(n, n, A, n, ipiv, B, n, info)
+
+    end subroutine mixer
 
     ! 部分废弃代码
     !subroutine buildkminus()

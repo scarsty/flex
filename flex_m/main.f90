@@ -46,6 +46,7 @@ program flex_m2d
 
     T_beta = 1d0/kB/T
     T_eV = kB*T
+    mixing_beta = 1
 
     ! 计算k点的坐标
     write(stdout, *) "Building k-points grid..."
@@ -233,7 +234,6 @@ program flex_m2d
 
         sigma_iter = 0
         sigma_state = 0
-        mixing_beta = 1
         do while (.not. sigma_conv)
 
             ! write(stdout, *) 'calculating chi_0...'
