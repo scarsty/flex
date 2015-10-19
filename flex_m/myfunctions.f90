@@ -318,6 +318,7 @@ contains
         integer i
 
         G_mixer = 0
+        mixer_pointer=1
         Pulay_A = 0
         do i=1,mix_num
             Pulay_A(mix_num+1,i)=-1
@@ -333,7 +334,7 @@ contains
         use parameters2
         implicit none
 
-        call zgesv(n, n, A, n, ipiv, B, n, info)
+        !call zgesv(n, n, A, n, ipiv, B, n, info)
 
     end subroutine mixer
 

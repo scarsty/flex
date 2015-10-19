@@ -39,6 +39,7 @@ program flex_m2d
     ! 变量段结束-------------------------------------------------------------------------------
 
     call readin()
+    call mixerInit()
 
     if (test_band) then
         call testband()
@@ -379,7 +380,8 @@ program flex_m2d
                 !    * G1(m2, m1, :,:,:)
             !    enddo;enddo
             !enddo;enddo
-            G=mixing_beta*G1+(1-mixing_beta)*G
+            !G=mixing_beta*G1+(1-mixing_beta)*G
+            call mixer()
             conjgG=conjg(G)
 
 
