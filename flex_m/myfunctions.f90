@@ -341,10 +341,14 @@ contains
 		G_mixer(:,:,:,:,:,mixer_pointer)=G1
 		
 		do i=1,mix_num
-			
+			Pulay_A(mixer_pointer,i)=
+			Pulay_A(i,mixer_pointer)=
 		enddo
         call dgesv(n, n, Pulay_A, n, ipiv, Pulay_B, n, info)
-		
+		G=complex_0
+		do i=1,mix_num
+			G=G+G_mixer(:,:,:,:,:,mixer_pointer)*Pulay_B(i)
+		enddo
 		mixer_pointer=mixer_pointer + 1
 		if mixer_pointer>mix_num then
 			mixer_pointer=1
