@@ -3,7 +3,7 @@ module myfunctions
     include 'mpif.h'
 #endif
 contains
-    ! mpiº¯ÊıÏµÁĞ
+    ! mpiå‡½æ•°ç³»åˆ—
     integer function mpi_rank()
         implicit none
         integer r
@@ -63,10 +63,10 @@ contains
         integer l,m,k,omega
         integer omegat
         omegat=2*omega+1
-        sub_g2e = l*nb*nk*omegat+m*nk*omegat+omega+nomega+1 ! Î´Íê³É
+        sub_g2e = l*nb*nk*omegat+m*nk*omegat+omega+nomega+1 ! æœªå®Œæˆ
     end function sub_g2e
 
-    !n¼ÆËãËÉÔ­ÆµÂÊ
+    !nè®¡ç®—æ¾åŸé¢‘ç‡
     integer function calfreq(omega, fb)
         implicit none
         integer omega, fb
@@ -77,7 +77,7 @@ contains
         endif
     end function calfreq
 
-    ! kºÍËÉÔ­ÆµÂÊµÄ¼õ·¨, fb: fermi(1) or bose(0)
+    ! kå’Œæ¾åŸé¢‘ç‡çš„å‡æ³•, fb: fermi(1) or bose(0)
     ! 1 - 2 -> 3
     subroutine komega_minus(k1, omega1, fb1, k2, omega2, fb2, k, k_minus, zero_k, k3, omega3, fb3)
         use constants
@@ -109,8 +109,8 @@ contains
         !write(stderr,*) info
     end function inverseAbyB
 
-    ! ĞèÒª²âÊÔ, ¿¼ÂÇÄÚ´æÄ£Ê½
-    ! ÒòÎª¶¼ÊÇ·½Õó, ¿É¿¼ÂÇ»»º¯Êı
+    ! éœ€è¦æµ‹è¯•, è€ƒè™‘å†…å­˜æ¨¡å¼
+    ! å› ä¸ºéƒ½æ˜¯æ–¹é˜µ, å¯è€ƒè™‘æ¢å‡½æ•°
     function ABA(A, B, n)
         use constants
         implicit none
@@ -133,7 +133,7 @@ contains
             AB, n, C, n, complex_0, ABC, n)
     end function ABC
 
-    ! ĞèÒª²âÊÔ, ¿¼ÂÇÄÚ´æÄ£Ê½
+    ! éœ€è¦æµ‹è¯•, è€ƒè™‘å†…å­˜æ¨¡å¼
     function AB(A, B, n)
         use constants
         implicit none
@@ -143,7 +143,7 @@ contains
             A, n, B, n, complex_0, AB, n)
     end function AB
 
-    ! ĞèÒª²âÊÔ, ¿¼ÂÇÄÚ´æÄ£Ê½
+    ! éœ€è¦æµ‹è¯•, è€ƒè™‘å†…å­˜æ¨¡å¼
     function AHBA(A, B, n)
         use constants
         implicit none
@@ -166,7 +166,7 @@ contains
             C, n, A, n, complex_0, ABAH, n)
     end function ABAH
 
-    ! ËÉÔ­ÆµÂÊ×ª»», Êı¾İ½á¹¹Éè¼ÆÈç´Ë
+    ! æ¾åŸé¢‘ç‡è½¬æ¢, æ•°æ®ç»“æ„è®¾è®¡å¦‚æ­¤
     function transfer_freq(freq)
         use constants
         implicit none
@@ -187,7 +187,7 @@ contains
             src, M, dft_matrix, K, complex_0, dst, M)
     end subroutine matrixProduct
 
-    ! Éú³É¸µÀïÒ¶±ä»»¸¨Öú¾ØÕódft_f, dft_b, idft_f, idft_b
+    ! ç”Ÿæˆå‚…é‡Œå¶å˜æ¢è¾…åŠ©çŸ©é˜µdft_f, dft_b, idft_f, idft_b
     subroutine buildDFTMatrix()
         use constants
         use parameters2
@@ -195,10 +195,10 @@ contains
 
         integer itau, tau, iomega, omega_f, omega_b
 
-        ! ÆµÓòÓëÊ±ÓòµÄ¸µÀïÒ¶±ä»»¸¨Öú¾ØÕó
-        ! ¿ÉÒÔÒ»´Î¼ÆËãÒ»×é, »òÕß¹¹Ôì´ó¾ØÕó¼ÆËã¶à×é
-        ! for one k-point, G_tau (ĞĞ) = G_omega (ĞĞ) * dft
-        ! G_omega (ĞĞ) = G_tau (ĞĞ) * idft
+        ! é¢‘åŸŸä¸æ—¶åŸŸçš„å‚…é‡Œå¶å˜æ¢è¾…åŠ©çŸ©é˜µ
+        ! å¯ä»¥ä¸€æ¬¡è®¡ç®—ä¸€ç»„, æˆ–è€…æ„é€ å¤§çŸ©é˜µè®¡ç®—å¤šç»„
+        ! for one k-point, G_tau (è¡Œ) = G_omega (è¡Œ) * dft
+        ! G_omega (è¡Œ) = G_tau (è¡Œ) * idft
         !        do itau = -ntau,ntau
         !            do iomega=-nomega,nomega
         !                omega_f = 2*iomega-1
@@ -211,7 +211,7 @@ contains
         !            enddo
         !        enddo
         !
-        !        ! ÕâÀïµÄÏµÊı¿ÉÄÜÓ¦¸Ã*2, ¼´ËùÓĞÆµÂÊÒ»Æğ¿¼ÂÇ
+        !        ! è¿™é‡Œçš„ç³»æ•°å¯èƒ½åº”è¯¥*2, å³æ‰€æœ‰é¢‘ç‡ä¸€èµ·è€ƒè™‘
         !        dft_f = dft_f / (2*nomega+1)
         !        dft_b = dft_b / (2*nomega+1)
 
@@ -219,8 +219,8 @@ contains
     end subroutine buildDFTMatrix
 
     ! dft, direction means FORWORD(+) or BACKWORD(-)
-    ! µ÷ÓÃfftw
-    ! normalÎª¹éÒ»»¯ºÍÕ¹¿í²¿·ÖÇåÁã
+    ! è°ƒç”¨fftw
+    ! normalä¸ºå½’ä¸€åŒ–å’Œå±•å®½éƒ¨åˆ†æ¸…é›¶
     subroutine dft(input, output, N, direction, normal)
         use constants
         use parameters2
@@ -250,10 +250,10 @@ contains
 
             output(l,m,:,:,:) = dft_out
         enddo; enddo
-        ! ¾í»ı½á¹û¹éÒ»»¯
+        ! å·ç§¯ç»“æœå½’ä¸€åŒ–
         if (normal /= 0) then
             output = output/nkx/nky/totalnomega
-            ! Çå¿Õ½Ø¶ÏÆµÂÊÖ®Íâ
+            ! æ¸…ç©ºæˆªæ–­é¢‘ç‡ä¹‹å¤–
             if (mod(normal,2)==1) then
                 do i=0,2*nomega-2,2
                     output(:,:,:,:,i) = complex_0
@@ -308,8 +308,8 @@ contains
 
     end subroutine cleanError
 
-    ! pulay mixer Ïà¹Ø
-    ! ÒÆ¶¯Ö¸Õë
+    ! pulay mixer ç›¸å…³
+    ! ç§»åŠ¨æŒ‡é’ˆ
     function mixerIncPointer(p, n)
         use parameters2
         implicit none
@@ -320,7 +320,7 @@ contains
         if (mixerIncPointer==0) mixerIncPointer=mix_num
     end function mixerIncPointer
 
-    ! ÇóÄ£µÄÆ½·½
+    ! æ±‚æ¨¡çš„å¹³æ–¹
     function mixerErrorProduct(a, b)
         use constants
         implicit none
@@ -340,7 +340,7 @@ contains
         enddo;enddo
     end function mixerErrorProduct
 
-    ! ³õÊ¼»¯»ìºÏÆ÷
+    ! åˆå§‹åŒ–æ··åˆå™¨
     subroutine mixerInit()
         use parameters2
         implicit none
@@ -352,16 +352,17 @@ contains
 
         mixer_pointer=2
         Pulay_A = 0
-        !do i=1,mix_num
-        !    Pulay_A(mix_num+1,i)=-1
-        !    Pulay_A(i,mix_num+1)=-1
-        !enddo
+        do i=1,mix_num
+            Pulay_A(0,i)=-1
+            Pulay_A(i,0)=-1
+        enddo
         Pulay_b = 0
         Pulay_b(0) = -1
     end subroutine mixerInit
 
-    ! G1ÊÇĞÂµÄ, GÊÇÉÏÒ»²½
-    ! »ìºÏËã·¨
+    ! G1æ˜¯æ–°çš„, Gæ˜¯ä¸Šä¸€æ­¥
+    ! æ··åˆç®—æ³•
+    ! http://vergil.chemistry.gatech.edu/notes/diis/node2.html
     subroutine mixer(num)
         use parameters2
         implicit none
@@ -371,6 +372,7 @@ contains
         external zdotc
         complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1):: b1,b2
         complex(8), dimension (mix_num*2) :: lwork
+        complex(8) e
 
         !n=nb*nb*nk*totalnomega
 
@@ -379,19 +381,22 @@ contains
         error_mixer(:,:,:,:,:,mixer_pointer)=G1-G_mixer(:,:,:,:,:,prev_pointer)
         G_mixer(:,:,:,:,:,mixer_pointer)=G1
 
+        ! A_ij=e_i**H*e_j
         do i=1,mix_num
-            b1=error_mixer(:,:,:,:,:,mixer_pointer)
+            b1=error_mixer(:,:,:,:,:,prev_pointer)
             b2=error_mixer(:,:,:,:,:,i)
-            Pulay_A(mixer_pointer,i)=mixerErrorProduct(b1,b2)
-            Pulay_A(i,mixer_pointer)=conjg(Pulay_A(mixer_pointer,i))
+            e=mixerErrorProduct(b1,b2)
+            Pulay_A(prev_pointer,i)=e
+            Pulay_A(i,prev_pointer)=conjg(e)
         enddo
-        Pulay_A(0,mixer_pointer)=-1
-        Pulay_A(mixer_pointer,0)=-1
+        !Pulay_A(0,mixer_pointer)=-1
+        !Pulay_A(mixer_pointer,0)=-1
 
         Pulay_A1=Pulay_A
         Pulay_x=Pulay_b
         n=min(num+1,mix_num+1)
-        call zhesv('U',n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, lwork, 2*mix_num, info)
+        call zhesv('U', n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, lwork, 2*mix_num, info)
+        write(*,*) info, mixer_pointer
         !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
         G=complex_0
         do i=1,mix_num
@@ -399,14 +404,16 @@ contains
             write(*,*) Pulay_x(i), Pulay_A(i,i)
         enddo
         mixer_pointer=next_pointer
+        call writematrix(Pulay_A,11)
+        !stop
     end subroutine mixer
 
-    ! ²¿·Ö·ÏÆú´úÂë
+    ! éƒ¨åˆ†åºŸå¼ƒä»£ç 
     !subroutine buildkminus()
     !    use constants
     !    use parameters2
     !    implicit none
-    ! k¼õ·¨¾ØÕó
+    ! kå‡æ³•çŸ©é˜µ
     ! seems of no use
     !        k_minus=0
     !        do i1=1,nk
@@ -433,7 +440,7 @@ contains
     !            enddo
     !        enddo
     !
-    !        ! k¼Ó·¨¾ØÕó, k_minus(k1, k_minus(zero_k, k2))
+    !        ! kåŠ æ³•çŸ©é˜µ, k_minus(k1, k_minus(zero_k, k2))
     !        do i1=1,nk
     !            do i2=1,nk
     !                k_plus(i1, i2) = k_minus(i1, k_minus(zero_k, i2))
@@ -453,7 +460,7 @@ contains
     !        endif
     !        h0_tilde_k_=h0_tilde_k(:,:,ikx,iky)
     !        u_tilde_k_=h0_tilde_k_
-    !        ! ÕâÀïh0_tilde±ä³ÉÒ»¸öÊµ¶Ô³Æ¾ØÕó, ÌØÕ÷ÖµÈ«ÎªÊµÊı, uÎª¶ÔÓ¦µÄÕı½»±ä»»Õó
+    !        ! è¿™é‡Œh0_tildeå˜æˆä¸€ä¸ªå®å¯¹ç§°çŸ©é˜µ, ç‰¹å¾å€¼å…¨ä¸ºå®æ•°, uä¸ºå¯¹åº”çš„æ­£äº¤å˜æ¢é˜µ
     !        call dsyev('V','U',nb,u_tilde_k_,nb,diag_h0_tilde_k_,diag_h0_tilde_k_lwork,nb*nb,info)
     !        u_tilde_k(:,:,ikx,iky)=u_tilde_k_
     !        diag_h0_tilde_k(:,ikx,iky)=diag_h0_tilde_k_
