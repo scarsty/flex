@@ -321,12 +321,12 @@ contains
         error_mixer = 0
         mixer_pointer=1
         Pulay_A = 0
-        do i=1,mix_num
-            Pulay_A(mix_num+1,i)=-1
-            Pulay_A(i,mix_num+1)=-1
-        enddo
+        !do i=1,mix_num
+        !    Pulay_A(mix_num+1,i)=-1
+        !    Pulay_A(i,mix_num+1)=-1
+        !enddo
         Pulay_b = 0
-        Pulay_b(mix_num+1) = -1
+        Pulay_b(0) = -1
     end subroutine mixerInit
 
     function mixerIncPointer(p, n)
@@ -338,40 +338,66 @@ contains
         if (mixerIncPointer==0) mixerIncPointer=mix_num
     end function mixerIncPointer
 
-	! G1是新的, G是上一步
-    subroutine mixer()
+    function mixerErrorProduct(a, b)
         use constants
-        use parameters
+        implicit none
+        complex(8) mixerErrorProduct
+        complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1) :: a, b
+                integer ib1,ib2,ikx,iky,iomegak
+
+        mixerErrorProduct=0
+        do ib1=1,nb;do ib2=1,nb
+            do ikx=1,nkx;do iky=1,nky
+                do iomegak=-maxomegaf,maxomegaf,2
+                    mixerErrorProduct=mixerErrorProduct &
+                        + conjg(a(ib1,ib2,ikx,ikx,transfer_freq(iomegak))) &
+                        * b(ib1,ib2,ikx,ikx,transfer_freq(iomegak))
+                enddo
+            enddo;enddo
+        enddo;enddo
+    end function mixerErrorProduct
+
+    ! G1是新的, G是上一步
+    subroutine mixer(num)
+        !use constants
+        !use parameters
         use parameters2
         implicit none
-		integer n, i, ipiv, info, next_pointer
+        integer num, n, i, info, next_pointer
+        integer ipiv(mix_num+1)
         complex(8) zdotc
         external zdotc
+        complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1):: b1,b2
+        complex(8), dimension (mix_num*2) :: lwork
 
-		n=nb*nb*nk*totalnomega
+        !n=nb*nb*nk*totalnomega
 
-		next_pointer=mixerIncPointer(mixer_pointer,1)
-		error_mixer(:,:,:,:,:,mixer_pointer)=G1-G_mixer(:,:,:,:,:,mixer_pointer)
-		G_mixer(:,:,:,:,:,next_pointer)=G1
+        next_pointer=mixerIncPointer(mixer_pointer,1)
+        error_mixer(:,:,:,:,:,mixer_pointer)=G1-G_mixer(:,:,:,:,:,mixer_pointer)
+        G_mixer(:,:,:,:,:,next_pointer)=G1
 
-		do i=1,mix_num
-			Pulay_A(mixer_pointer,i)=zdotc(n,error_mixer(:,:,:,:,:,mixer_pointer),1,error_mixer(:,:,:,:,:,i),1)
-			Pulay_A(i,mixer_pointer)=zdotc(n,error_mixer(:,:,:,:,:,i),1,error_mixer(:,:,:,:,:,mixer_pointer),1)
-		enddo
-		Pulay_A1=Pulay_A
-		write(*,*) Pulay_A
-		Pulay_x=Pulay_b
-		write(*,*) Pulay_x
-        call zgesv(mix_num+1, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
-        write(*,*) info
-		G=complex_0
-		do i=1,mix_num
-			G=G+G_mixer(:,:,:,:,:,i)*Pulay_B(i)
-			write(*,*) Pulay_B(i)
-		enddo
-		mixer_pointer=next_pointer
-		write(*,*) next_pointer, mixer_pointer
-		write(*,*) 'ddddddddddddddddddddddddd'
+        do i=1,mix_num
+            b1=error_mixer(:,:,:,:,:,mixer_pointer)
+            b2=error_mixer(:,:,:,:,:,i)
+            Pulay_A(mixer_pointer,i)=mixerErrorProduct(b1,b2)
+            Pulay_A(i,mixer_pointer)=conjg(Pulay_A(mixer_pointer,i))
+        enddo
+        Pulay_A(0,mixer_pointer)=-1
+        Pulay_A(mixer_pointer,0)=-1
+
+        Pulay_A1=Pulay_A
+        !call writematrix(Pulay_A,11)
+        Pulay_x=Pulay_b
+        n=min(num+2,mix_num+1)
+        call zhesv('U',n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, lwork, 2*mix_num, info)
+        !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
+        !write(*,*) info
+        G=complex_0
+        do i=1,mix_num
+            G=G+G_mixer(:,:,:,:,:,i)*Pulay_x(i)
+            write(*,*) Pulay_x(i), Pulay_A(i,i)
+        enddo
+        mixer_pointer=next_pointer
     end subroutine mixer
 
     ! 部分废弃代码

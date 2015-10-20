@@ -50,7 +50,7 @@ module parameters2
     integer, parameter :: mix_num  = 10
     integer mixer_pointer
     complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1, mix_num) :: G_mixer, error_mixer
-    complex(8), dimension (mix_num+1, mix_num+1) :: Pulay_A, Pulay_A1
-    complex(8), dimension(mix_num+1) :: Pulay_x, Pulay_b
+    complex(8), dimension (0:mix_num, 0:mix_num) :: Pulay_A, Pulay_A1
+    complex(8), dimension(0:mix_num) :: Pulay_x, Pulay_b
 
 end module parameters2
