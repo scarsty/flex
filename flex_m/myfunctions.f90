@@ -386,12 +386,10 @@ contains
         Pulay_A(mixer_pointer,0)=-1
 
         Pulay_A1=Pulay_A
-        !call writematrix(Pulay_A,11)
         Pulay_x=Pulay_b
         n=min(num+2,mix_num+1)
         call zhesv('U',n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, lwork, 2*mix_num, info)
         !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
-        !write(*,*) info
         G=complex_0
         do i=1,mix_num
             G=G+G_mixer(:,:,:,:,:,i)*Pulay_x(i)
