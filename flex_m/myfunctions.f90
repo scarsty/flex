@@ -309,30 +309,12 @@ contains
     end subroutine cleanError
 
     !pulay mixer 相关
-    subroutine mixerInit()
-        use constants
-        use parameters
-        use parameters2
-        implicit none
-        integer i
-
-        G_mixer = 0
-        G_mixer(:,:,:,:,:,mixer_pointer)=G0
-        error_mixer = 0
-        mixer_pointer=1
-        Pulay_A = 0
-        !do i=1,mix_num
-        !    Pulay_A(mix_num+1,i)=-1
-        !    Pulay_A(i,mix_num+1)=-1
-        !enddo
-        Pulay_b = 0
-        Pulay_b(0) = -1
-    end subroutine mixerInit
-
+	
     function mixerIncPointer(p, n)
         use parameters2
         implicit none
         integer mixerIncPointer, p, n
+		
         mixerIncPointer = p+n
         mixerIncPointer = mod(mixerIncPointer, mix_num)
         if (mixerIncPointer==0) mixerIncPointer=mix_num
@@ -343,7 +325,7 @@ contains
         implicit none
         complex(8) mixerErrorProduct
         complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1) :: a, b
-                integer ib1,ib2,ikx,iky,iomegak
+        integer ib1,ib2,ikx,iky,iomegak
 
         mixerErrorProduct=0
         do ib1=1,nb;do ib2=1,nb
@@ -356,11 +338,28 @@ contains
             enddo;enddo
         enddo;enddo
     end function mixerErrorProduct
+	
+    subroutine mixerInit()
+        use parameters2
+        implicit none
+        integer i
+
+        G_mixer = 0
+        G_mixer(:,:,:,:,:,1)=G1
+        error_mixer(:,:,:,:,1) = G1-G0
+		
+        mixer_pointer=2
+        Pulay_A = 0
+        !do i=1,mix_num
+        !    Pulay_A(mix_num+1,i)=-1
+        !    Pulay_A(i,mix_num+1)=-1
+        !enddo
+        Pulay_b = 0
+        Pulay_b(0) = -1
+    end subroutine mixerInit
 
     ! G1是新的, G是上一步
     subroutine mixer(num)
-        !use constants
-        !use parameters
         use parameters2
         implicit none
         integer num, n, i, info, next_pointer
@@ -388,7 +387,7 @@ contains
         Pulay_A1=Pulay_A
         !call writematrix(Pulay_A,11)
         Pulay_x=Pulay_b
-        n=min(num+2,mix_num+1)
+        n=min(num+1,mix_num+1)
         call zhesv('U',n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, lwork, 2*mix_num, info)
         !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
         !write(*,*) info

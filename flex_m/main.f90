@@ -185,8 +185,8 @@ program flex_m2d
     write(stdout, *)
 
     write(stdout, *) "Begin to calculate FLEX"
-    total_iter = 0
-    density_iter = 0
+    total_iter = 1
+    density_iter = 1
     cur_sigma_tol = 1d0
     cur_density = 1000d0
 
@@ -217,7 +217,6 @@ program flex_m2d
             enddo
         enddo; enddo
         G=G0
-        call mixerInit()
         conjgG=conjg(G)
 
         !call testConvolution()
@@ -233,8 +232,8 @@ program flex_m2d
         density_base=density_base*2/nk
         write(stdout, *) 'base density is ', density_base
 
-        sigma_iter = 0
-        sigma_state = 0
+        sigma_iter = 1
+        sigma_state = 1
         do while (.not. sigma_conv)
 
             ! write(stdout, *) 'calculating chi_0...'
@@ -311,7 +310,7 @@ program flex_m2d
             ! write(stdout, *) 'checking convergence of sigma...'
 
             ! 第一次迭代, 直接赋值sigma0, 不测试收敛
-            if (sigma_iter > 0) then
+            if (sigma_iter > 1) then
                 ! 计算sigma0与sigma的符合情况, 向量库
                 ! dznrm2: 欧几里得模，行向量乘以自身转置共轭
                 sigma_minus = sigma0 - sigma
@@ -381,6 +380,9 @@ program flex_m2d
             !    enddo;enddo
             !enddo;enddo
             !G=mixing_beta*G1+(1-mixing_beta)*G
+			if (sigma_iter==1) then
+				call mixerInit()
+			endif
             call mixer(sigma_iter)
             conjgG=conjg(G)
 
@@ -390,7 +392,6 @@ program flex_m2d
 
             if (total_iter>20) then
                 !write(stdout,*) sigma_minus
-                !exit
             endif
         enddo
 
