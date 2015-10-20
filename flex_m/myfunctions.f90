@@ -308,7 +308,6 @@ contains
 
     end subroutine cleanError
 
-
     !pulay mixer 相关
     subroutine mixerInit()
         use constants
@@ -318,6 +317,8 @@ contains
         integer i
 
         G_mixer = 0
+        G_mixer(:,:,:,:,:,mixer_pointer)=G0
+        error_mixer = 0
         mixer_pointer=1
         Pulay_A = 0
         do i=1,mix_num
@@ -328,31 +329,49 @@ contains
         Pulay_b(mix_num+1) = -1
     end subroutine mixerInit
 
+    function mixerIncPointer(p, n)
+        use parameters2
+        implicit none
+        integer mixerIncPointer, p, n
+        mixerIncPointer = p+n
+        mixerIncPointer = mod(mixerIncPointer, mix_num)
+        if (mixerIncPointer==0) mixerIncPointer=mix_num
+    end function mixerIncPointer
+
 	! G1是新的, G是上一步
     subroutine mixer()
         use constants
         use parameters
         use parameters2
         implicit none
-		integer n，i, ipiv, info
-		
-		n=mix_num+1
-		
-		G_mixer(:,:,:,:,:,mixer_pointer)=G1
-		
+		integer n, i, ipiv, info, next_pointer
+        complex(8) zdotc
+        external zdotc
+
+		n=nb*nb*nk*totalnomega
+
+		next_pointer=mixerIncPointer(mixer_pointer,1)
+		error_mixer(:,:,:,:,:,mixer_pointer)=G1-G_mixer(:,:,:,:,:,mixer_pointer)
+		G_mixer(:,:,:,:,:,next_pointer)=G1
+
 		do i=1,mix_num
-			Pulay_A(mixer_pointer,i)=
-			Pulay_A(i,mixer_pointer)=
+			Pulay_A(mixer_pointer,i)=zdotc(n,error_mixer(:,:,:,:,:,mixer_pointer),1,error_mixer(:,:,:,:,:,i),1)
+			Pulay_A(i,mixer_pointer)=zdotc(n,error_mixer(:,:,:,:,:,i),1,error_mixer(:,:,:,:,:,mixer_pointer),1)
 		enddo
-        call dgesv(n, n, Pulay_A, n, ipiv, Pulay_B, n, info)
+		Pulay_A1=Pulay_A
+		write(*,*) Pulay_A
+		Pulay_x=Pulay_b
+		write(*,*) Pulay_x
+        call zgesv(mix_num+1, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
+        write(*,*) info
 		G=complex_0
 		do i=1,mix_num
-			G=G+G_mixer(:,:,:,:,:,mixer_pointer)*Pulay_B(i)
+			G=G+G_mixer(:,:,:,:,:,i)*Pulay_B(i)
+			write(*,*) Pulay_B(i)
 		enddo
-		mixer_pointer=mixer_pointer + 1
-		if mixer_pointer>mix_num then
-			mixer_pointer=1
-		endif
+		mixer_pointer=next_pointer
+		write(*,*) next_pointer, mixer_pointer
+		write(*,*) 'ddddddddddddddddddddddddd'
     end subroutine mixer
 
     ! 部分废弃代码

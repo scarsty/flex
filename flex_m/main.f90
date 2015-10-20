@@ -39,7 +39,6 @@ program flex_m2d
     ! 变量段结束-------------------------------------------------------------------------------
 
     call readin()
-    call mixerInit()
 
     if (test_band) then
         call testband()
@@ -218,6 +217,7 @@ program flex_m2d
             enddo
         enddo; enddo
         G=G0
+        call mixerInit()
         conjgG=conjg(G)
 
         !call testConvolution()
@@ -382,6 +382,7 @@ program flex_m2d
             !enddo;enddo
             !G=mixing_beta*G1+(1-mixing_beta)*G
             call mixer()
+            write(*,*) 'mixeradkjfalllsalla'
             conjgG=conjg(G)
 
 
