@@ -347,10 +347,10 @@ contains
         integer i
 
         G_mixer = 0
-        G_mixer(:,:,:,:,:,1)=G1
-        error_mixer(:,:,:,:,:,1) = G1-G0
+        !G_mixer(:,:,:,:,:,1)=G1
+        !error_mixer(:,:,:,:,:,1) = G1-G0
 
-        mixer_pointer=2
+        mixer_pointer=1
         Pulay_A = 0
         do i=1,mix_num
             Pulay_A(0,i)=-1
@@ -378,22 +378,27 @@ contains
 
         next_pointer=mixerIncPointer(mixer_pointer,1)
         prev_pointer=mixerIncPointer(mixer_pointer,-1)
-        error_mixer(:,:,:,:,:,mixer_pointer)=G1-G_mixer(:,:,:,:,:,prev_pointer)
+		if (num==1) then
+        error_mixer(:,:,:,:,:,mixer_pointer)=G1-G0
+	else
+		error_mixer(:,:,:,:,:,mixer_pointer)=G1-G_mixer(:,:,:,:,:,prev_pointer)
+	endif
         G_mixer(:,:,:,:,:,mixer_pointer)=G1
 
         ! A_ij=e_i**H*e_j
         do i=1,mix_num
-            b1=error_mixer(:,:,:,:,:,prev_pointer)
+            b1=error_mixer(:,:,:,:,:,mixer_pointer)
             b2=error_mixer(:,:,:,:,:,i)
             e=mixerErrorProduct(b1,b2)
-            Pulay_A(prev_pointer,i)=e
-            Pulay_A(i,prev_pointer)=conjg(e)
+            Pulay_A(mixer_pointer,i)=e
+            Pulay_A(i,mixer_pointer)=conjg(e)
         enddo
         !Pulay_A(0,mixer_pointer)=-1
         !Pulay_A(mixer_pointer,0)=-1
 
         Pulay_A1=Pulay_A
         Pulay_x=Pulay_b
+		! 系数矩阵实际上多一行
         n=min(num+1,mix_num+1)
         call zhesv('U', n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, lwork, 2*mix_num, info)
         write(*,*) info, mixer_pointer
