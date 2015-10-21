@@ -46,7 +46,9 @@ program flex_m2d
 
     T_beta = 1d0/kB/T
     T_eV = kB*T
-    mixing_beta = 0.1
+    mixing_beta = 0.00001
+
+            sigma_state = 0
 
     ! 计算k点的坐标
     write(stdout, *) "Building k-points grid..."
@@ -219,6 +221,8 @@ program flex_m2d
         G=G0
         conjgG=conjg(G)
 
+				call mixerInit()
+
         !call testConvolution()
         !call testConvolution3()
         !call testConvolution3G()
@@ -233,7 +237,6 @@ program flex_m2d
         write(stdout, *) 'base density is ', density_base
 
         sigma_iter = 1
-        sigma_state = 1
         do while (.not. sigma_conv)
 
             ! write(stdout, *) 'calculating chi_0...'
@@ -314,6 +317,7 @@ program flex_m2d
                 ! 计算sigma0与sigma的符合情况, 向量库
                 ! dznrm2: 欧几里得模，行向量乘以自身转置共轭
                 sigma_minus = sigma0 - sigma
+                !sigma_minus = G1-G
 
                 norm_sigma_minus = dznrm2(nb*nb*nkx*nky*totalnomega, sigma_minus, 1)
                 norm_sigma = dznrm2(nb*nb*nkx*nky*totalnomega, sigma, 1)
@@ -380,9 +384,12 @@ program flex_m2d
             !    enddo;enddo
             !enddo;enddo
             !G=mixing_beta*G1+(1-mixing_beta)*G
-			if (sigma_iter==1) then
-				call mixerInit()
-			endif
+
+			!norm_sigma = dznrm2(nb*nb*nkx*nky*totalnomega, G, 1)
+			!norm_sigma_minus = dznrm2(nb*nb*nkx*nky*totalnomega, G1-G, 1)
+			!write(*,*) norm_sigma_minus
+
+
             call mixer(sigma_iter)
             conjgG=conjg(G)
 
@@ -422,7 +429,7 @@ program flex_m2d
         else
             ! 计算化学势变化与占据数变化的比值来调整新的化学势
             mu0 = mu
-            if (density_iter>0) then
+            if (density_iter>1) then
                 !mu = mu - (cur_density-target_density)
                 mu = mu - (cur_density-target_density)*deltamu_per_density
             else
