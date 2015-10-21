@@ -47,10 +47,14 @@ module parameters2
     complex(8), dimension (nkx, nky, 0:totalnomega-1) :: dft_in
     complex(8), dimension (nkx, nky, 0:totalnomega-1) :: dft_out
 
-    integer, parameter :: mix_num  = 50
+    ! Pulay mixer 相关
+    integer, parameter :: mix_num  = 100
     integer mixer_pointer
-    complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1, mix_num) :: G_mixer, error_mixer, sigma_mixer
+    complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1, mix_num) :: G_mixer, error_mixer
     complex(8), dimension (0:mix_num, 0:mix_num) :: Pulay_A, Pulay_A1
     complex(8), dimension(0:mix_num) :: Pulay_x, Pulay_b
+
+    ! 占据数相关
+    real(8), dimension(2) :: density_old, mu_old
 
 end module parameters2

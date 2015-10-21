@@ -48,7 +48,7 @@ program flex_m2d
     T_eV = kB*T
     mixing_beta = 0.00001
 
-            sigma_state = 0
+    sigma_state = 0
 
     ! 计算k点的坐标
     write(stdout, *) "Building k-points grid..."
@@ -221,7 +221,7 @@ program flex_m2d
         G=G0
         conjgG=conjg(G)
 
-				call mixerInit()
+        call mixerInit()
 
         !call testConvolution()
         !call testConvolution3()
@@ -385,9 +385,9 @@ program flex_m2d
             !enddo;enddo
             !G=mixing_beta*G1+(1-mixing_beta)*G
 
-			!norm_sigma = dznrm2(nb*nb*nkx*nky*totalnomega, G, 1)
-			!norm_sigma_minus = dznrm2(nb*nb*nkx*nky*totalnomega, G1-G, 1)
-			!write(*,*) norm_sigma_minus
+            !norm_sigma = dznrm2(nb*nb*nkx*nky*totalnomega, G, 1)
+            !norm_sigma_minus = dznrm2(nb*nb*nkx*nky*totalnomega, G1-G, 1)
+            !write(*,*) norm_sigma_minus
 
 
             call mixer(sigma_iter)
@@ -416,10 +416,6 @@ program flex_m2d
 
         cur_density=cur_density*2*T_eV/nk + density_base
 
-        if (density_iter>0) then
-            deltamu_per_density = (mu-mu0)/(cur_density-density0)
-        endif
-
         write(stdout,*) 'density and mu: ', cur_density,'/', mu
         write(stdout,*)
 
@@ -427,12 +423,27 @@ program flex_m2d
             density_conv=.true.
             !计算结束
         else
-            ! 计算化学势变化与占据数变化的比值来调整新的化学势
-            mu0 = mu
-            if (density_iter>1) then
-                !mu = mu - (cur_density-target_density)
-                mu = mu - (cur_density-target_density)*deltamu_per_density
-            else
+            ! 根据占据数调整化学势
+            ! 第一步仅记录和猜测方向, 第二步仅记录
+            ! 第三步开始逐步抛弃较远的点, 依照线性趋势逼近
+            if (density_iter>=2) then
+                if (density_iter>2) then
+                    do i=1,2
+                        if (abs(cur_density-target_density)<abs(density_old(i)-target_density)) then
+                            mu_old(i)=mu
+                            density_old(i)=cur_density
+                            exit
+                        endif
+                    enddo
+                else
+                    mu_old(2)=mu
+                    density_old(2)=cur_density
+                endif
+                mu=(mu_old(1)-mu_old(2))/(density_old(1)-density_old(2))*(target_density-density_old(2))+mu_old(2)
+            elseif (density_iter==1) then
+                mu_old(1)=mu
+                density_old(1)=cur_density
+                !deltamu_per_density = (mu-mu0)/(cur_density-density0)
                 mu = mu - 1.0d-1*sign(1.0d0, (cur_density-target_density)*deltamu_per_density)
             endif
             write(stdout,*) 'modified new mu = ', mu
