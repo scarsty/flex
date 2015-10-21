@@ -496,10 +496,51 @@ contains
     !    do ix=1,nb
     !        do iy=1,nb
     !            u_tilde_k_(ix,iy)=u_tilde_k(iy,ix,ikx,iky)
-    !        enddo
+    !        enddo!        if (abs(cur_density-target_density)<density_tol) then
+!            density_conv=.true.
+!            !计算结束
+!        else
+!            ! 根据占据数调整化学势
+!            ! 第一步仅记录和猜测方向
+!            ! 第三步开始逐步抛弃较远的点, 依照线性趋势逼近
+!            ! 通常来说应保存一大一小
+!            ! 靠不太容易设计
+!            if (density_iter>=2) then
+!                if (density_iter>2) then
+!                    replaced=.false.
+!                    do i=1,2
+!                        if (abs(cur_density-target_density)<abs(density_old(i)-target_density)) then
+!                            mu_old(i)=mu
+!                            density_old(i)=cur_density
+!                            replaced=.true.
+!                            exit
+!                        endif
+!                    enddo
+!                    if (.not.replaced) then
+!                        max_diff_loc=1
+!                        if (abs(density_old(1)-target_density)<abs(density_old(2)-target_density)) then
+!                            max_diff_loc=2
+!                        endif
+!                        mu_old(max_diff_loc)=mu
+!                        density_old(max_diff_loc)=cur_density
+!                    endif
+!                else
+!                    mu_old(2)=mu
+!                    density_old(2)=cur_density
+!                endif
+!                mu=(mu_old(1)-mu_old(2))/(density_old(1)-density_old(2))*(target_density-density_old(2))+mu_old(2)
+!            elseif (density_iter==1) then
+!                mu_old(1)=mu
+!                density_old(1)=cur_density
+!                !deltamu_per_density = (mu-mu0)/(cur_density-density0)
+!                mu = mu - 1.0d-1*sign(1.0d0, (cur_density-target_density)*deltamu_per_density)
+!            endif
+!            write(stdout,*) 'modified new mu = ', mu
+!        endif
     !    enddo
     !    !write(stdout, '(5F8.3)') u_tilde_k_
     !    write(stdout, '(5F8.3)') matmul(matmul(u_tilde_k_,diag_test), u_tilde_k(:,:,ikx,iky))
+
 
 #ifdef _DEBUG
     ! sometimes the linker cannot find this blas function
