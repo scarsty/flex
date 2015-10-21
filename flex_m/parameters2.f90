@@ -48,7 +48,7 @@ module parameters2
     complex(8), dimension (nkx, nky, 0:totalnomega-1) :: dft_out
 
     ! Pulay mixer 相关
-    integer, parameter :: mix_num  = 100
+    integer, parameter :: mix_num  = 200
     integer mixer_pointer
     complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1, mix_num) :: G_mixer, error_mixer
     complex(8), dimension (0:mix_num, 0:mix_num) :: Pulay_A, Pulay_A1
@@ -56,5 +56,8 @@ module parameters2
 
     ! 占据数相关
     real(8), dimension(2) :: density_old, mu_old
+    logical replaced
+    real(8) max_diff
+    integer max_diff_loc
 
 end module parameters2
