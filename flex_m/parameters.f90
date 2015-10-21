@@ -22,7 +22,10 @@ module parameters
     integer max_it
     real(8) alpha
     integer alpha_scheme
-    integer sigma_state
+
+    integer sigma_state ! 0: dyson方程, others: G_n+1=G0+G0*sigma*G_n
+
+    integer mixer
     real(8) mixing_beta
     ! 自旋态
     integer spin_state
