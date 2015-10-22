@@ -115,52 +115,6 @@ program flex_m2d
         ! write(stdout,*) diag_h0_tilde_k_
     enddo; enddo
 
-    !    输出部分结果检查
-    !    write(stdout,*) dot_product(u_tilde_k_(1,:),u_tilde_k_(5,:))
-    !
-    !    ikx=2;iky=4
-    !    write(stdout,*) 'h:'
-    !    call writematrix(h0_k(:,:,ikx,iky),nb)
-    !    write(stdout,*) 'unitary matrix:'
-    !    call writematrix(u_h0_k(:,:,ikx,iky),nb)
-    !
-    !    write(stdout,*) 'eigenvalue:'
-    !    write(stdout,*) ev_h0_k(:,ikx,iky)
-    !
-    !    write(stdout,*) 'u back to h'
-    !    diag_h0_G0_=0d0
-    !    do ix=1,nb
-    !        !diag_h0_G0_(ix,ix)=complex_1
-    !        diag_h0_G0_(ix,ix)=ev_h0_k(ix,ikx,iky)
-    !        !diag_h0_G0_(ix,ix)=1-complex_i*ix
-    !    enddo
-    !    !write(stdout, '(5F8.3)') diag_test
-    !    u_h0_k_=u_h0_k(:,:,ikx,iky)
-    !
-    !    !u_h0_k_=u_h0_k(:,:,ikx,iky)
-    !    !call writematrix(matmul(u_h0_k_,u_h0_k(:,:,ikx,iky)),nb)
-    !
-    !    call writematrix(ABAH(u_h0_k_,diag_h0_G0_,nb),nb)
-    !
-    !
-    !    write(stdout, *)'next'
-    !
-    !    h0_k_=h0_k(:,:,ikx,iky)
-    !    h0_tilde_k_=real(AHBA(i_plus,h0_k_,nb))
-    !    write(stdout, *)'h~'
-    !    call writematrix(AHBA(i_plus,h0_k_,nb),nb)
-    !    u_tilde_k_=h0_tilde_k_
-    !    call dsyev('V','U',nb,u_tilde_k_,nb,ev_h0_k_,diag_h0_tilde_k_lwork,nb*nb,info)
-    !    write(stdout,*) 'eigenvalue:'
-    !    write(stdout,*) ev_h0_k_
-    !    u_h0_k_=u_tilde_k_
-    !
-    !    u_h0_k_=AB(i_plus,u_h0_k_,nb)
-    !    write(stdout,*) 'unitary matrix:'
-    !    call writematrix(u_h0_k_,nb)
-    !    write(stdout,*) 'u~ back to h~'
-    !    call writematrix(ABAH(u_h0_k_,diag_h0_G0_,nb),nb)
-
     if (nb==1) then
         call build_h0_k()
         !T_beta = 0.25
@@ -205,15 +159,15 @@ program flex_m2d
         G0=complex_0
 
         do ikx=1,nkx; do iky=1,nky
-            do iomegak=-maxomegaf,maxomegaf,2
+            do iomegak=minomegaf,maxomegaf
                 diag_h0_G0_=complex_0
                 do ib=1,nb
-                    diag_h0_G0_(ib,ib)=1/(complex_i*iomegak*pi*T_eV-(ev_h0_k(ib,ikx,iky)-mu))
+                    diag_h0_G0_(ib,ib)=1/(complex_i*(2*iomegak-1)*pi*T_eV-(ev_h0_k(ib,ikx,iky)-mu))
                     !write(stdout,*)diag_h0_G0_(ib,ib)
                 enddo
                 u_h0_k_=u_h0_k(:,:,ikx,iky)
                 diag_h0_G0_=ABAH(u_h0_k_,diag_h0_G0_,nb)
-                G0(:,:,ikx,iky,transfer_freq(iomegak))=diag_h0_G0_
+                G0(:,:,ikx,iky,iomegak)=diag_h0_G0_
                 !G0(l1,m1,ikx,iky,transfer_freq(iomegak)) = &
                     !T_beta / (complex_i*pi*iomegak - (h0_k(l1,m1,ikx,iky)-mu))
             enddo
@@ -258,34 +212,34 @@ program flex_m2d
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
             chi_0 = T_ev/nk*chi_0
-            !call cleanError(chi_0, nb**4*nk*totalnomega)
+            ! call cleanError(chi_0, nb**4*nk*totalnomega)
 
             ! write(stdout, *) 'calculating chi_c, chi_s, V...'
 
             ! chi_c, chi_s, V, 需要并行和数学库
             ! 含有矩阵乘, 需改写
-            do ikx=1,nkx; do iky=1,nky; do iomegaq=-maxomegab,maxomegab,2
+            do ikx=1,nkx; do iky=1,nky; do iomegaq=minomegab,maxomegab
                 ! the same to solve AX=B, where A = (I +(c)/-(s) chi_0) and B = chi_0
 
                 ! chi_c = chi_0 - chi_0*chi_c
-                chi_0_=chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
+                chi_0_=chi_0(:, :, ikx, iky, iomegaq)
 
                 !Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
                 Iminuschi_0_ = I_chi + AB(U_c,chi_0_,nb*nb)
 
-                chi_c_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
-                chi_c(:, :, ikx, iky, transfer_freq(iomegaq))= inverseAbyB(Iminuschi_0_,chi_c_,nb*nb)
+                chi_c_ = chi_0(:, :, ikx, iky, iomegaq)
+                chi_c(:, :, ikx, iky, iomegaq)= inverseAbyB(Iminuschi_0_,chi_c_,nb*nb)
 
                 ! chi_s = chi_0 + chi_0*chi_s
                 !Iminuschi_0_ = I_chi - AB(chi_0_,U_s,nb*nb)
                 Iminuschi_0_ = I_chi - AB(U_s,chi_0_,nb*nb)
-                chi_s_ = chi_0(:, :, ikx, iky, transfer_freq(iomegaq))
-                chi_s(:, :, ikx, iky, transfer_freq(iomegaq)) = inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
+                chi_s_ = chi_0(:, :, ikx, iky, iomegaq)
+                chi_s(:, :, ikx, iky, iomegaq) = inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
 
-                V(:, :, ikx, iky, transfer_freq(iomegaq)) = U_ud - 2*U_uu &
-                    - ABA(U_ud, chi_0(:, :, ikx, iky, transfer_freq(iomegaq)), nb*nb) &
-                    + 1.5*ABA(U_s, chi_s(:, :, ikx, iky, transfer_freq(iomegaq)), nb*nb) &
-                    + 0.5*ABA(U_c, chi_c(:, :, ikx, iky, transfer_freq(iomegaq)), nb*nb)
+                V(:, :, ikx, iky, iomegaq) = U_ud - 2*U_uu &
+                    - ABA(U_ud, chi_0(:, :, ikx, iky, iomegaq), nb*nb) &
+                    + 1.5*ABA(U_s, chi_s(:, :, ikx, iky, iomegaq), nb*nb) &
+                    + 0.5*ABA(U_c, chi_c(:, :, ikx, iky, iomegaq), nb*nb)
 
             enddo; enddo; enddo
             !write(stdout,*) V(:, :, 1, 1, 0)
@@ -350,26 +304,26 @@ program flex_m2d
             ! G1=G
             ! G=G0
             ! G=G0+G0*sigma*G, then we have G=(I-G0*sigma)**(-1)*G0
-            do ikx=1,nkx;do iky=1,nky;do iomegak=-maxomegaf,maxomegaf,2
+            do ikx=1,nkx;do iky=1,nky;do iomegak=minomegaf,maxomegaf
                 if (sigma_state==0)then
-                    G0_=G0(:,:,ikx,iky,transfer_freq(iomegak))
-                    sigma_=sigma(:,:,ikx,iky,transfer_freq(iomegak))
+                    G0_=G0(:,:,ikx,iky,iomegak)
+                    sigma_=sigma(:,:,ikx,iky,iomegak)
                     G_=AB(G0_,sigma_,nb)
                     G_=I_G - G_
                     !call writematrix(G_,nb)
                     !call writematrix(G0_,nb)
                     G_=inverseAbyB(G_,G0_,nb)
                     !call writematrix(G_,nb)
-                    G1(:,:,ikx,iky,transfer_freq(iomegak)) = G_
+                    G1(:,:,ikx,iky,iomegak) = G_
                     !call writematrix(I_G,nb)
                     !stop
                 else
-                    G(:,:,ikx,iky,transfer_freq(iomegak)) &
+                    G(:,:,ikx,iky,iomegak) &
                         = &
-                        G0(:,:,ikx,iky,transfer_freq(iomegak)) &
-                        + ABC(G0(:,:,ikx,iky,transfer_freq(iomegak)), &
-                        sigma(:,:,ikx,iky,transfer_freq(iomegak)), &
-                        G1(:,:,ikx,iky,transfer_freq(iomegak)), nb)
+                        G0(:,:,ikx,iky,iomegak) &
+                        + ABC(G0(:,:,ikx,iky,iomegak), &
+                        sigma(:,:,ikx,iky,iomegak), &
+                        G1(:,:,ikx,iky,iomegak),nb)
                 endif
             enddo;enddo;enddo
             !do l1=1,nb; do m1=1,nb;
@@ -408,10 +362,10 @@ program flex_m2d
         density0 = cur_density
         cur_density=0d0
 
-        do ib=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
+        do ib=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
             cur_density = cur_density &
-                + real(G(ib, ib, ikx, iky, transfer_freq(iomegak))) &
-                - real(G0(ib, ib, ikx, iky, transfer_freq(iomegak)))
+                + real(G(ib, ib, ikx, iky, iomegak)) &
+                - real(G0(ib, ib, ikx, iky, iomegak))
         enddo; enddo; enddo; enddo
 
         cur_density=cur_density*2*T_eV/nk + density_base

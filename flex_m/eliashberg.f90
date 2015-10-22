@@ -26,14 +26,14 @@ subroutine eliashberg()
     write(stdout,*) 'Solving Eliashberg equation...'
     ! 文献中自旋3态有区别, 需自行推导
     V_s = complex_0
-    do ikx=1,nkx; do iky=1,nky; do iomegaq=-maxomegab,maxomegab,2
-        chi_c_ = chi_c(:, :, ikx, iky, transfer_freq(iomegaq))
-        chi_s_ = chi_s(:, :, ikx, iky, transfer_freq(iomegaq))
+    do ikx=1,nkx; do iky=1,nky; do iomegaq=minomegab,maxomegab
+        chi_c_ = chi_c(:, :, ikx, iky, iomegaq)
+        chi_s_ = chi_s(:, :, ikx, iky, iomegaq)
         if (spin_state==3) then
-            V_s(:, :, ikx, iky, transfer_freq(iomegaq)) &
+            V_s(:, :, ikx, iky, iomegaq) &
                 = U_ud - 0.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c, chi_c_,nb*nb)
         else
-            V_s(:, :, ikx, iky, transfer_freq(iomegaq)) &
+            V_s(:, :, ikx, iky, iomegaq) &
                 = U_ud + 1.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c, chi_c_,nb*nb)
         endif
     enddo; enddo; enddo
@@ -72,12 +72,12 @@ subroutine eliashberg()
         GGdelta = complex_0
         do l2=1,nb; do m2=1,nb
             do l3=1,nb; do m3=1,nb
-                do ikx=1,nkx; do iky=1,nky; do iomegak = -maxomegaf,maxomegaf,2
-                    GGdelta(l3,m3,ikx,iky,transfer_freq(iomegak)) &
-                        = GGdelta(l3,m3,ikx,iky,transfer_freq(iomegak)) &
-                        + G(l3,l2,ikx,iky,transfer_freq(iomegak)) &
-                        *conjgG(m3,m2,ikx,iky,transfer_freq(iomegak)) &
-                        *delta0(l2,m2,ikx,iky,transfer_freq(iomegak))
+                do ikx=1,nkx; do iky=1,nky; do iomegak = minomegaf,maxomegaf
+                    GGdelta(l3,m3,ikx,iky,iomegak) &
+                        = GGdelta(l3,m3,ikx,iky,iomegak) &
+                        + G(l3,l2,ikx,iky,iomegak) &
+                        *conjgG(m3,m2,ikx,iky,iomegak) &
+                        *delta0(l2,m2,ikx,iky,iomegak)
                 enddo; enddo; enddo
             enddo; enddo
         enddo; enddo
@@ -102,8 +102,8 @@ subroutine eliashberg()
         ! 规格化
         lambda = 0
         do l1=1,nb; do m1=1,nb
-            do ikx=1,nkx; do iky=1,nky; do iomegak=-maxomegaf,maxomegaf,2
-                lambda = max(lambda, abs(delta(l1,m1,ikx,iky,transfer_freq(iomegak))))
+            do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
+                lambda = max(lambda, abs(delta(l1,m1,ikx,iky,iomegak)))
             enddo; enddo; enddo
         enddo; enddo
         delta = delta/lambda

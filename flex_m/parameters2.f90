@@ -23,7 +23,7 @@ module parameters2
     ! u_h0_k是计算G0所使用的辅助幺正阵, G0=u_h0_k**H*diag(1/(i*omage-e+mu))*u_h0_k
     complex(8), dimension (nb, nb, -rx:rx, -ry:ry) :: h0_r
     complex(8), dimension (nb, nb, nkx, nky) :: h0_k
-    real(8), dimension(nb, nb, nkx, nky) :: u_tilde_k, h0_tilde_k
+    real(8), dimension (nb, nb, nkx, nky) :: u_tilde_k, h0_tilde_k
 
     ! k空间对应
     real(8), dimension (nkx, nky, 2) :: k
