@@ -2,6 +2,7 @@ module myfunctions
 #ifdef USE_MPI
     include 'mpif.h'
 #endif
+    include 'fftw3.f03'
 contains
     ! mpi函数系列
     integer function mpi_rank()
@@ -226,10 +227,7 @@ contains
         use parameters2
         use, intrinsic :: iso_c_binding
         implicit none
-
-        include 'fftw3.f03'
         type(C_PTR) :: plan
-
         integer N, fb, l, m, normal, i
         integer(C_INT) direction, direction2
         complex(8), dimension(N,N,nkx,nky,0:totalnomega-1) :: input
@@ -346,18 +344,18 @@ contains
         implicit none
         integer i
 
-        G_mixer = 0
+        mixer_G = 0
         !G_mixer(:,:,:,:,:,1)=G1
         !error_mixer(:,:,:,:,:,1) = G1-G0
 
         mixer_pointer=1
-        Pulay_A = 0
+        mixer_A = 0
         do i=1,mix_num
-            Pulay_A(0,i)=-1
-            Pulay_A(i,0)=-1
+            mixer_A(0,i)=-1
+            mixer_A(i,0)=-1
         enddo
-        Pulay_b = 0
-        Pulay_b(0) = -1
+        mixer_b = 0
+        mixer_b(0) = -1
     end subroutine mixerInit
 
     ! G1是新的, G是上一步
@@ -380,38 +378,38 @@ contains
         prev_pointer=mixerIncPointer(mixer_pointer,-1)
         !write(*,*) 'kkk',mixerErrorProduct(G1,G1),mixerErrorProduct(G,G)
         if (num==1) then
-            error_mixer(:,:,:,:,:,mixer_pointer)=G1-G
+            mixer_error(:,:,:,:,:,mixer_pointer)=G1-G
             !write(*,*) 'hhhh'
         else
-            error_mixer(:,:,:,:,:,mixer_pointer)=G1-G!_mixer(:,:,:,:,:,prev_pointer)
+            mixer_error(:,:,:,:,:,mixer_pointer)=G1-G!_mixer(:,:,:,:,:,prev_pointer)
 
             !write(*,*) 'klkl',mixerErrorProduct(error_mixer(:,:,:,:,:,mixer_pointer),error_mixer(:,:,:,:,:,mixer_pointer))
         endif
-        G_mixer(:,:,:,:,:,mixer_pointer)=G1
+        mixer_G(:,:,:,:,:,mixer_pointer)=G1
         !sigma_mixer(:,:,:,:,:,mixer_pointer)=sigma
 
         ! A_ij=e_i**H*e_j
         do i=1,mix_num
-            b1=error_mixer(:,:,:,:,:,mixer_pointer)
-            b2=error_mixer(:,:,:,:,:,i)
+            b1=mixer_error(:,:,:,:,:,mixer_pointer)
+            b2=mixer_error(:,:,:,:,:,i)
             e=mixerErrorProduct(b1,b2)
-            Pulay_A(mixer_pointer,i)=e
-            Pulay_A(i,mixer_pointer)=conjg(e)
+            mixer_A(mixer_pointer,i)=e
+            mixer_A(i,mixer_pointer)=conjg(e)
             !write(*,*)e
         enddo
         !Pulay_A(0,mixer_pointer)=-1
         !Pulay_A(mixer_pointer,0)=-1
 
-        Pulay_A1=Pulay_A
-        Pulay_x=Pulay_b
+        mixer_A1=mixer_A
+        mixer_x=mixer_b
         ! 系数矩阵实际上多一行
         n=min(num+1,mix_num+1)
-        call zhesv('U', n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, lwork, 2*mix_num, info)
+        call zhesv('U', n, 1, mixer_A1, mix_num+1, ipiv, mixer_x, mix_num+1, lwork, 2*mix_num, info)
         !write(*,*) info, mixer_pointer
         !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
         G=complex_0
         do i=1,1
-            G=G+G_mixer(:,:,:,:,:,i)*real(Pulay_x(i))
+            G=G+mixer_G(:,:,:,:,:,i)*real(mixer_x(i))
             !write(*,*) Pulay_x(i), Pulay_A(i,i), mixerErrorProduct(G_mixer(:,:,:,:,:,i),G_mixer(:,:,:,:,:,i))
         enddo
         mixer_pointer=next_pointer

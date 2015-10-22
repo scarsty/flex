@@ -7,11 +7,11 @@ module parameters2
     public
     ! 格林函数, 反常格林函数
     ! 自能函数, 反常自能函数
-    complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1) :: G, F, sigma, delta, G0, sigma0, G1, delta0, sigma_minus, conjgG, GGdelta
-    complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1) :: G_r_tau, sigma_r_tau, delta_r_tau, delta_r_tau0, conjgG_r_tau, GGdelta_r_tau
+    complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: G, F, sigma, delta, G0, sigma0, G1, delta0, sigma_minus, conjgG, GGdelta
+    complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1) :: G_r_tau, sigma_r_tau, delta_r_tau, conjgG_r_tau, GGdelta_r_tau
 
     ! 极化率, susceptibilities, effective interactions
-    complex(8), dimension (nb*nb, nb*nb, nkx, nky, 0:totalnomega-1) :: chi_0, chi_s, chi_c, V, V_s
+    complex(8), dimension (nb*nb, nb*nb, nkx, nky, minomegab:maxomegab) :: chi_0, chi_s, chi_c, V, V_s
     complex(8), dimension (nb*nb, nb*nb, nkx, nky, 0:totalnomega-1) :: chi_0_r_tau, V_r_tau, V_s_r_tau
 
     ! 交换能, 单位矩阵
@@ -48,11 +48,11 @@ module parameters2
     complex(8), dimension (nkx, nky, 0:totalnomega-1) :: dft_out
 
     ! Pulay mixer 相关
-    integer, parameter :: mix_num  = 200
+    integer, parameter :: mix_num  = 100
     integer mixer_pointer
-    complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1, mix_num) :: G_mixer, error_mixer
-    complex(8), dimension (0:mix_num, 0:mix_num) :: Pulay_A, Pulay_A1
-    complex(8), dimension(0:mix_num) :: Pulay_x, Pulay_b
+    complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf, mix_num) :: mixer_G, mixer_error
+    complex(8), dimension (0:mix_num, 0:mix_num) :: mixer_A, mixer_A1
+    complex(8), dimension(0:mix_num) :: mixer_x, mixer_b
 
     ! 占据数相关
     real(8), dimension(2) :: density_old, mu_old

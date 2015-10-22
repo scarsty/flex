@@ -13,10 +13,11 @@ MODULE constants
     ! nomega 为正的费米频率个数
     ! 总费米频率个数 2*nomega, 总玻色频率个数4*nomega-2
     ! 计算范围较大值以避开周期
-    ! 费米频率循环 -(2*nomega-1),2*nomega-1,2, 玻色频率循环 -2*(2*nomega-1),2*(2*nomega-1),2
-    integer, parameter :: nomega=2, nomega1 = nomega-1, nomega2 = 8*nomega
-    integer, parameter :: totalnomega=16*nomega
-    integer, parameter :: maxomegaf = 2*nomega-1, maxomegab = 2*(2*nomega-1)
+    ! 费米和玻色频率的循环中, 直接计算频率的值, 2*n-1和2*n
+    integer, parameter :: nomega=4, nomega1 = nomega-1, nomega2 = 8*nomega
+    integer, parameter :: totalnomega=16*nomega  ! 这里实际上是fft的网格数
+    integer, parameter :: minomegaf=-(nomega-1), maxomegaf=n
+    integer, parameter :: minomegab=-2*(nomega-1), maxomegab=2*(nomega-1)
     integer, parameter :: nomegaf = 2*nomega, nomegab = 4*nomega-2
 
     ! 虚时间离散的点数
