@@ -36,6 +36,7 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-fimplicit-none" />
 			<Add option="-Wall" />
 		</Compiler>
 		<Linker>
