@@ -26,7 +26,7 @@ module parameters
     integer sigma_state ! 0: dyson方程, others: G_n+1=G0+G0*sigma*G_n
 
     integer mixer_method
-    real(8) mixing_beta
+    real(8) mixer_beta
     ! 自旋态
     integer spin_state
 
@@ -37,7 +37,8 @@ module parameters
         h1_U, h1_Up, h1_J, h1_Jp,&
         sigma_input,  sigma_input_file,&
         sigma_output, sigma_output_file,&
-        sigma_tol, max_it, alpha,  alpha_scheme, spin_state
+        sigma_tol, max_it, alpha,  alpha_scheme, spin_state,&
+        mixer_method, mixer_beta
 
 
 
