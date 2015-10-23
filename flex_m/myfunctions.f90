@@ -400,20 +400,64 @@ contains
 
         mixer_A1=mixer_A
         mixer_x=mixer_b
+
+        n=min(num,mix_num)
         ! 系数矩阵实际上多一行
-        n=min(num+1,mix_num+1)
-        call zhesv('U', n, 1, mixer_A1, mix_num+1, ipiv, mixer_x, mix_num+1, lwork, 2*mix_num, info)
+        call zhesv('U', n+1, 1, mixer_A1, mix_num+1, ipiv, mixer_x, mix_num+1, lwork, 2*mix_num, info)
         !write(*,*) info, mixer_pointer
         !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
         G=complex_0
-        do i=1,1
+        do i=1,n
             G=G+mixer_G(:,:,:,:,:,i)*real(mixer_x(i))
-            !write(*,*) Pulay_x(i), Pulay_A(i,i), mixerErrorProduct(G_mixer(:,:,:,:,:,i),G_mixer(:,:,:,:,:,i))
+            !write(*,*) mixer_x(i), mixer_A(i,i)
         enddo
         mixer_pointer=next_pointer
         !call writematrix(Pulay_A,11)
         !stop
     end subroutine mixer
+
+
+    ! 检查收敛点数, 注意使用时机
+    ! model: 1-sigma, 2-G
+    function convergence_test(iter, model)
+        use parameters
+        use parameters2
+        implicit none
+        logical convergence_test
+        real(8) dznrm2
+        external dznrm2
+        integer ib1, ib2, ikx, iky, iomegak, conv_grid, iter, model
+        real(8) norm_sigma_minus, norm_sigma, norm_sigma0, cur_sigma_tol, tol
+
+        ! 计算sigma0与sigma的符合情况, 向量库
+        ! dznrm2: 欧几里得模，行向量乘以自身转置共轭
+        if (model==0) then
+            sigma_minus = sigma0 - sigma
+        else
+            sigma_minus = G1-G2
+        endif
+
+        norm_sigma_minus = dznrm2(total_grid, sigma_minus, 1)
+        norm_sigma = dznrm2(total_grid, sigma, 1)
+        tol = norm_sigma*sigma_tol
+        conv_grid=0
+        do ib1=1,nb; do ib2=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
+            if (abs(sigma_minus(ib1,ib2,ikx,iky,iomegak))<tol) then
+                conv_grid=conv_grid+1
+            endif
+        enddo; enddo; enddo; enddo; enddo;
+
+        cur_sigma_tol = norm_sigma_minus / norm_sigma
+        write(stdout,'(I7,I10,ES20.5)') iter, conv_grid, cur_sigma_tol
+        convergence_test  = (conv_grid==total_grid)
+
+
+#ifdef _DEBUG
+        !norm_sigma0 = dznrm2(nb*nb*nkx*nky*nomegaf, sigma0, 1)
+        !write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma
+        !write(stdout,*) '0-1:',norm_sigma_minus
+#endif
+    end function
 
     subroutine outputSomething()
         implicit none

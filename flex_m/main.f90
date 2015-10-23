@@ -24,17 +24,12 @@ program flex_m2d
 
     ! 迭代sigma次数, density次数
     integer sigma_iter, density_iter, total_iter
-    real(8) cur_sigma_tol, cur_density, density_base
+    real(8) cur_density, density_base
     logical sigma_conv, density_conv
     real(8), dimension(2,2):: a, b
 
     integer  omega_f, omega_b
     real(8) tau
-
-    real(8) norm_sigma_minus, norm_sigma, norm_sigma0
-
-    real(8) dznrm2
-    external dznrm2
 
     ! 变量段结束-------------------------------------------------------------------------------
 
@@ -46,7 +41,6 @@ program flex_m2d
 
     T_beta = 1d0/kB/T
     T_eV = kB*T
-    mixing_beta = 0.00001
 
     sigma_state = 0
 
@@ -143,7 +137,6 @@ program flex_m2d
     write(stdout, *) "Begin to calculate FLEX"
     total_iter = 1
     density_iter = 1
-    cur_sigma_tol = 1d0
     cur_density = 1000d0
 
     deltamu_per_density=1
@@ -174,7 +167,6 @@ program flex_m2d
             enddo
         enddo; enddo
         G=G0
-        conjgG=conjg(G)
 
         call mixerInit()
 
@@ -192,6 +184,8 @@ program flex_m2d
         write(stdout, *) 'base density is ', density_base
 
         sigma_iter = 1
+        write(stdout,*) '  iter  conv.pts           sigma.tol'
+        write(stdout,*) '--------------------------------------'
         do while (.not. sigma_conv)
 
             ! write(stdout, *) 'calculating chi_0...'
@@ -200,6 +194,8 @@ program flex_m2d
 
             ! dft G to G_r_tau
             call dft(G, G_r_tau, nb, nomegaf, dft_grid, 1, 0)
+
+            conjgG=conjg(G)
             call dft(conjgG, conjgG_r_tau, nb, nomegaf, dft_grid, 1, 0)
 
             ! chi_0, 看起来需要并行
@@ -263,46 +259,19 @@ program flex_m2d
 
             !call testConvolution3sigma()
 
-            sigma=T_eV/nk*sigma
-            !call cleanError(sigma, nb**2*nk*totalnomega)
-            ! write(stdout, *) 'checking convergence of sigma...'
-
-            ! 第一次迭代, 直接赋值sigma0, 不测试收敛
-            if (sigma_iter > 1) then
-                ! 计算sigma0与sigma的符合情况, 向量库
-                ! dznrm2: 欧几里得模，行向量乘以自身转置共轭
-                sigma_minus = sigma0 - sigma
-                !sigma_minus = G1-G
-
-                norm_sigma_minus = dznrm2(nb**2*nk*nomegaf, sigma_minus, 1)
-                norm_sigma = dznrm2(nb**2*nk*nomegaf, sigma, 1)
-                cur_sigma_tol = norm_sigma_minus / norm_sigma
-                write(stdout,*) 'sigma tolerance is ', cur_sigma_tol , '/', sigma_iter
-
-                if (cur_sigma_tol>1) then
-                    !write(stdout,*) "sigma seems bad, please reset mu.", mu
-                    !stop
+            !if (sigma_iter > 1) then
+                sigma_conv = convergence_test(sigma_iter, 0)
+                if (sigma_conv) then
+                    exit
                 endif
-                if (isnan(cur_sigma_tol)) then
-                    write(stdout,*) "sigma seems bad."
-                    stop
-                endif
-                if (cur_sigma_tol < sigma_tol) then
-                    sigma_conv = .true.
-                endif
-#ifdef _DEBUG
-                !norm_sigma0 = dznrm2(nb*nb*nkx*nky*nomegaf, sigma0, 1)
-                !write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma
-                !write(stdout,*) '0-1:',norm_sigma_minus
-#endif
-            endif
+            !endif
             sigma0 = sigma
+
+            sigma=T_eV/nk*sigma
 
             ! write(stdout, *) 'calculating New G...'
 
             ! 新的G, dyson方程
-            ! G1=G
-            ! G=G0
             ! G=G0+G0*sigma*G, then we have G=(I-G0*sigma)**(-1)*G0
             do ikx=1,nkx;do iky=1,nky;do iomegak=minomegaf,maxomegaf
                 if (sigma_state==0)then
@@ -310,13 +279,8 @@ program flex_m2d
                     sigma_=sigma(:,:,ikx,iky,iomegak)
                     G_=AB(G0_,sigma_,nb)
                     G_=I_G - G_
-                    !call writematrix(G_,nb)
-                    !call writematrix(G0_,nb)
                     G_=inverseAbyB(G_,G0_,nb)
-                    !call writematrix(G_,nb)
                     G1(:,:,ikx,iky,iomegak) = G_
-                    !call writematrix(I_G,nb)
-                    !stop
                 else
                     G(:,:,ikx,iky,iomegak) &
                         = &
@@ -326,28 +290,19 @@ program flex_m2d
                         G1(:,:,ikx,iky,iomegak),nb)
                 endif
             enddo;enddo;enddo
-            !do l1=1,nb; do m1=1,nb;
-            !
-            !    do l2=1,nb; do m2=1,nb;
-            !G(l1, m1, :,:,:) &
-                !    = G(l1, m1, :,:,:) &
-                !    + &
-                !    G0(l1, l2, :,:,:) &
-                !    * sigma(l2, m2, :,:,:) &
-                !    * G1(m2, m1, :,:,:)
-            !    enddo;enddo
-            !enddo;enddo
-            !G=mixing_beta*G1+(1-mixing_beta)*G
 
-            !norm_sigma = dznrm2(nb*nb*nkx*nky*totalnomega, G, 1)
-            !norm_sigma_minus = dznrm2(nb*nb*nkx*nky*totalnomega, G1-G, 1)
-            !write(*,*) norm_sigma_minus
+            !sigma_conv=convergence_test(sigma_iter, 1)
 
+            select case (mixer_method)
+                case (0)
+                    G=G1
+                case (1)
+                    G=mixer_beta*G1+(1-mixer_beta)*G
+                case (2)
+                    call mixer(sigma_iter)
+            end select
 
-            call mixer(sigma_iter)
-            conjgG=conjg(G)
-
-
+            G2=G
             sigma_iter=sigma_iter+1;
             total_iter = total_iter + 1
 
