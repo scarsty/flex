@@ -221,17 +221,23 @@ contains
 
     ! dft, direction means FORWORD(+) or BACKWORD(-)
     ! 调用fftw
-    ! normal为归一化和展宽部分清零
-    subroutine dft(input, output, N, minindex, maxindex, outgrid, direction, normal)
+    ! 傅里叶变换用于计算卷积, 包含以下两种情况:
+    ! (1) G*conjgG的卷积, 输入都是费米频率, 输出是玻色频率.
+    !     这时需要补充2*nomega的0. 反傅里叶变换的输出结果从0开始
+    ! (2) V*G的卷积, 输入是玻色频率和费米频率, 输出是费米频率.
+    !     这时前者只需补一个0, 后者同(1)补2*nomega的0. 反傅里叶变换的结果从2*nomega开始.
+    ! 变换的网格和傅里叶变换的输出都是4*nomega, 反傅里叶变换的输出长度随模式而定.
+    subroutine dft(input, output, N, length_in, length_out, direction, outmodel)
         use constants
         use parameters2
         use, intrinsic :: iso_c_binding
         implicit none
         type(C_PTR) :: plan
-        integer N, fb, l, m, normal, i, minindex, maxindex
+        integer N, fb, l, m, i, length_in, length_out, direction, outmodel
         integer(C_INT) direction, direction2
-        complex(8), dimension(N,N,nkx,nky,minindex,maxindex) :: input
-        complex(8), dimension(N,N,nkx,nky,0:outgrid-1) :: output
+        complex(8), dimension(N,N,nkx,nky,length_in) :: input
+        complex(8), dimension(N,N,nkx,nky,length_out) :: input
+
 
         if (direction >= 0) then
             direction2 = FFTW_FORWARD
@@ -240,34 +246,14 @@ contains
         endif
 
         do l=1,N; do m=1,N
+            ! 前处理
             dft_in = input(l,m,:,:,:)
-            plan=fftw_plan_dft_3d(totalnomega, nkx, nky , dft_in, dft_out, direction2, FFTW_ESTIMATE)
+            plan=fftw_plan_dft_3d(totalnomega, nkx, nky, dft_in, dft_out, direction2, FFTW_ESTIMATE)
             call fftw_execute_dft(plan, dft_in, dft_out)
             call fftw_destroy_plan(plan)
             output(l,m,:,:,:) = dft_out
         enddo; enddo
-        ! 卷积结果归一化
-        if (normal /= 0) then
-            output = output/nkx/nky/totalnomega
-            ! 清空截断频率之外
-            if (mod(normal,2)==1) then
-                do i=0,2*nomega-2,2
-                    output(:,:,:,:,i) = complex_0
-                enddo
-                do i=totalnomega-2*nomega+2,totalnomega,2
-                    output(:,:,:,:,i) = complex_0
-                enddo
-                output(:,:,:,:,2*nomega:totalnomega-2*nomega) = complex_0
-            else
-                do i=1,4*nomega-3,2
-                    output(:,:,:,:,i) = complex_0
-                enddo
-                do i=totalnomega-(4*nomega-3),totalnomega,2
-                    output(:,:,:,:,i) = complex_0
-                enddo
-                output(:,:,:,:,4*nomega-1:totalnomega-(4*nomega-1)) = complex_0
-            endif
-        endif
+
 
         return
 
