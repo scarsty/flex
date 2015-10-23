@@ -162,7 +162,8 @@ program flex_m2d
             do iomegak=minomegaf,maxomegaf
                 diag_h0_G0_=complex_0
                 do ib=1,nb
-                    diag_h0_G0_(ib,ib)=1/(complex_i*(2*iomegak-1)*pi*T_eV-(ev_h0_k(ib,ikx,iky)-mu))
+                    diag_h0_G0_(ib,ib) = &
+                        1/(complex_i*(2*iomegak-1)*pi*T_eV-(ev_h0_k(ib,ikx,iky)-mu))
                     !write(stdout,*)diag_h0_G0_(ib,ib)
                 enddo
                 u_h0_k_=u_h0_k(:,:,ikx,iky)
@@ -198,11 +199,11 @@ program flex_m2d
             ! calculate chi_0 with chi(q)= -G1(q-k)G2(-k),
 
             ! dft G to G_r_tau
-            call dft(G, G_r_tau, nb, 1, 0)
-            call dft(conjgG, conjgG_r_tau, nb, 1, 0)
+            call dft(G, G_r_tau, nb, nomegaf, dft_grid, 1, 0)
+            call dft(conjgG, conjgG_r_tau, nb, nomegaf, dft_grid, 1, 0)
 
             ! chi_0, 看起来需要并行
-            ! 卷积形式, 改成减法  on tau
+            ! 卷积形式, 改成减法 on tau
             chi_0_r_tau=0
             do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
                 chi_0_r_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
@@ -210,7 +211,7 @@ program flex_m2d
             enddo; enddo; enddo; enddo
 
             ! idft chi_0_r_tau to chi_0
-            call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
+            call dft(chi_0_r_tau, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
             chi_0 = T_ev/nk*chi_0
             ! call cleanError(chi_0, nb**4*nk*totalnomega)
 
@@ -248,7 +249,7 @@ program flex_m2d
             ! write(stdout, *) 'calculating sigma...'
 
             ! dft V to V_r_tau
-            call dft(V, V_r_tau, nb*nb, 1, 0)
+            call dft(V, V_r_tau, nb*nb, nomegab, dft_grid, 1, 0)
 
             ! sigma_r_tau, 并行
             sigma_r_tau = complex_0
@@ -258,7 +259,7 @@ program flex_m2d
             enddo; enddo; enddo; enddo
 
             ! idft sigma_r_tau to sigma
-            call dft(sigma_r_tau, sigma, nb, -1, 1)
+            call dft(sigma_r_tau, sigma, nb, dft_grid, nomegaf, -1, 1)
 
             !call testConvolution3sigma()
 
@@ -273,8 +274,8 @@ program flex_m2d
                 sigma_minus = sigma0 - sigma
                 !sigma_minus = G1-G
 
-                norm_sigma_minus = dznrm2(nb*nb*nkx*nky*totalnomega, sigma_minus, 1)
-                norm_sigma = dznrm2(nb*nb*nkx*nky*totalnomega, sigma, 1)
+                norm_sigma_minus = dznrm2(nb*nb*nkx*nky*nomegaf, sigma_minus, 1)
+                norm_sigma = dznrm2(nb*nb*nkx*nky*nomegaf, sigma, 1)
                 cur_sigma_tol = norm_sigma_minus / norm_sigma
                 write(stdout,*) 'sigma tolerance is ', cur_sigma_tol , '/', sigma_iter
 
@@ -290,10 +291,9 @@ program flex_m2d
                     sigma_conv = .true.
                 endif
 #ifdef _DEBUG
-                !norm_sigma0 = dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
+                !norm_sigma0 = dznrm2(nb*nb*nkx*nky*nomegaf, sigma0, 1)
                 !write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma
                 !write(stdout,*) '0-1:',norm_sigma_minus
-                !write(stdout,*) dznrm2(nb*nb*nkx*nky*totalnomega, G, 1), dznrm2(nb*nb*nkx*nky*totalnomega, G0, 1)
 #endif
             endif
             sigma0 = sigma

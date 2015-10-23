@@ -15,8 +15,8 @@ MODULE constants
     ! 计算范围较大值以避开周期
     ! 费米和玻色频率的循环中, 直接计算频率的值, 2*n-1和2*n
     integer, parameter :: nomega=4
-    integer, parameter :: totalnomega=4*nomega  ! 这里实际上是fft的网格数
-    integer, parameter :: minomegaf=-(nomega-1), maxomegaf=n
+    integer, parameter :: dft_grid=4*nomega  ! 这里实际上是fft的网格数
+    integer, parameter :: minomegaf=-(nomega-1), maxomegaf=nomega
     integer, parameter :: minomegab=-2*(nomega-1), maxomegab=2*(nomega-1)
     integer, parameter :: nomegaf = 2*nomega, nomegab = 4*nomega-2
 

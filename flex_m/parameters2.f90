@@ -8,11 +8,11 @@ module parameters2
     ! 格林函数, 反常格林函数
     ! 自能函数, 反常自能函数
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: G, F, sigma, delta, G0, sigma0, G1, delta0, sigma_minus, conjgG, GGdelta
-    complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1) :: G_r_tau, sigma_r_tau, delta_r_tau, conjgG_r_tau, GGdelta_r_tau
+    complex(8), dimension (nb, nb, nkx, nky, 0:dft_grid-1) :: G_r_tau, sigma_r_tau, delta_r_tau, conjgG_r_tau, GGdelta_r_tau
 
     ! 极化率, susceptibilities, effective interactions
     complex(8), dimension (nb*nb, nb*nb, nkx, nky, minomegab:maxomegab) :: chi_0, chi_s, chi_c, V, V_s
-    complex(8), dimension (nb*nb, nb*nb, nkx, nky, 0:totalnomega-1) :: chi_0_r_tau, V_r_tau, V_s_r_tau
+    complex(8), dimension (nb*nb, nb*nb, nkx, nky, 0:dft_grid-1) :: chi_0_r_tau, V_r_tau, V_s_r_tau
 
     ! 交换能, 单位矩阵
     complex(8), dimension (nb*nb, nb*nb) :: U_s, U_c, U_ud, U_uu, I_chi
@@ -44,8 +44,8 @@ module parameters2
     !complex, dimension (-nomega:nomega, -ntau:ntau) :: dft_f, dft_b
     !complex, dimension (-ntau:ntau, -nomega:nomega) :: idft_f, idft_b
 
-    complex(8), dimension (nkx, nky, 0:totalnomega-1) :: dft_in
-    complex(8), dimension (nkx, nky, 0:totalnomega-1) :: dft_out
+    complex(8), dimension (nkx, nky, dft_grid) :: dft_in
+    complex(8), dimension (nkx, nky, dft_grid) :: dft_out
 
     ! Pulay mixer 相关
     integer, parameter :: mix_num  = 100

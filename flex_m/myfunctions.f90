@@ -2,7 +2,7 @@ module myfunctions
 #ifdef USE_MPI
     include 'mpif.h'
 #endif
-    include 'fftw3.f03'
+
 contains
     ! mpi函数系列
     integer function mpi_rank()
@@ -175,7 +175,7 @@ contains
         if (freq>=0) then
             transfer_freq=freq
         else
-            transfer_freq=totalnomega+freq
+            transfer_freq=dft_grid+freq
         endif
     end function transfer_freq
 
@@ -227,17 +227,18 @@ contains
     ! (2) V*G的卷积, 输入是玻色频率和费米频率, 输出是费米频率.
     !     这时前者只需补一个0, 后者同(1)补2*nomega的0. 反傅里叶变换的结果从2*nomega开始.
     ! 变换的网格和傅里叶变换的输出都是4*nomega, 反傅里叶变换的输出长度随模式而定.
+    ! outmodel: 0 - 从0开始输出, 大部分情况; 其他 - 从n*nomega输出, 仅适合自能.
     subroutine dft(input, output, N, length_in, length_out, direction, outmodel)
         use constants
         use parameters2
         use, intrinsic :: iso_c_binding
         implicit none
-        type(C_PTR) :: plan
-        integer N, fb, l, m, i, length_in, length_out, direction, outmodel
-        integer(C_INT) direction, direction2
+            include 'fftw3.f03'
         complex(8), dimension(N,N,nkx,nky,length_in) :: input
-        complex(8), dimension(N,N,nkx,nky,length_out) :: input
-
+        complex(8), dimension(N,N,nkx,nky,length_out) :: output
+        integer N, length_in, length_out, direction, outmodel
+        integer(C_INT) direction2, l, m, begin_index
+        type(C_PTR) :: plan
 
         if (direction >= 0) then
             direction2 = FFTW_FORWARD
@@ -245,15 +246,28 @@ contains
             direction2 = FFTW_BACKWARD
         endif
 
+        ! 输出的起始下标
+        begin_index=0
+        if (outmodel/=0) then
+            begin_index=2*nomega
+        endif
+
         do l=1,N; do m=1,N
-            ! 前处理
-            dft_in = input(l,m,:,:,:)
-            plan=fftw_plan_dft_3d(totalnomega, nkx, nky, dft_in, dft_out, direction2, FFTW_ESTIMATE)
+            ! 前处理, 补0
+            dft_in(:,:,1:length_in) = input(l,m,:,:,1:length_in)
+            dft_in(:,:,length_in+1:dft_grid)=complex_0
+
+            plan=fftw_plan_dft_3d(dft_grid, nkx, nky, dft_in, dft_out, direction2, FFTW_ESTIMATE)
             call fftw_execute_dft(plan, dft_in, dft_out)
             call fftw_destroy_plan(plan)
-            output(l,m,:,:,:) = dft_out
-        enddo; enddo
 
+            ! 后处理
+            output(l,m,:,:,1:length_out) = dft_out(:,:,begin_index:length_out-begin_index+1)
+        enddo; enddo
+        ! 所有情况都在反傅里叶变换时归一化
+        if (direction2==FFTW_BACKWARD) then
+            output = output/nk/dft_grid
+        endif
 
         return
 
@@ -307,16 +321,16 @@ contains
         use constants
         implicit none
         complex(8) mixerErrorProduct
-        complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1) :: a, b
+        complex(8), dimension (nb, nb, nkx, nky, 0:dft_grid-1) :: a, b
         integer ib1,ib2,ikx,iky,iomegak
 
         mixerErrorProduct=0
         do ib1=1,nb;do ib2=1,nb
             do ikx=1,nkx;do iky=1,nky
-                do iomegak=-maxomegaf,maxomegaf,2
+                do iomegak=minomegaf,maxomegaf
                     mixerErrorProduct=mixerErrorProduct &
-                        + conjg(a(ib1,ib2,ikx,ikx,transfer_freq(iomegak))) &
-                        * b(ib1,ib2,ikx,ikx,transfer_freq(iomegak))
+                        + conjg(a(ib1,ib2,ikx,ikx,iomegak)) &
+                        * b(ib1,ib2,ikx,ikx,iomegak)
                 enddo
             enddo;enddo
         enddo;enddo
@@ -352,7 +366,7 @@ contains
         integer ipiv(mix_num+1)
         complex(8) zdotc
         external zdotc
-        complex(8), dimension (nb, nb, nkx, nky, 0:totalnomega-1):: b1,b2
+        complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf):: b1,b2
         complex(8), dimension (mix_num*2) :: lwork
         complex(8) e
 

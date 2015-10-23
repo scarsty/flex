@@ -373,8 +373,8 @@ subroutine testConvolution3G()
     external regionParameter
 
     ! dft G to G_r_tau
-    call dft(G, G_r_tau, nb, 1, 0)
-    call dft(conjgG, conjgG_r_tau, nb, 1, 0)
+    call dft(G, G_r_tau, nb, nomegaf, dft_grid, 1, 0)
+    call dft(conjgG, conjgG_r_tau, nb, nomegaf, dft_grid, 1, 0)
     ! 卷积形式, 改成减法
     chi_0_r_tau=0
     do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
@@ -383,7 +383,7 @@ subroutine testConvolution3G()
     enddo; enddo; enddo; enddo
 
     ! idft chi_0_r_tau to chi_0
-    call dft(chi_0_r_tau, chi_0, nb*nb, -1, 2)
+    call dft(chi_0_r_tau, chi_0, nb*nb, dft_grid, nomegab, -1, 2)
     !write(stderr, *) G
     !write(stderr, *) conjgG
     !write(stderr, *)
@@ -393,11 +393,11 @@ subroutine testConvolution3G()
     chi_c = chi_0
     chi_0=complex_0
     do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-        do ikx1=1,nkx;do iky1=1,nky;do iomega1=0,totalnomega-1,1
-            do ikx2=1,nkx;do iky2=1,nky;do iomega2=0,totalnomega-1,1
+        do ikx1=1,nkx;do iky1=1,nky;do iomega1=0,dft_grid-1,1
+            do ikx2=1,nkx;do iky2=1,nky;do iomega2=0,dft_grid-1,1
                 kxplus=regionParameter(ikx1+ikx2-1,1,nkx)
                 kyplus=regionParameter(iky1+iky2-1,1,nky)
-                omegaplus=regionParameter(iomega1+iomega2,0,totalnomega-1)
+                omegaplus=regionParameter(iomega1+iomega2,0,dft_grid-1)
                 !if (abs(omegaplus)<=maxomegab) then
                 chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, (iomega2)) &
                     = chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, (iomega2)) &
@@ -409,8 +409,8 @@ subroutine testConvolution3G()
     write(stderr, *) chi_0(:,:,:,:,0)
 
     chi_c = chi_0-chi_c
-    write(stderr, *) dznrm2(nb*nb*nb*nb*nkx*nky*totalnomega, chi_c, 1) &
-        / dznrm2(nb*nb*nb*nb*nkx*nky*totalnomega, chi_0, 1)
+    write(stderr, *) dznrm2(nb*nb*nb*nb*nkx*nky*dft_grid, chi_c, 1) &
+        / dznrm2(nb*nb*nb*nb*nkx*nky*dft_grid, chi_0, 1)
     !stop
     !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
 
@@ -450,9 +450,9 @@ subroutine testConvolution3sigma()
         enddo;enddo;enddo
     enddo;enddo;enddo;enddo
 
-    write(stderr, *) dznrm2(nb*nb*nkx*nky*totalnomega, sigma, 1) &
-        / dznrm2(nb*nb*nkx*nky*totalnomega, sigma0, 1)
-    write(stderr, *) dznrm2(nb*nb*nkx*nky*totalnomega, sigma-sigma0, 1)
+    write(stderr, *) dznrm2(nb*nb*nkx*nky*dft_grid, sigma, 1) &
+        / dznrm2(nb*nb*nkx*nky*dft_grid, sigma0, 1)
+    write(stderr, *) dznrm2(nb*nb*nkx*nky*dft_grid, sigma-sigma0, 1)
     stop
     !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
 

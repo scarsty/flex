@@ -46,7 +46,7 @@ subroutine eliashberg()
     ! enddo; enddo
 
     ! dft V_s to V_s_r_tau
-    call dft(V_s, V_s_r_tau, nb*nb, 1,0)
+    call dft(V_s, V_s_r_tau, nb*nb, nomegab, dft_grid, 1, 0)
 
     ! 规格化幂法求解LEV
     ! u=v
@@ -59,7 +59,7 @@ subroutine eliashberg()
 
     ! 初始值
 
-    delta0 = complex_1 / (nb*nb*nk*totalnomega)
+    delta0 = complex_1 / (nb*nb*nk*nomegaf)
     lambda0=1d0
     elia_conv = .false.
 
@@ -83,7 +83,7 @@ subroutine eliashberg()
         enddo; enddo
 
         ! 变换至时域上G*G*delta
-        call dft(GGdelta, GGdelta_r_tau, nb, 1, 0)
+        call dft(GGdelta, GGdelta_r_tau, nb, nomegaf, dft_grid, 1, 0)
         !GGdelta_r_tau = GGdelta_r_tau
 
         ! 原方程包含负号, 使用减法
@@ -97,7 +97,7 @@ subroutine eliashberg()
         enddo; enddo
 
         ! 变换回频域
-        call dft(delta_r_tau, delta, nb, -1, 1)
+        call dft(delta_r_tau, delta, nb, dft_grid, nomegaf, -1, 1)
         delta=T_eV/nk*delta
         ! 规格化
         lambda = 0
