@@ -57,7 +57,9 @@ module parameters2
     complex(8), dimension(0:mix_num) :: mixer_x, mixer_b
 
     ! 占据数相关
-    real(8), dimension(2) :: density_old, mu_old
+    integer, parameter :: density_num  = 100
+    integer density_pointer
+    real(8), dimension (density_num) :: density_old, mu_old
     logical replaced
     real(8) max_diff
     integer max_diff_loc

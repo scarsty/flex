@@ -28,9 +28,6 @@ program flex_m2d
     logical sigma_conv, density_conv
     real(8), dimension(2,2):: a, b
 
-    integer  omega_f, omega_b
-    real(8) tau
-
     ! 变量段结束-------------------------------------------------------------------------------
 
     call readin()
