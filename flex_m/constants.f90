@@ -33,6 +33,9 @@ MODULE constants
     ! 归一化常数
     integer, parameter :: NN = nk
 
+    ! 总点数
+    integer, parameter :: total_grid = nb**2*nk*nomegaf
+
     ! r点, 表示r坐标 -r to r
     integer, parameter :: rx = 2
     integer, parameter :: ry = 2

@@ -134,6 +134,7 @@ subroutine eliashberg()
 
     write(stdout,*)
     write(stdout,*) 'The maximum eigenvalue is ', lambda
+    write(stdout,*) 'The temperature in K is ', T
     write(stdout,*)
 
 end subroutine eliashberg

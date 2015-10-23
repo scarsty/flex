@@ -72,6 +72,7 @@
 		<Unit filename="input_file">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
+		<Unit filename="input_file.module" />
 		<Unit filename="main.f90">
 			<Option weight="3" />
 		</Unit>
