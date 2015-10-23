@@ -372,7 +372,24 @@ subroutine testConvolution3G()
     integer regionParameter
     external regionParameter
 
+    complex(8) a(1,1,1,1,8),b(1,1,1,1,8)
+
+    a=0
+    a(1,1,1,1,1)=1
+    a(1,1,1,1,2)=2
+    a(1,1,1,1,3)=3
+    a(1,1,1,1,4)=4
+
+    call dft(a,b,1,4,8,1,0)
+    !write(stderr,*) b
+    b=b*b
+    call dft(b,a,1,8,7,-1,0)
+    !write(stderr,*) a
+
+    !stop
+
     ! dft G to G_r_tau
+    write(stderr,*)nomegaf,nomegab
     call dft(G, G_r_tau, nb, nomegaf, dft_grid, 1, 0)
     call dft(conjgG, conjgG_r_tau, nb, nomegaf, dft_grid, 1, 0)
     ! 卷积形式, 改成减法
@@ -383,35 +400,31 @@ subroutine testConvolution3G()
     enddo; enddo; enddo; enddo
 
     ! idft chi_0_r_tau to chi_0
-    call dft(chi_0_r_tau, chi_0, nb*nb, dft_grid, nomegab, -1, 2)
-    !write(stderr, *) G
-    !write(stderr, *) conjgG
-    !write(stderr, *)
-    write(stderr, *) chi_0(:,:,:,:,0)
-    !write(stderr, *)
+    call dft(chi_0_r_tau, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
+    write(stderr, *) chi_0(:,:,:,:,:)
 
     chi_c = chi_0
     chi_0=complex_0
     do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-        do ikx1=1,nkx;do iky1=1,nky;do iomega1=0,dft_grid-1,1
-            do ikx2=1,nkx;do iky2=1,nky;do iomega2=0,dft_grid-1,1
+        do ikx1=1,nkx;do iky1=1,nky;do iomega1=minomegaf,maxomegaf
+            do ikx2=1,nkx;do iky2=1,nky;do iomega2=minomegab,maxomegab
                 kxplus=regionParameter(ikx1+ikx2-1,1,nkx)
                 kyplus=regionParameter(iky1+iky2-1,1,nky)
-                omegaplus=regionParameter(iomega1+iomega2,0,dft_grid-1)
-                !if (abs(omegaplus)<=maxomegab) then
-                chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, (iomega2)) &
-                    = chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, (iomega2)) &
-                    - G(l1, m1, kxplus, kyplus, (omegaplus))*G(m2, l2, ikx1, iky1, (iomega1))
-                !endif
+                omegaplus=((2*iomega1-1+2*iomega2)+1)/2
+                if (omegaplus>=minomegaf .and. omegaplus<=maxomegaf) then
+                chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, iomega2) &
+                    = chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, iomega2) &
+                    - G(l1, m1, kxplus, kyplus, omegaplus)*G(m2, l2, ikx1, iky1, iomega1)
+                endif
             enddo;enddo;enddo
         enddo;enddo;enddo
     enddo;enddo;enddo;enddo
-    write(stderr, *) chi_0(:,:,:,:,0)
+    write(stderr, *) chi_0(:,:,:,:,:)
 
     chi_c = chi_0-chi_c
-    write(stderr, *) dznrm2(nb*nb*nb*nb*nkx*nky*dft_grid, chi_c, 1) &
-        / dznrm2(nb*nb*nb*nb*nkx*nky*dft_grid, chi_0, 1)
-    !stop
+    write(stderr, *) dznrm2(nb**4*nk*nomegab, chi_c, 1) &
+        / dznrm2(nb**4*nk*nomegab, chi_0, 1)
+    stop
     !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
 
 end subroutine testConvolution3G
@@ -433,26 +446,27 @@ subroutine testConvolution3sigma()
     external regionParameter
 
     sigma0=sigma
-
+    sigma=0
     do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-        do ikx1=1,nkx;do iky1=1,nky;do iomega1=-maxomegaf,maxomegaf,2
-            do ikx2=1,nkx;do iky2=1,nky;do iomega2=-maxomegab,maxomegab,2
+        do ikx1=1,nkx;do iky1=1,nky;do iomega1=minomegaf,maxomegaf
+            do ikx2=1,nkx;do iky2=1,nky;do iomega2=minomegab,maxomegab
                 kxplus=regionParameter(ikx1-ikx2-1,1,nkx)
                 kyplus=regionParameter(iky1-iky2-1,1,nky)
-                omegaplus=iomega1-iomega2
-                if (abs(omegaplus)<=maxomegaf) then
-                sigma(l1,m1, ikx1, iky1, transfer_freq(iomega1)) &
-                    = sigma(l1,m1, ikx1, iky1, transfer_freq(iomega1)) &
-                    + V(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2,transfer_freq(iomega2)) &
-                    * G(l2, m2, kxplus, kyplus, transfer_freq(omegaplus))
+                omegaplus=((2*iomega1-1-2*iomega2)+1)/2
+                if (omegaplus>=minomegaf .and. omegaplus<=maxomegaf) then
+                sigma(l1,m1, ikx1, iky1, iomega1) &
+                    = sigma(l1,m1, ikx1, iky1, (iomega1)) &
+                    + V(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2,iomega2) &
+                    * G(l2, m2, kxplus, kyplus, omegaplus)
                 endif
             enddo;enddo;enddo
         enddo;enddo;enddo
     enddo;enddo;enddo;enddo
 
-    write(stderr, *) dznrm2(nb*nb*nkx*nky*dft_grid, sigma, 1) &
-        / dznrm2(nb*nb*nkx*nky*dft_grid, sigma0, 1)
-    write(stderr, *) dznrm2(nb*nb*nkx*nky*dft_grid, sigma-sigma0, 1)
+
+    write(stderr, *) sigma0
+    write(stderr, *) sigma
+    write(stderr, *) dznrm2(nb**2*nk*nomegaf, sigma-sigma0, 1)
     stop
     !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
 

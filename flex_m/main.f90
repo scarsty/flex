@@ -274,8 +274,8 @@ program flex_m2d
                 sigma_minus = sigma0 - sigma
                 !sigma_minus = G1-G
 
-                norm_sigma_minus = dznrm2(nb*nb*nkx*nky*nomegaf, sigma_minus, 1)
-                norm_sigma = dznrm2(nb*nb*nkx*nky*nomegaf, sigma, 1)
+                norm_sigma_minus = dznrm2(nb**2*nk*nomegaf, sigma_minus, 1)
+                norm_sigma = dznrm2(nb**2*nk*nomegaf, sigma, 1)
                 cur_sigma_tol = norm_sigma_minus / norm_sigma
                 write(stdout,*) 'sigma tolerance is ', cur_sigma_tol , '/', sigma_iter
 

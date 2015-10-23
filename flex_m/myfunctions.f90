@@ -233,7 +233,7 @@ contains
         use parameters2
         use, intrinsic :: iso_c_binding
         implicit none
-            include 'fftw3.f03'
+        include 'fftw3.f03'
         complex(8), dimension(N,N,nkx,nky,length_in) :: input
         complex(8), dimension(N,N,nkx,nky,length_out) :: output
         integer N, length_in, length_out, direction, outmodel
@@ -247,7 +247,7 @@ contains
         endif
 
         ! 输出的起始下标
-        begin_index=0
+        begin_index=1
         if (outmodel/=0) then
             begin_index=2*nomega
         endif
@@ -257,7 +257,7 @@ contains
             dft_in(:,:,1:length_in) = input(l,m,:,:,1:length_in)
             dft_in(:,:,length_in+1:dft_grid)=complex_0
 
-            plan=fftw_plan_dft_3d(dft_grid, nkx, nky, dft_in, dft_out, direction2, FFTW_ESTIMATE)
+            plan=fftw_plan_dft_3d(dft_grid, nky, nkx, dft_in, dft_out, direction2, FFTW_ESTIMATE)
             call fftw_execute_dft(plan, dft_in, dft_out)
             call fftw_destroy_plan(plan)
 
@@ -321,7 +321,7 @@ contains
         use constants
         implicit none
         complex(8) mixerErrorProduct
-        complex(8), dimension (nb, nb, nkx, nky, 0:dft_grid-1) :: a, b
+        complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: a, b
         integer ib1,ib2,ikx,iky,iomegak
 
         mixerErrorProduct=0
@@ -329,8 +329,8 @@ contains
             do ikx=1,nkx;do iky=1,nky
                 do iomegak=minomegaf,maxomegaf
                     mixerErrorProduct=mixerErrorProduct &
-                        + conjg(a(ib1,ib2,ikx,ikx,iomegak)) &
-                        * b(ib1,ib2,ikx,ikx,iomegak)
+                        + conjg(a(ib1,ib2,ikx,iky,iomegak)) &
+                        * b(ib1,ib2,ikx,iky,iomegak)
                 enddo
             enddo;enddo
         enddo;enddo

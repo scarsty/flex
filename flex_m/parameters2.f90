@@ -8,11 +8,11 @@ module parameters2
     ! 格林函数, 反常格林函数
     ! 自能函数, 反常自能函数
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: G, F, sigma, delta, G0, sigma0, G1, delta0, sigma_minus, conjgG, GGdelta
-    complex(8), dimension (nb, nb, nkx, nky, 0:dft_grid-1) :: G_r_tau, sigma_r_tau, delta_r_tau, conjgG_r_tau, GGdelta_r_tau
+    complex(8), dimension (nb, nb, nkx, nky, dft_grid) :: G_r_tau, sigma_r_tau, delta_r_tau, conjgG_r_tau, GGdelta_r_tau
 
     ! 极化率, susceptibilities, effective interactions
     complex(8), dimension (nb*nb, nb*nb, nkx, nky, minomegab:maxomegab) :: chi_0, chi_s, chi_c, V, V_s
-    complex(8), dimension (nb*nb, nb*nb, nkx, nky, 0:dft_grid-1) :: chi_0_r_tau, V_r_tau, V_s_r_tau
+    complex(8), dimension (nb*nb, nb*nb, nkx, nky, dft_grid) :: chi_0_r_tau, V_r_tau, V_s_r_tau
 
     ! 交换能, 单位矩阵
     complex(8), dimension (nb*nb, nb*nb) :: U_s, U_c, U_ud, U_uu, I_chi

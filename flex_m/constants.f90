@@ -11,14 +11,15 @@ MODULE constants
     ! 松原频率
     ! 这里的数据结构比较特殊, 对于格林函数和自能, 玻色频率上都是0, 对于极化率, 费米频率上都是0
     ! nomega 为正的费米频率个数
-    ! 总费米频率个数 2*nomega, 总玻色频率个数4*nomega-2
+    ! 总费米频率个数 2*nomega, 总玻色频率个数4*nomega-1
     ! 计算范围较大值以避开周期
     ! 费米和玻色频率的循环中, 直接计算频率的值, 2*n-1和2*n
     integer, parameter :: nomega=4
-    integer, parameter :: dft_grid=4*nomega  ! 这里实际上是fft的网格数
     integer, parameter :: minomegaf=-(nomega-1), maxomegaf=nomega
-    integer, parameter :: minomegab=-2*(nomega-1), maxomegab=2*(nomega-1)
-    integer, parameter :: nomegaf = 2*nomega, nomegab = 4*nomega-2
+    integer, parameter :: minomegab=-(2*nomega-1), maxomegab=2*nomega-1
+    integer, parameter :: nomegaf = 2*nomega, nomegab = 4*nomega-1
+    integer, parameter :: dft_grid=4*nomega  ! dft的网格数
+
 
     ! 虚时间离散的点数
     ! integer, parameter :: ntau=256
