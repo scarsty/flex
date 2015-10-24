@@ -57,11 +57,12 @@ module parameters2
     complex(8), dimension(0:mix_num) :: mixer_x, mixer_b
 
     ! 占据数相关
-    integer, parameter :: density_num  = 100
-    integer density_pointer
-    real(8), dimension (density_num) :: density_old, mu_old
-    logical replaced
-    real(8) max_diff
-    integer max_diff_loc
+    real(8) mu_less(3), mu_more(3), density_less(3), density_more(3)
+    integer mu_less_count, mu_more_count
+
+    ! 迭代sigma次数, density次数
+    integer sigma_iter, density_iter, total_iter
+    real(8) cur_density, density_base
+    logical sigma_conv, density_conv
 
 end module parameters2

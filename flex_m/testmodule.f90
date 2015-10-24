@@ -491,3 +491,199 @@ subroutine build_h0_k()
 
 end subroutine build_h0_k
 
+    !subroutine outputSomething()
+    !    implicit none
+    !    输出部分结果检查
+    !    write(stdout,*) dot_product(u_tilde_k_(1,:),u_tilde_k_(5,:))
+    !
+    !    ikx=2;iky=4
+    !    write(stdout,*) 'h:'
+    !    call writematrix(h0_k(:,:,ikx,iky),nb)
+    !    write(stdout,*) 'unitary matrix:'
+    !    call writematrix(u_h0_k(:,:,ikx,iky),nb)
+    !
+    !    write(stdout,*) 'eigenvalue:'
+    !    write(stdout,*) ev_h0_k(:,ikx,iky)
+    !
+    !    write(stdout,*) 'u back to h'
+    !    diag_h0_G0_=0d0
+    !    do ix=1,nb
+    !        !diag_h0_G0_(ix,ix)=complex_1
+    !        diag_h0_G0_(ix,ix)=ev_h0_k(ix,ikx,iky)
+    !        !diag_h0_G0_(ix,ix)=1-complex_i*ix
+    !    enddo
+    !    !write(stdout, '(5F8.3)') diag_test
+    !    u_h0_k_=u_h0_k(:,:,ikx,iky)
+    !
+    !    !u_h0_k_=u_h0_k(:,:,ikx,iky)
+    !    !call writematrix(matmul(u_h0_k_,u_h0_k(:,:,ikx,iky)),nb)
+    !
+    !    call writematrix(ABAH(u_h0_k_,diag_h0_G0_,nb),nb)
+    !
+    !
+    !    write(stdout, *)'next'
+    !
+    !    h0_k_=h0_k(:,:,ikx,iky)
+    !    h0_tilde_k_=real(AHBA(i_plus,h0_k_,nb))
+    !    write(stdout, *)'h~'
+    !    call writematrix(AHBA(i_plus,h0_k_,nb),nb)
+    !    u_tilde_k_=h0_tilde_k_
+    !    call dsyev('V','U',nb,u_tilde_k_,nb,ev_h0_k_,diag_h0_tilde_k_lwork,nb*nb,info)
+    !    write(stdout,*) 'eigenvalue:'
+    !    write(stdout,*) ev_h0_k_
+    !    u_h0_k_=u_tilde_k_
+    !
+    !    u_h0_k_=AB(i_plus,u_h0_k_,nb)
+    !    write(stdout,*) 'unitary matrix:'
+    !    call writematrix(u_h0_k_,nb)
+    !    write(stdout,*) 'u~ back to h~'
+    !    call writematrix(ABAH(u_h0_k_,diag_h0_G0_,nb),nb)
+    ! end subroutine
+
+    ! 部分废弃代码
+    !subroutine buildkminus()
+    !    use constants
+    !    use parameters2
+    !    implicit none
+    ! k减法矩阵
+    ! seems of no use
+    !        k_minus=0
+    !        do i1=1,nk
+    !            do i2=1,nk
+    !                temp = k(i1,:) - k(i2,:)
+    !                !write(stdout, *) temp
+    !                do while (abs(temp(1)+real_error)>0.5)
+    !                    temp(1) = temp(1) -sign(1., temp(1))
+    !                enddo
+    !                do while (abs(temp(2)+real_error)>0.5)
+    !                    temp(2) = temp(2) -sign(1., temp(2))
+    !                enddo
+    !                !write(stdout, *) temp
+    !                do i = 1,nk
+    !                    dis = norm2(temp-k(i,:))
+    !                    if (dis<real_error) then
+    !                        k_minus(i1, i2) = i
+    !                        exit
+    !                    endif
+    !                enddo
+    !                if (k_minus(i1, i2)<=0 .or. k_minus(i1, i2)>nk) then
+    !                    write(stdout, *) 'Wrong k_minus at', i1, i2
+    !                endif
+    !            enddo
+    !        enddo
+    !
+    !        ! k加法矩阵, k_minus(k1, k_minus(zero_k, k2))
+    !        do i1=1,nk
+    !            do i2=1,nk
+    !                k_plus(i1, i2) = k_minus(i1, k_minus(zero_k, i2))
+    !                if (k_plus(i1, i2)==0 .or. k_plus(i1, i2)>nk) then
+    !                    write(stdout, *) 'Wrong k_plus at', i1, i2
+    !                endif
+    !            enddo
+    !        enddo
+    !end subroutine buildkminus
+
+
+    !        h0_k_=h0_k(:,:,ikx,iky)
+    !        if (k(ikx,iky,1)>=k(ikx,iky,2)) then
+    !            h0_tilde_k(:,:,ikx,iky)=real(AHBA(i_plus,h0_k_,nb))
+    !        else
+    !            h0_tilde_k(:,:,ikx,iky)=real(AHBA(i_minus,h0_k_,nb))
+    !        endif
+    !        h0_tilde_k_=h0_tilde_k(:,:,ikx,iky)
+    !        u_tilde_k_=h0_tilde_k_
+    !        ! 这里h0_tilde变成一个实对称矩阵, 特征值全为实数, u为对应的正交变换阵
+    !        call dsyev('V','U',nb,u_tilde_k_,nb,diag_h0_tilde_k_,diag_h0_tilde_k_lwork,nb*nb,info)
+    !        u_tilde_k(:,:,ikx,iky)=u_tilde_k_
+    !        diag_h0_tilde_k(:,ikx,iky)=diag_h0_tilde_k_
+    !
+    !    write(stdout,*) 'unitary matrix:'
+    !    write(stdout,'(5F8.3)') u_tilde_k(:,:,ikx,iky)
+    !    write(stdout,'(5F8.3)') u_tilde_k(:,:,ikx,iky)
+    !    write(stdout,*) 'eigenvalue:'
+    !    write(stdout,'(5F8.3)') diag_h0_tilde_k(:,ikx,iky)
+    !    write(stdout,*) 'h:'
+    !    call writematrix(h0_k(:,:,ikx,iky),nb)
+    !
+    !    write(stdout,*) 'h~:'
+    !    write(stdout, '(5F8.3)') h0_tilde_k(:,:,ikx,iky)
+    !
+    !    write(stdout,*) 'u~ back to h~'
+    !    diag_test=0d0
+    !    do ix=1,nb
+    !        diag_test(ix,ix)=diag_h0_tilde_k(ix,ikx,iky)
+    !    enddo
+    !    !write(stdout, '(5F8.3)') diag_test
+    !    do ix=1,nb
+    !        do iy=1,nb
+    !            u_tilde_k_(ix,iy)=u_tilde_k(iy,ix,ikx,iky)
+    !        enddo!        if (abs(cur_density-target_density)<density_tol) then
+    !            density_conv=.true.
+    !            !计算结束
+    !        else
+    !            ! 根据占据数调整化学势
+    !            ! 第一步仅记录和猜测方向
+    !            ! 第三步开始逐步抛弃较远的点, 依照线性趋势逼近
+    !            ! 通常来说应保存一大一小
+    !            ! 靠不太容易设计
+    !            if (density_iter>=2) then
+    !                if (density_iter>2) then
+    !                    replaced=.false.
+    !                    do i=1,2
+    !                        if (abs(cur_density-target_density)<abs(density_old(i)-target_density)) then
+    !                            mu_old(i)=mu
+    !                            density_old(i)=cur_density
+    !                            replaced=.true.
+    !                            exit
+    !                        endif
+    !                    enddo
+    !                    if (.not.replaced) then
+    !                        max_diff_loc=1
+    !                        if (abs(density_old(1)-target_density)<abs(density_old(2)-target_density)) then
+    !                            max_diff_loc=2
+    !                        endif
+    !                        mu_old(max_diff_loc)=mu
+    !                        density_old(max_diff_loc)=cur_density
+    !                    endif
+    !                else
+    !                    mu_old(2)=mu
+    !                    density_old(2)=cur_density
+    !                endif
+    !                mu=(mu_old(1)-mu_old(2))/(density_old(1)-density_old(2))*(target_density-density_old(2))+mu_old(2)
+    !            elseif (density_iter==1) then
+    !                mu_old(1)=mu
+    !                density_old(1)=cur_density
+    !                !deltamu_per_density = (mu-mu0)/(cur_density-density0)
+    !                mu = mu - 1.0d-1*sign(1.0d0, (cur_density-target_density)*deltamu_per_density)
+    !            endif
+    !            write(stdout,*) 'modified new mu = ', mu
+    !        endif
+    !    enddo
+    !    !write(stdout, '(5F8.3)') u_tilde_k_
+    !    write(stdout, '(5F8.3)') matmul(matmul(u_tilde_k_,diag_test), u_tilde_k(:,:,ikx,iky))
+
+    ! 辅助变换
+!    i_minus = complex_0
+!    i_plus = complex_0
+!    do ix=1,nb
+!        i_plus(ix,ix)=complex_1
+!        i_minus(ix,ix)=complex_1
+!        if (ix==2 .or. ix==3) then
+!            i_plus(ix,ix)=complex_i
+!            i_minus(ix,ix)=-complex_i
+!        endif
+!    enddo
+
+    ! sometimes the linker cannot find this blas function
+    !    real function scnrm2(N, A, incx)
+    !        implicit none
+    !        integer N, incx, i
+    !        complex, dimension(N):: A
+    !        scnrm2=0d0
+    !        i=1
+    !        do while (i<=N)
+    !            scnrm2=scnrm2+abs(A(i))
+    !        enddo
+    !    end function scnrm2
+
+

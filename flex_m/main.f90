@@ -18,15 +18,9 @@ program flex_m2d
     integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq, k_kminusq, omega_kminusq, itau, k_0minusq, k_qminusk
     integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk
     integer l1,m1,l2,m2,l3,m3,n1,l,m
-    integer elia1, elia2, info, lda, ldb, ipiv
-    real(8) rdotk, temp(2), dis, mu0, deltamu_per_density, density0
-    complex(8) temp_complex, fac
-
-    ! 迭代sigma次数, density次数
-    integer sigma_iter, density_iter, total_iter
-    real(8) cur_density, density_base
-    logical sigma_conv, density_conv
-    real(8), dimension(2,2):: a, b
+    !integer elia1, elia2, info, lda, ldb, ipiv
+    !real(8) rdotk, temp(2), dis, mu0, deltamu_per_density, density0
+    complex(8) temp_complex
 
     ! 变量段结束-------------------------------------------------------------------------------
 
@@ -36,93 +30,16 @@ program flex_m2d
         call testband()
     endif
 
-    T_beta = 1d0/kB/T
-    T_eV = kB*T
+    call init()
 
-    sigma_state = 0
+    call init_Kpoints()
 
-    ! 计算k点的坐标
-    write(stdout, *) "Building k-points grid..."
-    zero_k = 1    ! k原点
-    do ikx = 1, nkx
-        do iky = 1, nky
-            k(ikx, iky, 1)=1d0/nkx*(ikx-1)
-            k(ikx, iky, 2)=1d0/nky*(iky-1)
-            if (k(ikx, iky, 1)>0.5) k(ikx, iky, 1)=k(ikx, iky, 1)-1
-            if (k(ikx, iky, 2)>0.5) k(ikx, iky, 2)=k(ikx, iky, 2)-1
-            write(stdout, '(2I3,2F9.4)') ikx, iky, k(ikx,iky,:)
-        enddo
-    enddo
-    write(stdout, *)
-    ! U
-    ! 能带下标ab, cd -> (a+(b-1)*nb, c+(d-1)*nb)
-    ! real, dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu
-    U_ud = 0d0
-    U_uu = 0d0
-    do ix=1,nb
-        do iy=1,nb
-            if (ix==iy) then
-                U_ud(sub_g2chi(ix,iy), sub_g2chi(ix,iy))=h1_U
-            else
-                U_ud(sub_g2chi(ix,ix), sub_g2chi(iy,iy))=h1_Up
-                U_ud(sub_g2chi(ix,iy), sub_g2chi(ix,iy))=h1_J
-                U_ud(sub_g2chi(ix,iy), sub_g2chi(iy,ix))=h1_Jp
-                U_uu(sub_g2chi(ix,ix), sub_g2chi(iy,iy))=h1_Up-h1_J
-                U_uu(sub_g2chi(ix,iy), sub_g2chi(ix,iy))=-h1_Up+h1_J
-            endif
-        enddo
-    enddo
-    U_s = U_ud-U_uu
-    U_c = U_ud+U_uu
-
-    ! 辅助变换
-    i_minus = complex_0
-    i_plus = complex_0
-    do ix=1,nb
-        i_plus(ix,ix)=complex_1
-        i_minus(ix,ix)=complex_1
-        if (ix==2 .or. ix==3) then
-            i_plus(ix,ix)=complex_i
-            i_minus(ix,ix)=-complex_i
-        endif
-    enddo
-
-    ! 反傅里叶变换h0到k空间
-    h0_k = complex_0
-    do ikx=1,nkx; do iky=1,nky
-        do irx=-rx,rx; do iry=-ry,ry
-            temp=[irx,iry]
-            rdotk = two_pi*dot_product(k(ikx,iky,:),temp)
-            fac=exp(complex_i*rdotk)
-            h0_k(:,:,ikx,iky)=h0_k(:,:,ikx,iky)+fac*h0_r(:,:,irx,iry)
-        enddo; enddo
-
-        ! 计算特征值和特征向量
-        h0_k_=h0_k(:,:,ikx,iky)
-        u_h0_k_=h0_k_
-        call zheev('V','L',nb,u_h0_k_,nb,ev_h0_k_,ev_h0_k_lwork,nb*nb,ev_h0_k_rwork,info)
-        u_h0_k(:,:,ikx,iky)=u_h0_k_
-        ev_h0_k(:,ikx,iky)=ev_h0_k_
-        ! write(stdout,*) diag_h0_tilde_k_
-    enddo; enddo
+    call init_U()
 
     if (nb==1) then
         call build_h0_k()
         !T_beta = 0.25
     endif
-
-    ! I_chi, (nb*nb) order
-    I_chi=complex_0
-    do i=1,nb*nb
-        I_chi(i,i)=complex_1
-    enddo
-    ! I_G, nb order
-    I_G=complex_0
-    do i=1,nb
-        I_G(i,i)=complex_1
-    enddo
-
-
 
 
     ! 迭代部分-----------------------------------------------------------
@@ -135,8 +52,6 @@ program flex_m2d
     total_iter = 1
     density_iter = 1
     cur_density = 1000d0
-
-    deltamu_per_density=1
 
     density_conv = .false.
     do while (.not. density_conv)
@@ -185,17 +100,14 @@ program flex_m2d
         write(stdout,*) '--------------------------------------'
         do while (.not. sigma_conv)
 
-            ! write(stdout, *) 'calculating chi_0...'
-
-            ! calculate chi_0 with chi(q)= -G1(q-k)G2(-k),
-
+            ! calculate chi_0 with chi(q)= -G1(q-k)G2(-k), the same to -G1(q-k)G2(k)**H
             ! dft G to G_r_tau
             call dft(G, G_r_tau, nb, nomegaf, dft_grid, 1, 0)
 
             conjgG=conjg(G)
             call dft(conjgG, conjgG_r_tau, nb, nomegaf, dft_grid, 1, 0)
 
-            ! chi_0, 看起来需要并行
+            ! chi_0, 并行
             ! 卷积形式, 改成减法 on tau
             chi_0_r_tau=0
             do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
@@ -206,27 +118,21 @@ program flex_m2d
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
             chi_0 = T_ev/nk*chi_0
-            ! call cleanError(chi_0, nb**4*nk*totalnomega)
 
-            ! write(stdout, *) 'calculating chi_c, chi_s, V...'
-
-            ! chi_c, chi_s, V, 需要并行和数学库
-            ! 含有矩阵乘, 需改写
+            ! chi_c, chi_s, V
+            ! the same to solve AX=B, where A = (I +(c)/-(s) chi_0) and B = chi_0
             do ikx=1,nkx; do iky=1,nky; do iomegaq=minomegab,maxomegab
-                ! the same to solve AX=B, where A = (I +(c)/-(s) chi_0) and B = chi_0
 
-                ! chi_c = chi_0 - chi_0*chi_c
+                ! chi_c = chi_0 - chi_0*U_c*chi_c
+                Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
                 chi_0_=chi_0(:, :, ikx, iky, iomegaq)
-
-                !Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
-                Iminuschi_0_ = I_chi + AB(U_c,chi_0_,nb*nb)
-
+                !Iminuschi_0_ = I_chi + AB(U_c,chi_0_,nb*nb)
                 chi_c_ = chi_0(:, :, ikx, iky, iomegaq)
                 chi_c(:, :, ikx, iky, iomegaq)= inverseAbyB(Iminuschi_0_,chi_c_,nb*nb)
 
-                ! chi_s = chi_0 + chi_0*chi_s
-                !Iminuschi_0_ = I_chi - AB(chi_0_,U_s,nb*nb)
-                Iminuschi_0_ = I_chi - AB(U_s,chi_0_,nb*nb)
+                ! chi_s = chi_0 + chi_0*U_s*chi_s
+                Iminuschi_0_ = I_chi - AB(chi_0_,U_s,nb*nb)
+                !Iminuschi_0_ = I_chi - AB(U_s,chi_0_,nb*nb)
                 chi_s_ = chi_0(:, :, ikx, iky, iomegaq)
                 chi_s(:, :, ikx, iky, iomegaq) = inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
 
@@ -236,10 +142,9 @@ program flex_m2d
                     + 0.5*ABA(U_c, chi_c(:, :, ikx, iky, iomegaq), nb*nb)
 
             enddo; enddo; enddo
-            !write(stdout,*) V(:, :, 1, 1, 0)
-            !stop
 
-            ! write(stdout, *) 'calculating sigma...'
+
+            !sigma(k) = V(k-k')*G(k')
 
             ! dft V to V_r_tau
             call dft(V, V_r_tau, nb*nb, nomegab, dft_grid, 1, 0)
@@ -257,10 +162,10 @@ program flex_m2d
             !call testConvolution3sigma()
 
             !if (sigma_iter > 1) then
-                sigma_conv = convergence_test(sigma_iter, 0)
-                if (sigma_conv) then
-                    exit
-                endif
+            sigma_conv = convergence_test(sigma_iter, 0)
+            if (sigma_conv) then
+                exit
+            endif
             !endif
             sigma0 = sigma
 
@@ -299,7 +204,8 @@ program flex_m2d
                     call mixer(sigma_iter)
             end select
 
-            G2=G
+            !G2=G
+
             sigma_iter=sigma_iter+1;
             total_iter = total_iter + 1
 
@@ -311,9 +217,7 @@ program flex_m2d
         ! sigma loop end
 
         ! 计算density
-        density0 = cur_density
         cur_density=0d0
-
         do ib=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
             cur_density = cur_density &
                 + real(G(ib, ib, ikx, iky, iomegak)) &
@@ -330,7 +234,7 @@ program flex_m2d
             density_conv=.true.
             !计算结束
         else
-            mu = modify_mu(density_iter)
+                    call modify_mu()
             write(stdout,*) 'modified new mu = ', mu
         endif
 
