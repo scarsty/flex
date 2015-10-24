@@ -1,4 +1,4 @@
-module myfunctions
+module functions
 #ifdef USE_MPI
     include 'mpif.h'
 #endif
@@ -644,4 +644,4 @@ contains
     end subroutine testBand
 
 
-END MODULE myfunctions
+end module functions

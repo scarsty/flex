@@ -268,7 +268,7 @@ end subroutine testConvolution3
 subroutine testConvolution3G()
     use constants
     use parameters2
-    use myfunctions
+    use functions
     implicit none
 
     integer l1, l2, m1, m2
@@ -341,7 +341,7 @@ end subroutine testConvolution3G
 subroutine testConvolution3sigma()
     use constants
     use parameters2
-    use myfunctions
+    use functions
     implicit none
 
     integer l1, l2, m1, m2

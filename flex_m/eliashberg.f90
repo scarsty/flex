@@ -1,6 +1,6 @@
 subroutine eliashberg()
     use constants
-    use myfunctions
+    use functions
     use parameters
     use parameters2
     implicit none
