@@ -1,6 +1,7 @@
 FC=ifort
 MPIF90=mpif90
 FFLAGS=-I. -O2 -mcmodel=medium -shared-intel -w -mkl -fpp -u -extend-source
+MPIFFLAGS=$(FFLAGS) -DUSE_MPI
 LINKFLAG=-L. -llapack -lblas
 SOURCES=$(wildcard *.f90)
 OBJECTS=$(SOURCES:.f90=.o)

@@ -51,6 +51,18 @@ contains
         mpi_finalize1 = ierr
     end function mpi_finalize1
 
+    integer function mpi_reduce1(A,n)
+        implicit none
+        integer ierr
+        complex(8) A(n),B(n)
+#ifdef USE_MPI
+        call mpi_allreduce(A,B,16,MPI_DOUBLE_COMPLEX,MPI_SUM,MPI_COMM_WORLD,ierr)
+#else
+        ierr = 0
+#endif /* USE_MPI */
+        mpi_reduce1 = ierr
+    end function mpi_reduce1
+
     ! 下标变换
     integer function sub_g2chi(a,b)
         use constants, only: nb

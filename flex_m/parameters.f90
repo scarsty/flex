@@ -47,7 +47,7 @@ module parameters
 #endif /* USE_MPI */
 
     ! MPI variables
-    INTEGER rank, size
+    INTEGER mpi_rank, mpi_size, mpi_info
     ! Timing variables
     Real(8) start_time, end_time
     Real(8) last_it_time, this_it_time

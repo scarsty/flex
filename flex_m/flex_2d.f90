@@ -17,9 +17,14 @@ program flex_2d
     integer ikx, iky
     integer iomegak,iomegaq
     integer l1,m1,l2,m2
+    !integer mpiinfo
     complex(8) temp_complex
 
     ! 变量段结束-------------------------------------------------------------------------------
+
+    mpi_info = mpi_init1()
+    mpi_rank = mpi_rank()
+    mpi_size = mpi_size()
 
     call readin()
 
@@ -39,7 +44,7 @@ program flex_2d
     endif
 
 
-    ! 迭代部分-----------------------------------------------------------
+    ! 迭代部分---------------------------------------------------------------------------------
     write(stdout, *) "Temperature in K = ", T
     write(stdout, *) "Temperature in eV = ", T_eV
     write(stdout, *) "Temperature in beta = ", T_beta
@@ -231,7 +236,7 @@ program flex_2d
             density_conv=.true.
             !计算结束
         else
-                    call modify_mu()
+            call modify_mu()
             write(stdout,*) 'modified new mu = ', mu
         endif
 
@@ -244,7 +249,7 @@ program flex_2d
     enddo
     ! density loop end
 
-    ! 迭代部分结束--------------------------------------------------------------
+    ! 迭代部分结束--------------------------------------------------------------------------
 
     ! output chi_s(q,0)
     write(stdout,*) 'chi_s at omega = 0'
@@ -266,6 +271,8 @@ program flex_2d
     write(stdout,*)
     write(stdout,*) 'good night.'
     write(stdout,*)
+
+    mpi_info = mpi_finalize1()
 
 
 end program

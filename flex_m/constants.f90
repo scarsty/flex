@@ -35,6 +35,7 @@ MODULE constants
 
     ! 总点数
     integer, parameter :: total_grid = nb**2*nk*nomegaf
+    integer, parameter :: total_grid2 = nb**4*nk*nomegab
 
     ! r点, 表示r坐标 -r to r
     integer, parameter :: rx = 2
