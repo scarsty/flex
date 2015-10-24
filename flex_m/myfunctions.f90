@@ -533,6 +533,7 @@ contains
         else
             if (mu_less_count/=0 .and. mu_more_count/=0) then
                 ! 这里好像是在瞎搞
+                ! 如果产生警告, 就用两边最新的值构造一个
                 if (warning==0) then
                     mu = (mu_less(1)-mu_more(1))/(density_less(1)-density_more(1)) &
                         *(target_density-density_more(1))+mu_more(1)
