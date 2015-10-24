@@ -1,4 +1,4 @@
-program flex_m2d
+program flex_2d
 
     !   Compute Green function for superconductive properties
     !   author  : Sun TY (scarsty@gmail.com)
@@ -13,13 +13,10 @@ program flex_m2d
 
 
     ! 循环控制变量较多, 主要是为方便对照文献中公式
-    integer ix, iy, iz, count_k, zero_k, ib, ib1, ib2, ik, iq, iomega, ix1, ix2, ix3, ix4, i1, i2, i, iy1, iy2
-    integer ikx, iky, irx, iry
-    integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq, k_kminusq, omega_kminusq, itau, k_0minusq, k_qminusk
-    integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk
-    integer l1,m1,l2,m2,l3,m3,n1,l,m
-    !integer elia1, elia2, info, lda, ldb, ipiv
-    !real(8) rdotk, temp(2), dis, mu0, deltamu_per_density, density0
+    integer ib
+    integer ikx, iky
+    integer iomegak,iomegaq
+    integer l1,m1,l2,m2
     complex(8) temp_complex
 
     ! 变量段结束-------------------------------------------------------------------------------

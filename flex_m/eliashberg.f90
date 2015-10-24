@@ -5,26 +5,28 @@ subroutine eliashberg()
     use parameters2
     implicit none
 
-    ! 未完成
-    ! 厄立希伯格方程, 直接应用上面得到的组合
+    ! 求解厄立希伯格方程以及对应特征向量
+    ! 规格化幂法求解LEV
+    ! u=v
+    ! while not converge do
+    !     v=Au
+    !     lambda1=abs_max(v)
+    !     u=v/lambda1
+    ! end
 
-    ! 自旋态不是3就是1
-    ! 含矩阵乘, 需改写
-
-    integer elia1, elia2, sub_g2chi1, sub_g2chi2, sub_g2chi3, maxindex
-    integer ikk,ikq,iomegak,iomegaq, k_kplusq, omega_kplusq,k_kminusq, omega_kminusq, itau, k_0minusq, k_qminusk
-    integer ikk1, ikk2, iomegak1, iomegak2, k_kminusk, omega_kminusk, ikx, iky
+    integer iomegak,iomegaq
+    integer ikx, iky
     integer l1,m1,l2,m2,l3,m3
     real(8) lambda, lambda0
-    complex(8) temp_complex
     logical elia_conv
-    ! complex, dimension (nb*nb*nk*(nomega*2-1), nb*nb*nk*(nomega*2-1)):: Eliashberg
+    complex(8) temp_complex
 
     ! ---------------------------------------------------------------------------------------------
 
     write(stdout,*)
     write(stdout,*) 'Solving Eliashberg equation...'
     ! 文献中自旋3态有区别, 需自行推导
+    ! 自旋态不是3就是1
     V_s = complex_0
     do ikx=1,nkx; do iky=1,nky; do iomegaq=minomegab,maxomegab
         chi_c_ = chi_c(:, :, ikx, iky, iomegaq)
@@ -47,15 +49,6 @@ subroutine eliashberg()
 
     ! dft V_s to V_s_r_tau
     call dft(V_s, V_s_r_tau, nb*nb, nomegab, dft_grid, 1, 0)
-
-    ! 规格化幂法求解LEV
-    ! u=v
-    ! while not converge do
-    !     v=Au
-    !     lambda1=abs_max(v)
-    !     u=v/lambda1
-    ! end
-
 
     ! 初始值
 

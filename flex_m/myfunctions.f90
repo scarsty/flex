@@ -194,7 +194,7 @@ contains
         use parameters2
         implicit none
 
-        integer itau, tau, iomega, omega_f, omega_b
+        !integer itau, tau, iomega, omega_f, omega_b
 
         ! 频域与时域的傅里叶变换辅助矩阵
         ! 可以一次计算一组, 或者构造大矩阵计算多组
@@ -545,7 +545,7 @@ i=3-mod(count_,2)
         implicit none
         integer ikx, iky, irx, iry, info
         real(8) rdotk, temp(2)
-        complex(8) temp_complex, fac
+        complex(8) fac
 
         ! 计算k点的坐标
         write(stdout, *) "Building k-points grid..."

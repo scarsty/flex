@@ -22,6 +22,30 @@ clean:
 	$(FC) $(FFLAGS) -c $(@:.o=.f90)
 
 # Dependencies of files
+eliashberg.o: \
+    eliashberg.f90 \
+    constants.o \
+    myfunctions.o \
+    parameters.o \
+    parameters2.o
+flex_2d.o: \
+    flex_2d.f90 \
+    constants.o \
+    myfunctions.o \
+    parameters.o \
+    parameters2.o
+readin.o: \
+    readin.f90 \
+    constants.o \
+    myfunctions.o \
+    parameters.o \
+    parameters2.o
+myfunctions.o: \
+    myfunctions.f90 \
+    constants.o \
+    parameters.o \
+    parameters2.o \
+    fftw3.f03
 parameters2.o: \
     parameters2.f90 \
     constants.o
@@ -31,31 +55,7 @@ testmodule.o: \
     myfunctions.o \
     parameters2.o \
     fftw3.f03
-myfunctions.o: \
-    myfunctions.f90 \
-    constants.o \
-    parameters.o \
-    parameters2.o \
-    fftw3.f03
-readin.o: \
-    readin.f90 \
-    constants.o \
-    myfunctions.o \
-    parameters.o \
-    parameters2.o
-main.o: \
-    main.f90 \
-    constants.o \
-    myfunctions.o \
-    parameters.o \
-    parameters2.o
-constants.o: \
-    constants.f90
-eliashberg.o: \
-    eliashberg.f90 \
-    constants.o \
-    myfunctions.o \
-    parameters.o \
-    parameters2.o
 parameters.o: \
     parameters.f90
+constants.o: \
+    constants.f90
