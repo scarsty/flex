@@ -519,7 +519,7 @@ contains
         use parameters
         use parameters2
         implicit none
-        integer warning
+        integer warning, i1, i2
 
         if (cur_density<target_density) then
             call modify_mu_record(mu_less_count, density_less, mu_less, cur_density, mu, warning)
@@ -532,9 +532,16 @@ contains
             return
         else
             if (mu_less_count/=0 .and. mu_more_count/=0) then
-                mu = (mu_less(1)-mu_more(1))/(density_less(1)-density_more(1)) &
-                    *(target_density-density_more(1))+mu_more(1)
-                mu = 0.5*(mu_less(1)+mu_more(1))
+                ! 这里好像是在瞎搞
+                if (warning==0) then
+                    mu = (mu_less(1)-mu_more(1))/(density_less(1)-density_more(1)) &
+                        *(target_density-density_more(1))+mu_more(1)
+                else
+                    i1=3-mod(mu_less_count,2)
+                    i2=3-mod(mu_more_count,2)
+                    mu = (mu_less(i1)-mu_more(i2))/(density_less(i1)-density_more(i2)) &
+                        *(target_density-density_more(i1))+mu_more(i2)
+                endif
             elseif (mu_less_count==0) then
                 mu = (mu_more(2)-mu_more(3))/(density_more(2)-density_more(3)) &
                     *(target_density-density_more(3))+mu_more(3)
@@ -543,7 +550,7 @@ contains
                     *(target_density-density_less(3))+mu_less(3)
             endif
         endif
-        write(stdout, *) mu_less_count, mu_more_count
+        ! write(stdout, *) mu_less_count, mu_more_count
 
     end subroutine
 
