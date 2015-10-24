@@ -58,46 +58,6 @@ contains
         sub_g2chi = a+(b-1)*nb
     end function sub_g2chi
 
-    integer function sub_g2e(l,m,k,omega)
-        use constants
-        implicit none
-        integer l,m,k,omega
-        integer omegat
-        omegat=2*omega+1
-        sub_g2e = l*nb*nk*omegat+m*nk*omegat+omega+nomega+1 ! 未完成
-    end function sub_g2e
-
-    !n计算松原频率
-    integer function calfreq(omega, fb)
-        implicit none
-        integer omega, fb
-        if (fb/=0) then
-            calfreq=2*omega-1
-        else
-            calfreq=2*omega
-        endif
-    end function calfreq
-
-    ! k和松原频率的减法, fb: fermi(1) or bose(0)
-    ! 1 - 2 -> 3
-    subroutine komega_minus(k1, omega1, fb1, k2, omega2, fb2, k, k_minus, zero_k, k3, omega3, fb3)
-        use constants
-        implicit none
-        integer k1, omega1, fb1, k2, omega2, fb2, k3, omega3, fb3, sign_omega3, zero_k
-        integer f1, f2, f3
-        real(8), dimension (nk, 2) :: k
-        integer, dimension (nk, nk) :: k_minus
-
-        f1=calfreq(omega1, fb1)
-        f2=calfreq(omega2, fb2)
-        f3=f1-f2
-
-        fb3 = abs(mod(f3, 2))
-        omega3 = (f3+fb3)/2
-        k3 = k_minus(k1, k2)
-
-    end subroutine komega_minus
-
     function inverseAbyB(A, B, n)
         use constants
         implicit none
@@ -187,37 +147,6 @@ contains
         call zgemm('N', 'N', M, N, K, complex_1, &
             src, M, dft_matrix, K, complex_0, dst, M)
     end subroutine matrixProduct
-
-    ! 生成傅里叶变换辅助矩阵dft_f, dft_b, idft_f, idft_b
-    subroutine buildDFTMatrix()
-        use constants
-        use parameters2
-        implicit none
-
-        !integer itau, tau, iomega, omega_f, omega_b
-
-        ! 频域与时域的傅里叶变换辅助矩阵
-        ! 可以一次计算一组, 或者构造大矩阵计算多组
-        ! for one k-point, G_tau (行) = G_omega (行) * dft
-        ! G_omega (行) = G_tau (行) * idft
-        !        do itau = -ntau,ntau
-        !            do iomega=-nomega,nomega
-        !                omega_f = 2*iomega-1
-        !                omega_b = 2*iomega
-        !                tau = itau*1d0/ntau
-        !                dft_f(iomega, itau) = exp(-2*pi*omega_f*tau*complex_i)
-        !                dft_b(iomega, itau) = exp(-2*pi*omega_b*tau*complex_i)
-        !                idft_f(itau, iomega) = exp(2*pi*omega_f*tau*complex_i)
-        !                idft_b(itau, iomega) = exp(2*pi*omega_b*tau*complex_i)
-        !            enddo
-        !        enddo
-        !
-        !        ! 这里的系数可能应该*2, 即所有频率一起考虑
-        !        dft_f = dft_f / (2*nomega+1)
-        !        dft_b = dft_b / (2*nomega+1)
-
-        return
-    end subroutine buildDFTMatrix
 
     ! dft, direction means FORWORD(+) or BACKWORD(-)
     ! 调用fftw
@@ -608,5 +537,97 @@ i=3-mod(count_,2)
         U_s = U_ud-U_uu
         U_c = U_ud+U_uu
     end subroutine
+
+    subroutine testBand()
+    use constants
+    use myfunctions
+    ! use parameters
+    use parameters2
+    implicit none
+
+
+    ! 自旋态不是3就是1
+    ! 含矩阵乘, 需改写
+
+    ! 点数36: 1~11~21~36
+    integer count_k, i, ik, ix, iy, fileunit
+    complex(8) :: fac
+    real(8) :: rdotk
+    real(8), dimension (2) :: temp
+    real(8), dimension (36, 2) :: k_band
+    complex(8), dimension (nb, nb, 36) :: h0_k_band
+    complex(8), dimension (nb,nb) :: A, B
+    complex(8), dimension (nb, 36) :: ev_band
+    complex(8), dimension (nb) :: alpha, beta
+    complex(8), dimension (nb, nb) :: vl, vr
+    complex(8), dimension (nb*2) :: work
+    integer lwork, info
+    real(8), dimension (nb*8) :: rwork
+
+
+    ! ------------------------------------------------------------------------
+
+    ! 测试能带正确性
+    ! 组合一组高对称点
+    k_band = 0d0;
+    count_k=0;
+    do i = 0,10
+        count_k = count_k+1;
+        k_band(count_k, 1) = 0d0
+        k_band(count_k, 2) = i*0.5d0/10;
+    enddo
+    do i = 1,10
+        count_k = count_k+1;
+        k_band(count_k, 1) = i*0.5d0/10;
+        k_band(count_k, 2) = 0.5d0;
+    enddo
+    do i = 1,15
+        count_k = count_k+1;
+        k_band(count_k, 1) = 0.5d0-i*0.5d0/15;
+        k_band(count_k, 2) = 0.5d0-i*0.5d0/15;
+    enddo
+
+    h0_k = complex_0
+
+    write(stdout,*) 'build k-points of band...'
+
+    ! 反傅里叶变换到k空间的能带
+    ! 在每个k点上对角化得到能带特征值
+    do ik=1,36
+        h0_k_band=complex_0
+        do ix = -rx, rx
+            do iy = -ry, ry
+                temp=[ix,iy]
+                rdotk = two_pi*dot_product(k_band(ik,:),temp)
+                fac=exp(complex_i*rdotk)
+                h0_k_band(:,:,ik)=h0_k_band(:,:,ik)+fac*h0_r(:,:,ix, iy)
+            enddo
+        enddo
+        A = h0_k_band(:,:,ik)
+        ! if (ik==1) then
+        !    write(stdout,*) A
+        ! endif
+        B = complex_0
+        do i = 1,nb
+            B(i,i)=complex_1
+        enddo
+        ! write(stdout,*) 'calling cggev...'
+        call zggev('N', 'N', nb, A, nb, B, nb, alpha, beta, vl, 1, vr, 1, work, 2*nb, rwork, info)
+        ! write(stdout,*) 'finish state ', info
+        ev_band(:,ik) = alpha/beta
+    enddo
+
+    fileunit = 9999
+    open(fileunit, file='testband.dat')
+    do ik=1,36
+        write(fileunit, *) ik, real(ev_band(:,ik))
+    enddo
+
+    close(fileunit)
+
+    return
+
+end subroutine testBand
+
 
 END MODULE myfunctions
