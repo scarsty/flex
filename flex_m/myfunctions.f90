@@ -51,6 +51,104 @@ contains
         mpi_finalize1 = ierr
     end function mpi_finalize1
 
+    ! 下标变换
+    integer function sub_g2chi(a,b)
+        use constants, only: nb
+        implicit none
+        integer a, b
+        sub_g2chi = a+(b-1)*nb
+    end function sub_g2chi
+
+    function inverseAbyB(A, B, n)
+        use constants
+        implicit none
+        integer n
+        complex(8), dimension (n, n) :: A, B, inverseAbyB
+        integer info, lda, ldb
+        integer ipiv(n)
+        call zgesv(n, n, A, n, ipiv, B, n, info)
+        inverseAbyB=B
+        !write(stderr,*) info
+    end function inverseAbyB
+
+    ! 需要测试, 考虑内存模式
+    ! 因为都是方阵, 可考虑换函数
+    function ABA(A, B, n)
+        use constants
+        implicit none
+        integer n
+        complex(8), dimension (n, n) :: A, B, ABA, C
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            A, n, B, n, complex_0, C, n)
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            C, n, A, n, complex_0, ABA, n)
+    end function ABA
+
+    function ABC(A, B, C, n)
+        use constants
+        implicit none
+        integer n
+        complex(8), dimension (n, n) :: A, B, C, AB, ABC
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            A, n, B, n, complex_0, AB, n)
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            AB, n, C, n, complex_0, ABC, n)
+    end function ABC
+
+    ! 需要测试, 考虑内存模式
+    function AB(A, B, n)
+        use constants
+        implicit none
+        integer n
+        complex(8), dimension (n, n) :: A, B, AB
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            A, n, B, n, complex_0, AB, n)
+    end function AB
+
+    ! 需要测试, 考虑内存模式
+    function AHBA(A, B, n)
+        use constants
+        implicit none
+        integer n
+        complex(8), dimension (n, n) :: A, B, AHBA, C
+        call zgemm('C', 'N', n, n, n, complex_1, &
+            A, n, B, n, complex_0, C, n)
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            C, n, A, n, complex_0, AHBA, n)
+    end function AHBA
+
+    function ABAH(A, B, n)
+        use constants
+        implicit none
+        integer n
+        complex(8), dimension (n, n) :: A, B, ABAH, C
+        call zgemm('N', 'N', n, n, n, complex_1, &
+            A, n, B, n, complex_0, C, n)
+        call zgemm('N', 'C', n, n, n, complex_1, &
+            C, n, A, n, complex_0, ABAH, n)
+    end function ABAH
+
+    ! 松原频率转换, 数据结构设计如此
+    function transfer_freq(freq)
+        use constants
+        implicit none
+        integer freq, transfer_freq
+        if (freq>=0) then
+            transfer_freq=freq
+        else
+            transfer_freq=dft_grid+freq
+        endif
+    end function transfer_freq
+
+    subroutine matrixProduct(src, dft_matrix, dst, M, N, K)
+        use constants
+        implicit none
+        integer M,N,K
+        complex(8) dft_matrix(K,N), src(M,K), dst(M,N)
+        call zgemm('N', 'N', M, N, K, complex_1, &
+            src, M, dft_matrix, K, complex_0, dst, M)
+    end subroutine matrixProduct
+
     subroutine init()
         use parameters
         use parameters2
@@ -149,103 +247,6 @@ contains
         U_c = U_ud+U_uu
     end subroutine
 
-    ! 下标变换
-    integer function sub_g2chi(a,b)
-        use constants, only: nb
-        implicit none
-        integer a, b
-        sub_g2chi = a+(b-1)*nb
-    end function sub_g2chi
-
-    function inverseAbyB(A, B, n)
-        use constants
-        implicit none
-        integer n
-        complex(8), dimension (n, n) :: A, B, inverseAbyB
-        integer info, lda, ldb
-        integer ipiv(n)
-        call zgesv(n, n, A, n, ipiv, B, n, info)
-        inverseAbyB=B
-        !write(stderr,*) info
-    end function inverseAbyB
-
-    ! 需要测试, 考虑内存模式
-    ! 因为都是方阵, 可考虑换函数
-    function ABA(A, B, n)
-        use constants
-        implicit none
-        integer n
-        complex(8), dimension (n, n) :: A, B, ABA, C
-        call zgemm('N', 'N', n, n, n, complex_1, &
-            A, n, B, n, complex_0, C, n)
-        call zgemm('N', 'N', n, n, n, complex_1, &
-            C, n, A, n, complex_0, ABA, n)
-    end function ABA
-
-    function ABC(A, B, C, n)
-        use constants
-        implicit none
-        integer n
-        complex(8), dimension (n, n) :: A, B, C, AB, ABC
-        call zgemm('N', 'N', n, n, n, complex_1, &
-            A, n, B, n, complex_0, AB, n)
-        call zgemm('N', 'N', n, n, n, complex_1, &
-            AB, n, C, n, complex_0, ABC, n)
-    end function ABC
-
-    ! 需要测试, 考虑内存模式
-    function AB(A, B, n)
-        use constants
-        implicit none
-        integer n
-        complex(8), dimension (n, n) :: A, B, AB
-        call zgemm('N', 'N', n, n, n, complex_1, &
-            A, n, B, n, complex_0, AB, n)
-    end function AB
-
-    ! 需要测试, 考虑内存模式
-    function AHBA(A, B, n)
-        use constants
-        implicit none
-        integer n
-        complex(8), dimension (n, n) :: A, B, AHBA, C
-        call zgemm('C', 'N', n, n, n, complex_1, &
-            A, n, B, n, complex_0, C, n)
-        call zgemm('N', 'N', n, n, n, complex_1, &
-            C, n, A, n, complex_0, AHBA, n)
-    end function AHBA
-
-    function ABAH(A, B, n)
-        use constants
-        implicit none
-        integer n
-        complex(8), dimension (n, n) :: A, B, ABAH, C
-        call zgemm('N', 'N', n, n, n, complex_1, &
-            A, n, B, n, complex_0, C, n)
-        call zgemm('N', 'C', n, n, n, complex_1, &
-            C, n, A, n, complex_0, ABAH, n)
-    end function ABAH
-
-    ! 松原频率转换, 数据结构设计如此
-    function transfer_freq(freq)
-        use constants
-        implicit none
-        integer freq, transfer_freq
-        if (freq>=0) then
-            transfer_freq=freq
-        else
-            transfer_freq=dft_grid+freq
-        endif
-    end function transfer_freq
-
-    subroutine matrixProduct(src, dft_matrix, dst, M, N, K)
-        use constants
-        implicit none
-        integer M,N,K
-        complex(8) dft_matrix(K,N), src(M,K), dst(M,N)
-        call zgemm('N', 'N', M, N, K, complex_1, &
-            src, M, dft_matrix, K, complex_0, dst, M)
-    end subroutine matrixProduct
 
     ! dft, direction means FORWORD(+) or BACKWORD(-)
     ! 调用fftw
