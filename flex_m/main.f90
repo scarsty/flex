@@ -326,22 +326,11 @@ program flex_m2d
         write(stdout,*)
 
 
-        ! 下面是两个调整方法, 测试一下哪个稳定
         if (abs(cur_density-target_density)<density_tol) then
             density_conv=.true.
             !计算结束
         else
-            if (density_iter>0) then
-                deltamu_per_density = (mu-mu0)/(cur_density-density0)
-            endif
-            ! 计算化学势变化与占据数变化的比值来调整新的化学势
-            mu0 = mu
-            if (density_iter>1) then
-                !mu = mu - (cur_density-target_density)
-                mu = mu - (cur_density-target_density)*deltamu_per_density
-            else
-                mu = mu - 1.0d-1*sign(1.0d0, (cur_density-target_density)*deltamu_per_density)
-            endif
+            mu = modify_mu(density_iter)
             write(stdout,*) 'modified new mu = ', mu
         endif
 

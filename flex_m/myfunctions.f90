@@ -451,7 +451,6 @@ contains
         write(stdout,'(I7,I10,ES20.5)') iter, conv_grid, cur_sigma_tol
         convergence_test  = (conv_grid==total_grid)
 
-
 #ifdef _DEBUG
         !norm_sigma0 = dznrm2(nb*nb*nkx*nky*nomegaf, sigma0, 1)
         !write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma
@@ -459,8 +458,30 @@ contains
 #endif
     end function
 
-    subroutine outputSomething()
+    function modify_mu(density_iter, mu, cur_density, mu0, density0)
+        use parameters
+        use parameters2
         implicit none
+        real(8) modify_mu, deltamu_per_density
+        integer density_iter
+
+            if (density_iter>0) then
+                deltamu_per_density = (mu-mu0)/(cur_density-density0)
+            endif
+            ! 计算化学势变化与占据数变化的比值来调整新的化学势
+            mu0 = mu
+            if (density_iter>1) then
+                !mu = mu - (cur_density-target_density)
+                mu = mu - (cur_density-target_density)*deltamu_per_density
+            else
+                mu = mu - 1.0d-1*sign(1.0d0, (cur_density-target_density)*deltamu_per_density)
+            endif
+
+
+    end function
+
+    !subroutine outputSomething()
+    !    implicit none
         !    输出部分结果检查
         !    write(stdout,*) dot_product(u_tilde_k_(1,:),u_tilde_k_(5,:))
         !
@@ -506,7 +527,7 @@ contains
         !    call writematrix(u_h0_k_,nb)
         !    write(stdout,*) 'u~ back to h~'
         !    call writematrix(ABAH(u_h0_k_,diag_h0_G0_,nb),nb)
-    end subroutine
+    ! end subroutine
 
     ! 部分废弃代码
     !subroutine buildkminus()
