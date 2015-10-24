@@ -40,13 +40,7 @@ module parameters
         sigma_tol, max_it, alpha,  alpha_scheme, spin_state,&
         mixer_method, mixer_beta
 
-
-
-#ifdef USE_MPI
-    INTEGER ierr
-#endif /* USE_MPI */
-
-    ! MPI variables
+   ! MPI variables
     INTEGER mpi_rank, mpi_size, mpi_info
     ! Timing variables
     Real(8) start_time, end_time

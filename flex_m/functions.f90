@@ -13,7 +13,7 @@ contains
         call mpi_comm_rank(MPI_COMM_WORLD, r, ierr)
 #else
         r = 0
-#endif /* USE_MPI */
+#endif
         mpi_rank = r
     end function mpi_rank
 
@@ -25,7 +25,7 @@ contains
         call mpi_comm_size(MPI_COMM_WORLD, s, ierr)
 #else
         s = 1
-#endif /* USE_MPI */
+#endif
         mpi_size = s
     end function mpi_size
 
@@ -36,7 +36,7 @@ contains
         call mpi_init(ierr)
 #else
         ierr = 0
-#endif /* USE_MPI */
+#endif
         mpi_init1 = ierr
     end function mpi_init1
 
@@ -47,7 +47,7 @@ contains
         call mpi_finalize(ierr)
 #else
         ierr = 0
-#endif /* USE_MPI */
+#endif
         mpi_finalize1 = ierr
     end function mpi_finalize1
 
@@ -59,7 +59,7 @@ contains
         call mpi_allreduce(A,B,16,MPI_DOUBLE_COMPLEX,MPI_SUM,MPI_COMM_WORLD,ierr)
 #else
         ierr = 0
-#endif /* USE_MPI */
+#endif
         mpi_reduce1 = ierr
     end function mpi_reduce1
 
