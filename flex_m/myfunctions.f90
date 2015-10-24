@@ -51,6 +51,105 @@ contains
         mpi_finalize1 = ierr
     end function mpi_finalize1
 
+    subroutine init()
+        use parameters
+        use parameters2
+        implicit none
+        integer i
+
+        T_beta = 1d0/kB/T
+        T_eV = kB*T
+
+        sigma_state = 0
+
+        ! I_chi, (nb*nb) order
+        I_chi=complex_0
+        do i=1,nb*nb
+            I_chi(i,i)=complex_1
+        enddo
+
+        ! I_G, nb order
+        I_G=complex_0
+        do i=1,nb
+            I_G(i,i)=complex_1
+        enddo
+
+        mu_less_count=0
+        mu_more_count=0
+
+    end subroutine
+
+    subroutine init_Kpoints()
+        use parameters
+        use parameters2
+        implicit none
+        integer ikx, iky, irx, iry, info
+        real(8) rdotk, temp(2)
+        complex(8) fac
+
+        ! 计算k点的坐标
+        write(stdout, *) "Building k-points grid..."
+        !zero_k = 1    ! k原点
+        do ikx = 1, nkx
+            do iky = 1, nky
+                k(ikx, iky, 1)=1d0/nkx*(ikx-1)
+                k(ikx, iky, 2)=1d0/nky*(iky-1)
+                if (k(ikx, iky, 1)>0.5) k(ikx, iky, 1)=k(ikx, iky, 1)-1
+                if (k(ikx, iky, 2)>0.5) k(ikx, iky, 2)=k(ikx, iky, 2)-1
+                write(stdout, '(2I3,2F9.4)') ikx, iky, k(ikx,iky,:)
+            enddo
+        enddo
+        write(stdout, *)
+
+        ! 反傅里叶变换h0到k空间
+        h0_k = complex_0
+        do ikx=1,nkx; do iky=1,nky
+            do irx=-rx,rx; do iry=-ry,ry
+                temp=[irx,iry]
+                rdotk = two_pi*dot_product(k(ikx,iky,:),temp)
+                fac=exp(complex_i*rdotk)
+                h0_k(:,:,ikx,iky)=h0_k(:,:,ikx,iky)+fac*h0_r(:,:,irx,iry)
+            enddo; enddo
+
+            ! 计算特征值和特征向量
+            h0_k_=h0_k(:,:,ikx,iky)
+            u_h0_k_=h0_k_
+            call zheev('V','L',nb,u_h0_k_,nb,ev_h0_k_,ev_h0_k_lwork,nb*nb,ev_h0_k_rwork,info)
+            u_h0_k(:,:,ikx,iky)=u_h0_k_
+            ev_h0_k(:,ikx,iky)=ev_h0_k_
+            ! write(stdout,*) diag_h0_tilde_k_
+        enddo; enddo
+
+    end subroutine
+
+    subroutine init_U()
+        use parameters
+        use parameters2
+        implicit none
+        integer ix, iy
+        ! U
+        ! 能带下标ab, cd -> (a+(b-1)*nb, c+(d-1)*nb)
+        ! real, dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu
+        U_ud = 0d0
+        U_uu = 0d0
+        do ix=1,nb
+            do iy=1,nb
+                if (ix==iy) then
+                    U_ud(sub_g2chi(ix,iy), sub_g2chi(ix,iy))=h1_U
+                else
+                    U_ud(sub_g2chi(ix,ix), sub_g2chi(iy,iy))=h1_Up
+                    U_ud(sub_g2chi(ix,iy), sub_g2chi(ix,iy))=h1_J
+                    U_ud(sub_g2chi(ix,iy), sub_g2chi(iy,ix))=h1_Jp
+                    U_uu(sub_g2chi(ix,ix), sub_g2chi(iy,iy))=h1_Up-h1_J
+                    U_uu(sub_g2chi(ix,iy), sub_g2chi(ix,iy))=-h1_Up+h1_J
+                endif
+            enddo
+        enddo
+        U_s = U_ud-U_uu
+        U_c = U_ud+U_uu
+    end subroutine
+
+    ! 下标变换
     integer function sub_g2chi(a,b)
         use constants, only: nb
         implicit none
@@ -387,14 +486,17 @@ contains
 #endif
     end function
 
-    subroutine modify_mu_record(count_, density_group, mu_group, density_, mu_)
+    ! 1~3数组, 第一个保存最接近的值, 后面两个保存最近两次计算的值
+    ! warning表示最新的值并未更加靠近, 可能存在数值问题
+    subroutine modify_mu_record(count_, density_group, mu_group, density_, mu_, warning)
         use parameters
         use parameters2
         implicit none
-        integer count_, i
+        integer count_, warning, i
         real(8) density_, mu_, density_group(3), mu_group(3)
 
         count_=count_+1
+        warning=0
         if (count_==1) then
             density_group(1)=density_
             mu_group(1)=mu_
@@ -402,10 +504,12 @@ contains
             if (abs(density_-target_density)<abs(density_group(1)-target_density)) then
                 density_group(1)=density_
                 mu_group(1)=mu_
+            else
+                warning=1
             endif
-i=3-mod(count_,2)
-                    density_group(i)=density_
-                    mu_group(i)=mu_
+            i=3-mod(count_,2)
+            density_group(i)=density_
+            mu_group(i)=mu_
         endif
 
     end subroutine
@@ -414,11 +518,12 @@ i=3-mod(count_,2)
         use parameters
         use parameters2
         implicit none
+        integer warning
 
         if (cur_density<target_density) then
-            call modify_mu_record(mu_less_count, density_less, mu_less, cur_density, mu)
+            call modify_mu_record(mu_less_count, density_less, mu_less, cur_density, mu, warning)
         else
-            call modify_mu_record(mu_more_count, density_more, mu_more, cur_density, mu)
+            call modify_mu_record(mu_more_count, density_more, mu_more, cur_density, mu, warning)
         endif
 
         if (density_iter==1) then
@@ -428,6 +533,7 @@ i=3-mod(count_,2)
             if (mu_less_count/=0 .and. mu_more_count/=0) then
                 mu = (mu_less(1)-mu_more(1))/(density_less(1)-density_more(1)) &
                     *(target_density-density_more(1))+mu_more(1)
+                mu = 0.5*(mu_less(1)+mu_more(1))
             elseif (mu_less_count==0) then
                 mu = (mu_more(2)-mu_more(3))/(density_more(2)-density_more(3)) &
                     *(target_density-density_more(3))+mu_more(3)
@@ -440,194 +546,93 @@ i=3-mod(count_,2)
 
     end subroutine
 
-    subroutine init()
-        use parameters
-        use parameters2
-        implicit none
-        integer i
-
-        T_beta = 1d0/kB/T
-        T_eV = kB*T
-
-        sigma_state = 0
-
-        ! I_chi, (nb*nb) order
-        I_chi=complex_0
-        do i=1,nb*nb
-            I_chi(i,i)=complex_1
-        enddo
-
-        ! I_G, nb order
-        I_G=complex_0
-        do i=1,nb
-            I_G(i,i)=complex_1
-        enddo
-
-        mu_less_count=0
-        mu_more_count=0
-
-    end subroutine
-
-    subroutine init_Kpoints()
-        use parameters
-        use parameters2
-        implicit none
-        integer ikx, iky, irx, iry, info
-        real(8) rdotk, temp(2)
-        complex(8) fac
-
-        ! 计算k点的坐标
-        write(stdout, *) "Building k-points grid..."
-        !zero_k = 1    ! k原点
-        do ikx = 1, nkx
-            do iky = 1, nky
-                k(ikx, iky, 1)=1d0/nkx*(ikx-1)
-                k(ikx, iky, 2)=1d0/nky*(iky-1)
-                if (k(ikx, iky, 1)>0.5) k(ikx, iky, 1)=k(ikx, iky, 1)-1
-                if (k(ikx, iky, 2)>0.5) k(ikx, iky, 2)=k(ikx, iky, 2)-1
-                write(stdout, '(2I3,2F9.4)') ikx, iky, k(ikx,iky,:)
-            enddo
-        enddo
-        write(stdout, *)
-
-        ! 反傅里叶变换h0到k空间
-        h0_k = complex_0
-        do ikx=1,nkx; do iky=1,nky
-            do irx=-rx,rx; do iry=-ry,ry
-                temp=[irx,iry]
-                rdotk = two_pi*dot_product(k(ikx,iky,:),temp)
-                fac=exp(complex_i*rdotk)
-                h0_k(:,:,ikx,iky)=h0_k(:,:,ikx,iky)+fac*h0_r(:,:,irx,iry)
-            enddo; enddo
-
-            ! 计算特征值和特征向量
-            h0_k_=h0_k(:,:,ikx,iky)
-            u_h0_k_=h0_k_
-            call zheev('V','L',nb,u_h0_k_,nb,ev_h0_k_,ev_h0_k_lwork,nb*nb,ev_h0_k_rwork,info)
-            u_h0_k(:,:,ikx,iky)=u_h0_k_
-            ev_h0_k(:,ikx,iky)=ev_h0_k_
-            ! write(stdout,*) diag_h0_tilde_k_
-        enddo; enddo
-
-    end subroutine
-
-    subroutine init_U()
-        use parameters
-        use parameters2
-        implicit none
-        integer ix, iy
-        ! U
-        ! 能带下标ab, cd -> (a+(b-1)*nb, c+(d-1)*nb)
-        ! real, dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu
-        U_ud = 0d0
-        U_uu = 0d0
-        do ix=1,nb
-            do iy=1,nb
-                if (ix==iy) then
-                    U_ud(sub_g2chi(ix,iy), sub_g2chi(ix,iy))=h1_U
-                else
-                    U_ud(sub_g2chi(ix,ix), sub_g2chi(iy,iy))=h1_Up
-                    U_ud(sub_g2chi(ix,iy), sub_g2chi(ix,iy))=h1_J
-                    U_ud(sub_g2chi(ix,iy), sub_g2chi(iy,ix))=h1_Jp
-                    U_uu(sub_g2chi(ix,ix), sub_g2chi(iy,iy))=h1_Up-h1_J
-                    U_uu(sub_g2chi(ix,iy), sub_g2chi(ix,iy))=-h1_Up+h1_J
-                endif
-            enddo
-        enddo
-        U_s = U_ud-U_uu
-        U_c = U_ud+U_uu
-    end subroutine
 
     subroutine testBand()
-    use constants
-    use myfunctions
-    ! use parameters
-    use parameters2
-    implicit none
+        use constants
+        ! use parameters
+        use parameters2
+        implicit none
 
 
-    ! 自旋态不是3就是1
-    ! 含矩阵乘, 需改写
-
-    ! 点数36: 1~11~21~36
-    integer count_k, i, ik, ix, iy, fileunit
-    complex(8) :: fac
-    real(8) :: rdotk
-    real(8), dimension (2) :: temp
-    real(8), dimension (36, 2) :: k_band
-    complex(8), dimension (nb, nb, 36) :: h0_k_band
-    complex(8), dimension (nb,nb) :: A, B
-    complex(8), dimension (nb, 36) :: ev_band
-    complex(8), dimension (nb) :: alpha, beta
-    complex(8), dimension (nb, nb) :: vl, vr
-    complex(8), dimension (nb*2) :: work
-    integer lwork, info
-    real(8), dimension (nb*8) :: rwork
+        ! 点数36: 1~11~21~36
+        integer count_k, i, ik, ix, iy, fileunit
+        complex(8) :: fac
+        real(8) :: rdotk
+        real(8), dimension (2) :: temp
+        real(8), dimension (36, 2) :: k_band
+        complex(8), dimension (nb, nb, 36) :: h0_k_band
+        complex(8), dimension (nb,nb) :: A, B
+        complex(8), dimension (nb, 36) :: ev_band
+        complex(8), dimension (nb) :: alpha, beta
+        complex(8), dimension (nb, nb) :: vl, vr
+        complex(8), dimension (nb*2) :: work
+        integer lwork, info
+        real(8), dimension (nb*8) :: rwork
 
 
-    ! ------------------------------------------------------------------------
+        ! ------------------------------------------------------------------------
 
-    ! 测试能带正确性
-    ! 组合一组高对称点
-    k_band = 0d0;
-    count_k=0;
-    do i = 0,10
-        count_k = count_k+1;
-        k_band(count_k, 1) = 0d0
-        k_band(count_k, 2) = i*0.5d0/10;
-    enddo
-    do i = 1,10
-        count_k = count_k+1;
-        k_band(count_k, 1) = i*0.5d0/10;
-        k_band(count_k, 2) = 0.5d0;
-    enddo
-    do i = 1,15
-        count_k = count_k+1;
-        k_band(count_k, 1) = 0.5d0-i*0.5d0/15;
-        k_band(count_k, 2) = 0.5d0-i*0.5d0/15;
-    enddo
+        ! 测试能带正确性
+        ! 组合一组高对称点
+        k_band = 0d0;
+        count_k=0;
+        do i = 0,10
+            count_k = count_k+1;
+            k_band(count_k, 1) = 0d0
+            k_band(count_k, 2) = i*0.5d0/10;
+        enddo
+        do i = 1,10
+            count_k = count_k+1;
+            k_band(count_k, 1) = i*0.5d0/10;
+            k_band(count_k, 2) = 0.5d0;
+        enddo
+        do i = 1,15
+            count_k = count_k+1;
+            k_band(count_k, 1) = 0.5d0-i*0.5d0/15;
+            k_band(count_k, 2) = 0.5d0-i*0.5d0/15;
+        enddo
 
-    h0_k = complex_0
+        h0_k = complex_0
 
-    write(stdout,*) 'build k-points of band...'
+        write(stdout,*) 'build k-points of band...'
 
-    ! 反傅里叶变换到k空间的能带
-    ! 在每个k点上对角化得到能带特征值
-    do ik=1,36
-        h0_k_band=complex_0
-        do ix = -rx, rx
-            do iy = -ry, ry
-                temp=[ix,iy]
-                rdotk = two_pi*dot_product(k_band(ik,:),temp)
-                fac=exp(complex_i*rdotk)
-                h0_k_band(:,:,ik)=h0_k_band(:,:,ik)+fac*h0_r(:,:,ix, iy)
+        ! 反傅里叶变换到k空间的能带
+        ! 在每个k点上对角化得到能带特征值
+        do ik=1,36
+            h0_k_band=complex_0
+            do ix = -rx, rx
+                do iy = -ry, ry
+                    temp=[ix,iy]
+                    rdotk = two_pi*dot_product(k_band(ik,:),temp)
+                    fac=exp(complex_i*rdotk)
+                    h0_k_band(:,:,ik)=h0_k_band(:,:,ik)+fac*h0_r(:,:,ix, iy)
+                enddo
             enddo
+            A = h0_k_band(:,:,ik)
+            ! if (ik==1) then
+            !    write(stdout,*) A
+            ! endif
+            B = complex_0
+            do i = 1,nb
+                B(i,i)=complex_1
+            enddo
+            ! write(stdout,*) 'calling cggev...'
+            call zggev('N', 'N', nb, A, nb, B, nb, alpha, beta, vl, 1, vr, 1, work, 2*nb, rwork, info)
+            ! write(stdout,*) 'finish state ', info
+            ev_band(:,ik) = alpha/beta
         enddo
-        A = h0_k_band(:,:,ik)
-        ! if (ik==1) then
-        !    write(stdout,*) A
-        ! endif
-        B = complex_0
-        do i = 1,nb
-            B(i,i)=complex_1
+
+        fileunit = 9999
+        open(fileunit, file='testband.dat')
+        do ik=1,36
+            write(fileunit, *) ik, real(ev_band(:,ik))
         enddo
-        ! write(stdout,*) 'calling cggev...'
-        call zggev('N', 'N', nb, A, nb, B, nb, alpha, beta, vl, 1, vr, 1, work, 2*nb, rwork, info)
-        ! write(stdout,*) 'finish state ', info
-        ev_band(:,ik) = alpha/beta
-    enddo
 
-    fileunit = 9999
-    open(fileunit, file='testband.dat')
-    do ik=1,36
-        write(fileunit, *) ik, real(ev_band(:,ik))
-    enddo
+        close(fileunit)
 
-    close(fileunit)
+        return
 
-    return
-
-end subroutine testBand
+    end subroutine testBand
 
 
 END MODULE myfunctions
