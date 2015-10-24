@@ -26,23 +26,23 @@ clean:
 eliashberg.o: \
     eliashberg.f90 \
     constants.o \
-    myfunctions.o \
+    functions.o \
     parameters.o \
     parameters2.o
 flex_2d.o: \
     flex_2d.f90 \
     constants.o \
-    myfunctions.o \
+    functions.o \
     parameters.o \
     parameters2.o
 readin.o: \
     readin.f90 \
     constants.o \
-    myfunctions.o \
+    functions.o \
     parameters.o \
     parameters2.o
-myfunctions.o: \
-    myfunctions.f90 \
+functions.o: \
+    functions.f90 \
     constants.o \
     parameters.o \
     parameters2.o \
@@ -53,7 +53,7 @@ parameters2.o: \
 testmodule.o: \
     testmodule.f90 \
     constants.o \
-    myfunctions.o \
+    functions.o \
     parameters2.o \
     fftw3.f03
 parameters.o: \
