@@ -2,7 +2,7 @@
     use constants
     use parameters
     use parameters2
-    use myfunctions
+    use functions
     IMPLICIT NONE
 
     real(8) eigen_value(5)

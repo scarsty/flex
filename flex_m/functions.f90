@@ -5,7 +5,7 @@ module functions
 
 contains
     ! mpi函数系列
-    integer function mpi_rank()
+    integer function mpi_rank1()
         implicit none
         integer r
         integer ierr
@@ -14,10 +14,10 @@ contains
 #else
         r = 0
 #endif
-        mpi_rank = r
-    end function mpi_rank
+        mpi_rank1 = r
+    end function mpi_rank1
 
-    integer function mpi_size()
+    integer function mpi_size1()
         implicit none
         integer s
         integer ierr
@@ -26,8 +26,8 @@ contains
 #else
         s = 1
 #endif
-        mpi_size = s
-    end function mpi_size
+        mpi_size1 = s
+    end function mpi_size1
 
     integer function mpi_init1()
         implicit none
@@ -53,7 +53,7 @@ contains
 
     integer function mpi_reduce1(A,n)
         implicit none
-        integer ierr
+        integer ierr, n
         complex(8) A(n),B(n)
 #ifdef USE_MPI
         call mpi_allreduce(A,B,16,MPI_DOUBLE_COMPLEX,MPI_SUM,MPI_COMM_WORLD,ierr)
@@ -292,7 +292,7 @@ contains
         if (outmodel/=0) then
             begin_index=2*nomega
         endif
-
+        !!$omp parallel do private(m,dft_in,dft_out,plan)
         do l=1,N; do m=1,N
             ! 前处理, 补0
             dft_in(:,:,1:length_in) = input(l,m,:,:,1:length_in)
@@ -305,6 +305,7 @@ contains
             ! 后处理
             output(l,m,:,:,1:length_out) = dft_out(:,:,begin_index:length_out-begin_index+1)
         enddo; enddo
+        !!$omp end parallel do
         ! 所有情况都在反傅里叶变换时归一化
         if (direction2==FFTW_BACKWARD) then
             output = output/nk/dft_grid
@@ -428,6 +429,7 @@ contains
         !sigma_mixer(:,:,:,:,:,mixer_pointer)=sigma
 
         ! A_ij=e_i**H*e_j
+        !$omp parallel do private(b1,b2,e)
         do i=1,mix_num
             b1=mixer_error(:,:,:,:,:,mixer_pointer)
             b2=mixer_error(:,:,:,:,:,i)
@@ -436,6 +438,7 @@ contains
             mixer_A(i,mixer_pointer)=conjg(e)
             !write(*,*)e
         enddo
+        !$omp end parallel do
         !Pulay_A(0,mixer_pointer)=-1
         !Pulay_A(mixer_pointer,0)=-1
 
@@ -587,7 +590,7 @@ contains
         complex(8), dimension (nb) :: alpha, beta
         complex(8), dimension (nb, nb) :: vl, vr
         complex(8), dimension (nb*2) :: work
-        integer lwork, info
+        integer info
         real(8), dimension (nb*8) :: rwork
 
 
