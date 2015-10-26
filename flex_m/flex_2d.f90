@@ -126,11 +126,11 @@ program flex_2d
             ! idft chi_0_r_tau to chi_0
             call dft(chi_0_r_tau, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
             chi_0 = T_ev/nk*chi_0
-
+ 
             ! chi_c, chi_s, V
             ! the same to solve AX=B, where A = (I +(c)/-(s) chi_0) and B = chi_0
-            !$omp parallel do private(iky,iomegaq,Iminuschi_0_,chi_0_,chi_c_,chi_s_)
-            do ikx=1,nkx; do iky=1,nky; do iomegaq=minomegab,maxomegab
+            !$omp parallel do private(ikx,iky,Iminuschi_0_,chi_0_,chi_c_,chi_s_)
+            do iomegaq=minomegab,maxomegab; do ikx=1,nkx; do iky=1,nky;
 
                 ! chi_c = chi_0 - chi_0*U_c*chi_c
                 Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
@@ -161,13 +161,15 @@ program flex_2d
 
             ! sigma_r_tau, 并行
             sigma_r_tau = complex_0
-            !!$omp parallel do private(l2,m1,m2) reduction(+:sigma_r_tau)
-            do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
+!omp parallel do private(l2,m1,m2) reduction (+:sigma_r_tau)
+            do l1=1,nb; do m1=1,nb; 
+do l2=1,nb; do m2=1,nb
                 sigma_r_tau(l1, m1, :, :, :) = sigma_r_tau(l1, m1, :, :, :) &
                     + V_r_tau(sub_g2chi(l1,l2), sub_g2chi(m1,m2),:,:,:) * G_r_tau(l2,m2,:,:,:)
-            enddo; enddo; enddo; enddo
-            !!$omp end parallel do
-
+            enddo; enddo; 
+enddo; enddo
+            !omp end parallel do
+                !write(*,*) sigma_r_tau(1,1,1,1,1)
             ! idft sigma_r_tau to sigma
             call dft(sigma_r_tau, sigma, nb, dft_grid, nomegaf, -1, 1)
 
