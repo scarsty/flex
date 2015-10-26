@@ -231,13 +231,13 @@ program flex_2d
 
         ! 计算density
         cur_density=0d0
-        !!$omp parallel do private(ikx,iky,iomegak)
+        !$omp parallel do private(ikx,iky,iomegak) reduction(+:cur_density)
         do ib=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
             cur_density = cur_density &
                 + real(G(ib, ib, ikx, iky, iomegak)) &
                 - real(G0(ib, ib, ikx, iky, iomegak))
         enddo; enddo; enddo; enddo
-        !!$omp end parallel do
+        !$omp end parallel do
         cur_density=cur_density*2*T_eV/nk + density_base
 
         write(stdout,*) 'density and mu: ', cur_density,'/', mu
