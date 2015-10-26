@@ -172,6 +172,7 @@ program flex_2d
 
             ! idft sigma_r_tau to sigma
             call dft(sigma_r_tau, sigma, nb, dft_grid, nomegaf, -1, 1)
+            write(*,*) sigma(1,1,1,1,1)
 
             !call testConvolution3sigma()
 
@@ -233,8 +234,8 @@ program flex_2d
 
         ! 计算density
         cur_density=0d0
-        !$omp parallel do private(ikx,iky,iomegak) reduction(+:cur_density)
-        do ib=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
+        !$omp parallel do private(ikx,iky,ib) reduction(+:cur_density)
+        do iomegak=minomegaf,maxomegaf; do ib=1,nb; do ikx=1,nkx; do iky=1,nky;
             cur_density = cur_density &
                 + real(G(ib, ib, ikx, iky, iomegak)) &
                 - real(G0(ib, ib, ikx, iky, iomegak))
