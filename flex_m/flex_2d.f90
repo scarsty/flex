@@ -161,7 +161,7 @@ program flex_2d
 
             ! sigma_r_tau, 并行
             sigma_r_tau = complex_0
-            !$omp parallel do private(l2,m1,m2)
+            !$omp parallel do private(l2,m1,m2) reduction(+:sigma_r_tau)
             do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
                 sigma_r_tau(l1, m1, :, :, :) = sigma_r_tau(l1, m1, :, :, :) &
                     + V_r_tau(sub_g2chi(l1,l2), sub_g2chi(m1,m2),:,:,:) * G_r_tau(l2,m2,:,:,:)

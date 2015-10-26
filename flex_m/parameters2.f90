@@ -8,7 +8,7 @@ module parameters2
     ! 格林函数, 反常格林函数
     ! 自能函数, 反常自能函数
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: &
-        G, F, sigma, delta, G0, sigma0, G1, delta0, sigma_minus, conjgG, GGdelta, G2
+        G, F, sigma, delta, G0, sigma0, G1, delta0, sigma_minus, conjgG, GGdelta
     complex(8), dimension (nb, nb, nkx, nky, dft_grid) :: &
         G_r_tau, sigma_r_tau, delta_r_tau, conjgG_r_tau, GGdelta_r_tau
 
@@ -50,7 +50,7 @@ module parameters2
     complex(8), dimension (nkx, nky, dft_grid) :: dft_out
 
     ! Pulay mixer 相关
-    integer, parameter :: mix_num  = 100
+    integer, parameter :: mix_num  = 5
     integer mixer_pointer
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf, mix_num) :: mixer_G, mixer_error
     complex(8), dimension (0:mix_num, 0:mix_num) :: mixer_A, mixer_A1

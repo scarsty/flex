@@ -478,7 +478,7 @@ contains
         if (model==0) then
             sigma_minus = sigma0 - sigma
         else
-            sigma_minus = G1-G2
+            return
         endif
 
         norm_sigma_minus = dznrm2(total_grid, sigma_minus, 1)
