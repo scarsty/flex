@@ -27,12 +27,13 @@ subroutine eliashberg()
 
     ! ---------------------------------------------------------------------------------------------
 
-    write(stdout,*)
-    write(stdout,*) 'Solving Eliashberg equation...'
+
     ! 文献中自旋3态有区别, 需自行推导
     ! 自旋态不是3就是1
     ! 注意: 为节省内存, 复用V表示V_s
     do spin_state=1,3,2
+        write(stdout,*)
+        write(stdout,*) 'Solving Eliashberg equation for spin ', spin_state
         V = complex_0
         do ikx=1,nkx; do iky=1,nky; do iomegaq=minomegab,maxomegab
             call cal_chi_cs(ikx,iky,iomegaq)
@@ -115,7 +116,8 @@ subroutine eliashberg()
 
         ! output delta_nn (gap function)
         write(stdout,*) 'gap function'
-        write(stdout,*) 'kx, ky, delta(real and imag)'
+        write(stdout,*) '       kx        ky        delta(real and imag)'
+        write(stdout,*) '---------------------------------------------------'
         do ikx=1,nkx; do iky=1,nky
             temp_complex=complex_0
             do l1=1,nb
@@ -129,12 +131,13 @@ subroutine eliashberg()
         write(stdout,*)
     enddo
 
+    write(stdout,*)
     write(stdout,*) 'Summary:'
     write(stdout,*)
     write(stdout,*) 'Temperature is ', T
     write(stdout,*)
     write(stdout,*) '  spin      max.eigenvalue'
-    write(stdout,*) '----------------------------'
+    write(stdout,*) '------------------------------'
 
     do spin_state=1,3,2
         write(stdout,'(I7, F20.8)') spin_state, lambda_list(spin_state)

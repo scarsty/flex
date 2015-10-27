@@ -100,7 +100,7 @@ program flex_2d
 
         sigma_iter = 1
         write(stdout,*) '  iter   iter  conv.pts           sigma.tol'
-        write(stdout,*) '----------------------------------------------'
+        write(stdout,*) '-----------------------------------------------'
 
         ! sigma迭代中使用openmp并行
 
@@ -132,7 +132,21 @@ program flex_2d
             !$omp parallel do private(ikx,iky,Iminuschi_0_,chi_0_,chi_c_,chi_s_)
             do iomegaq=minomegab,maxomegab; do ikx=1,nkx; do iky=1,nky;
 
-                call cal_chi_cs(ikx,iky,iomegaq)
+                !call cal_chi_cs(ikx,iky,iomegaq)
+                ! 上面的过程并行会导致问题, 这里直接展开
+
+                chi_0_=chi_0(:, :, ikx, iky, iomegaq)
+                ! chi_c = chi_0 - chi_0*U_c*chi_c
+                Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
+                !Iminuschi_0_ = I_chi + AB(U_c,chi_0_,nb*nb)
+                chi_c_ = chi_0_
+                call inverseAbyB(Iminuschi_0_,chi_c_,nb*nb)
+
+                ! chi_s = chi_0 + chi_0*U_s*chi_s
+                Iminuschi_0_ = I_chi - AB(chi_0_,U_s,nb*nb)
+                !Iminuschi_0_ = I_chi - AB(U_s,chi_0_,nb*nb)
+                chi_s_ = chi_0_
+                call inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
 
                 V(:, :, ikx, iky, iomegaq) = U_ud - 2*U_uu &
                     - ABA(U_ud, chi_0_, nb*nb) &
@@ -166,7 +180,7 @@ program flex_2d
             !call testConvolution3sigma()
 
             !if (sigma_iter > 1) then
-            sigma_conv = convergence_test(sigma_iter, 0)
+            call convergence_test(sigma_conv)
             if (sigma_conv) then
                 exit
             endif
@@ -186,8 +200,8 @@ program flex_2d
                     sigma_=sigma(:,:,ikx,iky,iomegak)
                     G_=AB(G0_,sigma_,nb)
                     G_=I_G - G_
-                    G_=inverseAbyB(G_,G0_,nb)
-                    G1(:,:,ikx,iky,iomegak) = G_
+                    call inverseAbyB(G_,G0_,nb)
+                    G1(:,:,ikx,iky,iomegak) = G0_
                 else
                     G(:,:,ikx,iky,iomegak) &
                         = &
@@ -258,7 +272,8 @@ program flex_2d
 
     ! output chi_s(q,0), 未完成, 需要计算chi_s
     write(stdout,*) 'chi_s at omega = 0'
-    write(stdout,*) 'kx, ky, chi_s(real and imag)'
+    write(stdout,*) '       kx        ky        chi_s(real and imag)'
+    write(stdout,*) '---------------------------------------------------'
     do ikx=1,nkx; do iky=1,nky
         temp_complex=complex_0
         call cal_chi_cs(ikx,iky,0)

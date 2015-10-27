@@ -71,17 +71,17 @@ contains
         sub_g2chi = a+(b-1)*nb
     end function
 
-    function inverseAbyB(A, B, n)
+    ! B会改变!
+    subroutine inverseAbyB(A, B, n)
         use constants
         implicit none
         integer n
-        complex(8), dimension (n, n) :: A, B, inverseAbyB
+        complex(8), dimension (n, n) :: A, B
         integer info, lda, ldb
         integer ipiv(n)
         call zgesv(n, n, A, n, ipiv, B, n, info)
-        inverseAbyB=B
         !write(stderr,*) info
-    end function
+    end subroutine
 
     ! 需要测试, 考虑内存模式
     ! 因为都是方阵, 可考虑换函数
@@ -453,7 +453,7 @@ contains
         G=complex_0
         do i=1,n
             G=G+mixer_G(:,:,:,:,:,i)*real(mixer_x(i))
-            !write(*,*) mixer_x(i), mixer_A(i,i)
+            !write(*,*) real(mixer_x(i)), real(mixer_A(i,i))
         enddo
         mixer_pointer=next_pointer
         !call writematrix(Pulay_A,11)
@@ -463,14 +463,14 @@ contains
 
     ! 检查收敛点数, 注意使用时机
     ! model: 1-sigma, 2-G
-    function convergence_test(iter, model)
+    subroutine convergence_test(conv)
         use parameters
         use parameters2
         implicit none
-        logical convergence_test
         real(8) dznrm2
         external dznrm2
-        integer ib1, ib2, ikx, iky, iomegak, conv_grid, iter, model
+        logical conv
+        integer ib1, ib2, ikx, iky, iomegak, conv_grid
         real(8) norm_sigma_minus, norm_sigma, norm_sigma0, cur_sigma_tol, tol
 
         ! 计算sigma0与sigma的符合情况, 向量库
@@ -492,16 +492,16 @@ contains
             endif
         enddo; enddo; enddo; enddo; enddo;
 
-        cur_sigma_tol = norm_sigma0/norm_sigma -1
-        write(stdout,'(I7,I7,I10,ES20.5)') density_iter, iter, conv_grid, cur_sigma_tol
-        convergence_test  = (conv_grid==total_grid)
+        cur_sigma_tol = abs(norm_sigma0/norm_sigma - 1)
+        write(stdout,'(I7,I7,I10,ES20.5)') density_iter, sigma_iter, conv_grid, cur_sigma_tol
+        conv  = (conv_grid==total_grid)
 
 #ifdef _DEBUG
         !norm_sigma0 = dznrm2(nb*nb*nkx*nky*nomegaf, sigma0, 1)
         !write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma
         !write(stdout,*) '0-1:',norm_sigma_minus
 #endif
-    end function
+    end subroutine
 
     ! 1~3数组, 第一个保存最接近的值, 后面两个保存最近两次计算的值
     ! warning表示最新的值并未更加靠近, 可能存在数值问题
@@ -668,14 +668,14 @@ contains
         ! chi_c = chi_0 - chi_0*U_c*chi_c
         Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
         !Iminuschi_0_ = I_chi + AB(U_c,chi_0_,nb*nb)
-        chi_c_ = chi_0(:, :, kx, ky, omegaq)
-        chi_c_ = inverseAbyB(Iminuschi_0_,chi_c_,nb*nb)
+        chi_c_ = chi_0_
+        call inverseAbyB(Iminuschi_0_,chi_c_,nb*nb)
 
         ! chi_s = chi_0 + chi_0*U_s*chi_s
         Iminuschi_0_ = I_chi - AB(chi_0_,U_s,nb*nb)
         !Iminuschi_0_ = I_chi - AB(U_s,chi_0_,nb*nb)
-        chi_s_ = chi_0(:, :, kx, ky, omegaq)
-        chi_s_ = inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
+        chi_s_ = chi_0_
+        call inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
 
     end subroutine
 
