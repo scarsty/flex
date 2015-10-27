@@ -32,6 +32,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-lgomp" />
 				</Linker>
 			</Target>
 		</Build>
@@ -86,7 +87,7 @@
 			<Option weight="1" />
 		</Unit>
 		<Unit filename="readin.f90">
-			<Option weight="2" />
+			<Option weight="3" />
 		</Unit>
 		<Unit filename="testmodule.f90">
 			<Option weight="3" />

@@ -15,7 +15,7 @@ contains
         r = 0
 #endif
         mpi_rank1 = r
-    end function mpi_rank1
+    end function
 
     integer function mpi_size1()
         implicit none
@@ -27,7 +27,7 @@ contains
         s = 1
 #endif
         mpi_size1 = s
-    end function mpi_size1
+    end function
 
     integer function mpi_init1()
         implicit none
@@ -38,7 +38,7 @@ contains
         ierr = 0
 #endif
         mpi_init1 = ierr
-    end function mpi_init1
+    end function
 
     integer function mpi_finalize1()
         implicit none
@@ -49,7 +49,7 @@ contains
         ierr = 0
 #endif
         mpi_finalize1 = ierr
-    end function mpi_finalize1
+    end function
 
     integer function mpi_reduce1(A,n)
         implicit none
@@ -61,7 +61,7 @@ contains
         ierr = 0
 #endif
         mpi_reduce1 = ierr
-    end function mpi_reduce1
+    end function
 
     ! 下标变换
     integer function sub_g2chi(a,b)
@@ -69,7 +69,7 @@ contains
         implicit none
         integer a, b
         sub_g2chi = a+(b-1)*nb
-    end function sub_g2chi
+    end function
 
     function inverseAbyB(A, B, n)
         use constants
@@ -81,7 +81,7 @@ contains
         call zgesv(n, n, A, n, ipiv, B, n, info)
         inverseAbyB=B
         !write(stderr,*) info
-    end function inverseAbyB
+    end function
 
     ! 需要测试, 考虑内存模式
     ! 因为都是方阵, 可考虑换函数
@@ -94,7 +94,7 @@ contains
             A, n, B, n, complex_0, C, n)
         call zgemm('N', 'N', n, n, n, complex_1, &
             C, n, A, n, complex_0, ABA, n)
-    end function ABA
+    end function
 
     function ABC(A, B, C, n)
         use constants
@@ -105,7 +105,7 @@ contains
             A, n, B, n, complex_0, AB, n)
         call zgemm('N', 'N', n, n, n, complex_1, &
             AB, n, C, n, complex_0, ABC, n)
-    end function ABC
+    end function
 
     ! 需要测试, 考虑内存模式
     function AB(A, B, n)
@@ -115,7 +115,7 @@ contains
         complex(8), dimension (n, n) :: A, B, AB
         call zgemm('N', 'N', n, n, n, complex_1, &
             A, n, B, n, complex_0, AB, n)
-    end function AB
+    end function
 
     ! 需要测试, 考虑内存模式
     function AHBA(A, B, n)
@@ -127,7 +127,7 @@ contains
             A, n, B, n, complex_0, C, n)
         call zgemm('N', 'N', n, n, n, complex_1, &
             C, n, A, n, complex_0, AHBA, n)
-    end function AHBA
+    end function
 
     function ABAH(A, B, n)
         use constants
@@ -138,7 +138,7 @@ contains
             A, n, B, n, complex_0, C, n)
         call zgemm('N', 'C', n, n, n, complex_1, &
             C, n, A, n, complex_0, ABAH, n)
-    end function ABAH
+    end function
 
     ! 松原频率转换, 数据结构设计如此
     function transfer_freq(freq)
@@ -150,7 +150,7 @@ contains
         else
             transfer_freq=dft_grid+freq
         endif
-    end function transfer_freq
+    end function
 
     subroutine matrixProduct(src, dft_matrix, dst, M, N, K)
         use constants
@@ -159,7 +159,7 @@ contains
         complex(8) dft_matrix(K,N), src(M,K), dst(M,N)
         call zgemm('N', 'N', M, N, K, complex_1, &
             src, M, dft_matrix, K, complex_0, dst, M)
-    end subroutine matrixProduct
+    end subroutine
 
     subroutine init()
         use parameters
@@ -313,7 +313,7 @@ contains
 
         return
 
-    end subroutine dft
+    end subroutine
 
     subroutine writematrix(A,n)
         use constants
@@ -329,7 +329,7 @@ contains
             write(stdout,*)
         enddo
 
-    end subroutine writematrix
+    end subroutine
 
     subroutine cleanError(A,n)
         use constants
@@ -344,7 +344,7 @@ contains
             endif
         enddo
 
-    end subroutine cleanError
+    end subroutine
 
     ! pulay mixer 相关
     ! 移动指针
@@ -356,7 +356,7 @@ contains
         mixerIncPointer = p+n
         mixerIncPointer = mod(mixerIncPointer, mix_num)
         if (mixerIncPointer==0) mixerIncPointer=mix_num
-    end function mixerIncPointer
+    end function
 
     ! 求模的平方
     function mixerErrorProduct(a, b)
@@ -376,7 +376,7 @@ contains
                 enddo
             enddo;enddo
         enddo;enddo
-    end function mixerErrorProduct
+    end function
 
     ! 初始化混合器
     subroutine mixerInit()
@@ -396,7 +396,7 @@ contains
         enddo
         mixer_b = 0
         mixer_b(0) = -1
-    end subroutine mixerInit
+    end subroutine
 
     ! G1是新的, G是上一步
     ! 混合算法
@@ -458,7 +458,7 @@ contains
         mixer_pointer=next_pointer
         !call writematrix(Pulay_A,11)
         !stop
-    end subroutine mixer
+    end subroutine
 
 
     ! 检查收敛点数, 注意使用时机
@@ -475,23 +475,24 @@ contains
 
         ! 计算sigma0与sigma的符合情况, 向量库
         ! dznrm2: 欧几里得模，行向量乘以自身转置共轭
-        if (model==0) then
-            sigma_minus = sigma0 - sigma
-        else
-            return
-        endif
+        !if (model==0) then
+            !sigma_minus = sigma0 - sigma
+        !else
+            !return
+        !endif
 
-        norm_sigma_minus = dznrm2(total_grid, sigma_minus, 1)
+        norm_sigma0 = dznrm2(total_grid, sigma0, 1)
         norm_sigma = dznrm2(total_grid, sigma, 1)
         tol = norm_sigma*sigma_tol/total_grid
         conv_grid=0
         do ib1=1,nb; do ib2=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
-            if (abs(sigma_minus(ib1,ib2,ikx,iky,iomegak))<sigma_tol*abs(sigma(ib1,ib2,ikx,iky,iomegak))) then
+            if (abs(sigma(ib1,ib2,ikx,iky,iomegak)-sigma0(ib1,ib2,ikx,iky,iomegak)) &
+                    <sigma_tol*abs(sigma(ib1,ib2,ikx,iky,iomegak))) then
                 conv_grid=conv_grid+1
             endif
         enddo; enddo; enddo; enddo; enddo;
 
-        cur_sigma_tol = norm_sigma_minus / norm_sigma
+        cur_sigma_tol = norm_sigma0/norm_sigma -1
         write(stdout,'(I7,I7,I10,ES20.5)') density_iter, iter, conv_grid, cur_sigma_tol
         convergence_test  = (conv_grid==total_grid)
 
@@ -654,9 +655,28 @@ contains
 
         close(fileunit)
 
-        return
+    end subroutine
 
-    end subroutine testBand
+    subroutine cal_chi_cs(kx,ky,omegaq)
+        use constants
+        use parameters2
+        implicit none
+        integer kx,ky,omegaq
 
+        chi_0_=chi_0(:, :, kx, ky, omegaq)
+
+        ! chi_c = chi_0 - chi_0*U_c*chi_c
+        Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
+        !Iminuschi_0_ = I_chi + AB(U_c,chi_0_,nb*nb)
+        chi_c_ = chi_0(:, :, kx, ky, omegaq)
+        chi_c_ = inverseAbyB(Iminuschi_0_,chi_c_,nb*nb)
+
+        ! chi_s = chi_0 + chi_0*U_s*chi_s
+        Iminuschi_0_ = I_chi - AB(chi_0_,U_s,nb*nb)
+        !Iminuschi_0_ = I_chi - AB(U_s,chi_0_,nb*nb)
+        chi_s_ = chi_0(:, :, kx, ky, omegaq)
+        chi_s_ = inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
+
+    end subroutine
 
 end module functions

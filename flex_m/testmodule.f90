@@ -94,9 +94,7 @@ subroutine testConvolution2()
     use constants
     use, intrinsic :: iso_c_binding
     implicit none
-
     include 'fftw3.f03'
-
     integer i, x, t, i1, i2, j1, j2, i_minus_j1, i_minus_j2, num
     type(C_PTR) :: plan
     real(8) :: start, finish, summary
@@ -179,9 +177,7 @@ subroutine testConvolution3()
     use constants
     use, intrinsic :: iso_c_binding
     implicit none
-
     include 'fftw3.f03'
-
     integer i, x, t, i1, i2, i3, j1, j2, j3, i_minus_j1, i_minus_j2, i_minus_j3, num
     type(C_PTR) :: plan
     real(8) :: start, finish, summary
@@ -299,20 +295,20 @@ subroutine testConvolution3G()
 
     ! dft G to G_r_tau
     write(stderr,*)nomegaf,nomegab
-    call dft(G, G_r_tau, nb, nomegaf, dft_grid, 1, 0)
-    call dft(conjgG, conjgG_r_tau, nb, nomegaf, dft_grid, 1, 0)
+    call dft(G, r_tau1, nb, nomegaf, dft_grid, 1, 0)
+    call dft(conjgG, r_tau2, nb, nomegaf, dft_grid, 1, 0)
     ! 卷积形式, 改成减法
-    chi_0_r_tau=0
+    r_tau_sqr=0
     do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-        chi_0_r_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
-            = -G_r_tau(l1, m1, :, :, :)*conjgG_r_tau(m2, l2, :, :, :)
+        r_tau_sqr(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
+            = - r_tau1(l1, m1, :, :, :)*r_tau2(m2, l2, :, :, :)
     enddo; enddo; enddo; enddo
 
     ! idft chi_0_r_tau to chi_0
-    call dft(chi_0_r_tau, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
+    call dft(r_tau_sqr, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
     write(stderr, *) chi_0(:,:,:,:,:)
 
-    chi_c = chi_0
+    V = chi_0
     chi_0=complex_0
     do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
         do ikx1=1,nkx;do iky1=1,nky;do iomega1=minomegaf,maxomegaf
@@ -330,8 +326,8 @@ subroutine testConvolution3G()
     enddo;enddo;enddo;enddo
     write(stderr, *) chi_0(:,:,:,:,:)
 
-    chi_c = chi_0-chi_c
-    write(stderr, *) dznrm2(nb**4*nk*nomegab, chi_c, 1) &
+    V = chi_0-V
+    write(stderr, *) dznrm2(nb**4*nk*nomegab, V, 1) &
         / dznrm2(nb**4*nk*nomegab, chi_0, 1)
     stop
     !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)

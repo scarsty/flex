@@ -108,23 +108,23 @@ program flex_2d
 
             ! calculate chi_0 with chi(q)= -G1(q-k)G2(-k), the same to -G1(q-k)G2(k)**H
             ! dft G to G_r_tau
-            call dft(G, G_r_tau, nb, nomegaf, dft_grid, 1, 0)
+            call dft(G, r_tau1, nb, nomegaf, dft_grid, 1, 0)
 
             conjgG=conjg(G)
-            call dft(conjgG, conjgG_r_tau, nb, nomegaf, dft_grid, 1, 0)
+            call dft(conjgG, r_tau2, nb, nomegaf, dft_grid, 1, 0)
 
             ! chi_0, 并行
             ! 卷积形式, 改成减法 on tau
-            chi_0_r_tau=0
+            r_tau_sqr=0
             !$omp parallel do private(l2,m1,m2)
             do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-                chi_0_r_tau(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
-                    = - G_r_tau(l1, m1, :, :, :)*conjgG_r_tau(m2, l2, :, :, :)
+                r_tau_sqr(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
+                    = - r_tau1(l1, m1, :, :, :)*r_tau2(m2, l2, :, :, :)
             enddo; enddo; enddo; enddo
             !$omp end parallel do
 
             ! idft chi_0_r_tau to chi_0
-            call dft(chi_0_r_tau, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
+            call dft(r_tau_sqr, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
             chi_0 = T_ev/nk*chi_0
 
             ! chi_c, chi_s, V
@@ -132,23 +132,12 @@ program flex_2d
             !$omp parallel do private(ikx,iky,Iminuschi_0_,chi_0_,chi_c_,chi_s_)
             do iomegaq=minomegab,maxomegab; do ikx=1,nkx; do iky=1,nky;
 
-                ! chi_c = chi_0 - chi_0*U_c*chi_c
-                Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
-                chi_0_=chi_0(:, :, ikx, iky, iomegaq)
-                !Iminuschi_0_ = I_chi + AB(U_c,chi_0_,nb*nb)
-                chi_c_ = chi_0(:, :, ikx, iky, iomegaq)
-                chi_c(:, :, ikx, iky, iomegaq)= inverseAbyB(Iminuschi_0_,chi_c_,nb*nb)
-
-                ! chi_s = chi_0 + chi_0*U_s*chi_s
-                Iminuschi_0_ = I_chi - AB(chi_0_,U_s,nb*nb)
-                !Iminuschi_0_ = I_chi - AB(U_s,chi_0_,nb*nb)
-                chi_s_ = chi_0(:, :, ikx, iky, iomegaq)
-                chi_s(:, :, ikx, iky, iomegaq) = inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
+                call cal_chi_cs(ikx,iky,iomegaq)
 
                 V(:, :, ikx, iky, iomegaq) = U_ud - 2*U_uu &
-                    - ABA(U_ud, chi_0(:, :, ikx, iky, iomegaq), nb*nb) &
-                    + 1.5*ABA(U_s, chi_s(:, :, ikx, iky, iomegaq), nb*nb) &
-                    + 0.5*ABA(U_c, chi_c(:, :, ikx, iky, iomegaq), nb*nb)
+                    - ABA(U_ud, chi_0_, nb*nb) &
+                    + 1.5*ABA(U_s, chi_s_, nb*nb) &
+                    + 0.5*ABA(U_c, chi_c_, nb*nb)
 
             enddo; enddo; enddo
             !$omp end parallel do
@@ -157,21 +146,21 @@ program flex_2d
             !sigma(k) = V(k-k')*G(k')
 
             ! dft V to V_r_tau
-            call dft(V, V_r_tau, nb*nb, nomegab, dft_grid, 1, 0)
+            call dft(V, r_tau_sqr, nb*nb, nomegab, dft_grid, 1, 0)
 
             ! sigma_r_tau, 并行
-            sigma_r_tau = complex_0
+            r_tau2 = complex_0
             !omp parallel do private(l2,m1,m2) reduction (+:sigma_r_tau)
             do l1=1,nb; do m1=1,nb;
                 do l2=1,nb; do m2=1,nb
-                    sigma_r_tau(l1, m1, :, :, :) = sigma_r_tau(l1, m1, :, :, :) &
-                        + V_r_tau(sub_g2chi(l1,l2), sub_g2chi(m1,m2),:,:,:) * G_r_tau(l2,m2,:,:,:)
+                    r_tau2(l1, m1, :, :, :) = r_tau2(l1, m1, :, :, :) &
+                        + r_tau_sqr(sub_g2chi(l1,l2), sub_g2chi(m1,m2),:,:,:) * r_tau1(l2,m2,:,:,:)
                 enddo; enddo;
             enddo; enddo
             !omp end parallel do
 
             ! idft sigma_r_tau to sigma
-            call dft(sigma_r_tau, sigma, nb, dft_grid, nomegaf, -1, 1)
+            call dft(r_tau2, sigma, nb, dft_grid, nomegaf, -1, 1)
             ! write(*,*) sigma(1,1,1,1,1)
 
             !call testConvolution3sigma()
@@ -267,13 +256,14 @@ program flex_2d
 
     ! 迭代部分结束--------------------------------------------------------------------------
 
-    ! output chi_s(q,0)
+    ! output chi_s(q,0), 未完成, 需要计算chi_s
     write(stdout,*) 'chi_s at omega = 0'
     write(stdout,*) 'kx, ky, chi_s(real and imag)'
     do ikx=1,nkx; do iky=1,nky
         temp_complex=complex_0
+        call cal_chi_cs(ikx,iky,0)
         do l1=1,nb; do m1=1,nb
-            temp_complex=temp_complex+chi_s(sub_g2chi(l1,l1),sub_g2chi(m1,m1),ikx,iky,0)
+            temp_complex=temp_complex+chi_s_(l1,m1)
         enddo; enddo
         write(stdout, '(2F10.4,2F14.8)') k(ikx,iky,:), temp_complex
     enddo; enddo
@@ -285,7 +275,7 @@ program flex_2d
     endif
 
     write(stdout,*)
-    write(stdout,*) 'good night.'
+    write(stdout,*) ' good night.'
     write(stdout,*)
 
     mpi_info = mpi_finalize1()
