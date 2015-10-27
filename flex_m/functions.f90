@@ -483,16 +483,16 @@ contains
 
         norm_sigma_minus = dznrm2(total_grid, sigma_minus, 1)
         norm_sigma = dznrm2(total_grid, sigma, 1)
-        tol = norm_sigma*sigma_tol
+        tol = norm_sigma*sigma_tol/total_grid
         conv_grid=0
         do ib1=1,nb; do ib2=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
-            if (abs(sigma_minus(ib1,ib2,ikx,iky,iomegak))<tol) then
+            if (abs(sigma_minus(ib1,ib2,ikx,iky,iomegak))<sigma_tol*abs(sigma(ib1,ib2,ikx,iky,iomegak))) then
                 conv_grid=conv_grid+1
             endif
         enddo; enddo; enddo; enddo; enddo;
 
         cur_sigma_tol = norm_sigma_minus / norm_sigma
-        write(stdout,'(I7,I10,ES20.5)') iter, conv_grid, cur_sigma_tol
+        write(stdout,'(I7,I7,I10,ES20.5)') density_iter, iter, conv_grid, cur_sigma_tol
         convergence_test  = (conv_grid==total_grid)
 
 #ifdef _DEBUG

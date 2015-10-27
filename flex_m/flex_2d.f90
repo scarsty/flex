@@ -99,8 +99,8 @@ program flex_2d
         write(stdout, *) 'base density is ', density_base
 
         sigma_iter = 1
-        write(stdout,*) '  iter  conv.pts           sigma.tol'
-        write(stdout,*) '--------------------------------------'
+        write(stdout,*) '  iter   iter  conv.pts           sigma.tol'
+        write(stdout,*) '----------------------------------------------'
 
         ! sigma迭代中使用openmp并行
 
@@ -172,7 +172,7 @@ program flex_2d
 
             ! idft sigma_r_tau to sigma
             call dft(sigma_r_tau, sigma, nb, dft_grid, nomegaf, -1, 1)
-            write(*,*) sigma(1,1,1,1,1)
+            ! write(*,*) sigma(1,1,1,1,1)
 
             !call testConvolution3sigma()
 
@@ -218,6 +218,7 @@ program flex_2d
                     G=mixer_beta*G1+(1-mixer_beta)*G
                 case (2)
                     call mixer(sigma_iter)
+                    !G=mixer_beta*G1+(1-mixer_beta)*G
             end select
 
             !G2=G
