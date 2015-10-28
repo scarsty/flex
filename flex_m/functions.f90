@@ -4,7 +4,7 @@ module functions
 #endif
 
 contains
-    ! mpiå‡½æ•°ç³»åˆ—
+    ! mpiº¯ÊıÏµÁĞ
     integer function mpi_rank1()
         implicit none
         integer r
@@ -63,7 +63,7 @@ contains
         mpi_reduce1 = ierr
     end function
 
-    ! ä¸‹æ ‡å˜æ¢
+    ! ÏÂ±ê±ä»»
     integer function sub_g2chi(a,b)
         use constants, only: nb
         implicit none
@@ -71,7 +71,7 @@ contains
         sub_g2chi = a+(b-1)*nb
     end function
 
-    ! Bä¼šæ”¹å˜!
+    ! B»á¸Ä±ä!
     subroutine inverseAbyB(A, B, n)
         use constants
         implicit none
@@ -83,8 +83,8 @@ contains
         !write(stderr,*) info
     end subroutine
 
-    ! éœ€è¦æµ‹è¯•, è€ƒè™‘å†…å­˜æ¨¡å¼
-    ! å› ä¸ºéƒ½æ˜¯æ–¹é˜µ, å¯è€ƒè™‘æ¢å‡½æ•°
+    ! ĞèÒª²âÊÔ, ¿¼ÂÇÄÚ´æÄ£Ê½
+    ! ÒòÎª¶¼ÊÇ·½Õó, ¿É¿¼ÂÇ»»º¯Êı
     function ABA(A, B, n)
         use constants
         implicit none
@@ -107,7 +107,7 @@ contains
             AB, n, C, n, complex_0, ABC, n)
     end function
 
-    ! éœ€è¦æµ‹è¯•, è€ƒè™‘å†…å­˜æ¨¡å¼
+    ! ĞèÒª²âÊÔ, ¿¼ÂÇÄÚ´æÄ£Ê½
     function AB(A, B, n)
         use constants
         implicit none
@@ -117,7 +117,7 @@ contains
             A, n, B, n, complex_0, AB, n)
     end function
 
-    ! éœ€è¦æµ‹è¯•, è€ƒè™‘å†…å­˜æ¨¡å¼
+    ! ĞèÒª²âÊÔ, ¿¼ÂÇÄÚ´æÄ£Ê½
     function AHBA(A, B, n)
         use constants
         implicit none
@@ -140,7 +140,7 @@ contains
             C, n, A, n, complex_0, ABAH, n)
     end function
 
-    ! æ¾åŸé¢‘ç‡è½¬æ¢, æ•°æ®ç»“æ„è®¾è®¡å¦‚æ­¤
+    ! ËÉÔ­ÆµÂÊ×ª»», Êı¾İ½á¹¹Éè¼ÆÈç´Ë
     function transfer_freq(freq)
         use constants
         implicit none
@@ -197,9 +197,9 @@ contains
         real(8) rdotk, temp(2)
         complex(8) fac
 
-        ! è®¡ç®—kç‚¹çš„åæ ‡
+        ! ¼ÆËãkµãµÄ×ø±ê
         write(stdout, *) "Building k-points grid..."
-        !zero_k = 1    ! kåŸç‚¹
+        !zero_k = 1    ! kÔ­µã
         do ikx = 1, nkx
             do iky = 1, nky
                 k(ikx, iky, 1)=1d0/nkx*(ikx-1)
@@ -211,7 +211,7 @@ contains
         enddo
         write(stdout, *)
 
-        ! åå‚…é‡Œå¶å˜æ¢h0åˆ°kç©ºé—´
+        ! ·´¸µÀïÒ¶±ä»»h0µ½k¿Õ¼ä
         h0_k = complex_0
         do ikx=1,nkx; do iky=1,nky
             do irx=-rx,rx; do iry=-ry,ry
@@ -221,7 +221,7 @@ contains
                 h0_k(:,:,ikx,iky)=h0_k(:,:,ikx,iky)+fac*h0_r(:,:,irx,iry)
             enddo; enddo
 
-            ! è®¡ç®—ç‰¹å¾å€¼å’Œç‰¹å¾å‘é‡
+            ! ¼ÆËãÌØÕ÷ÖµºÍÌØÕ÷ÏòÁ¿
             h0_k_=h0_k(:,:,ikx,iky)
             u_h0_k_=h0_k_
             call zheev('V','L',nb,u_h0_k_,nb,ev_h0_k_,ev_h0_k_lwork,nb*nb,ev_h0_k_rwork,info)
@@ -238,7 +238,7 @@ contains
         implicit none
         integer ix, iy
         ! U
-        ! èƒ½å¸¦ä¸‹æ ‡ab, cd -> (a+(b-1)*nb, c+(d-1)*nb)
+        ! ÄÜ´øÏÂ±êab, cd -> (a+(b-1)*nb, c+(d-1)*nb)
         ! real, dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu
         U_ud = 0d0
         U_uu = 0d0
@@ -261,14 +261,14 @@ contains
 
 
     ! dft, direction means FORWORD(+) or BACKWORD(-)
-    ! è°ƒç”¨fftw
-    ! å‚…é‡Œå¶å˜æ¢ç”¨äºè®¡ç®—å·ç§¯, åŒ…å«ä»¥ä¸‹ä¸¤ç§æƒ…å†µ:
-    ! (1) G*conjgGçš„å·ç§¯, è¾“å…¥éƒ½æ˜¯è´¹ç±³é¢‘ç‡, è¾“å‡ºæ˜¯ç»è‰²é¢‘ç‡.
-    !     è¿™æ—¶éœ€è¦è¡¥å……2*nomegaçš„0. åå‚…é‡Œå¶å˜æ¢çš„è¾“å‡ºç»“æœä»0å¼€å§‹
-    ! (2) V*Gçš„å·ç§¯, è¾“å…¥æ˜¯ç»è‰²é¢‘ç‡å’Œè´¹ç±³é¢‘ç‡, è¾“å‡ºæ˜¯è´¹ç±³é¢‘ç‡.
-    !     è¿™æ—¶å‰è€…åªéœ€è¡¥ä¸€ä¸ª0, åè€…åŒ(1)è¡¥2*nomegaçš„0. åå‚…é‡Œå¶å˜æ¢çš„ç»“æœä»2*nomegaå¼€å§‹.
-    ! å˜æ¢çš„ç½‘æ ¼å’Œå‚…é‡Œå¶å˜æ¢çš„è¾“å‡ºéƒ½æ˜¯4*nomega, åå‚…é‡Œå¶å˜æ¢çš„è¾“å‡ºé•¿åº¦éšæ¨¡å¼è€Œå®š.
-    ! outmodel: 0 - ä»0å¼€å§‹è¾“å‡º, å¤§éƒ¨åˆ†æƒ…å†µ; å…¶ä»– - ä»n*nomegaè¾“å‡º, ä»…é€‚åˆè‡ªèƒ½.
+    ! µ÷ÓÃfftw
+    ! ¸µÀïÒ¶±ä»»ÓÃÓÚ¼ÆËã¾í»ı, °üº¬ÒÔÏÂÁ½ÖÖÇé¿ö:
+    ! (1) G*conjgGµÄ¾í»ı, ÊäÈë¶¼ÊÇ·ÑÃ×ÆµÂÊ, Êä³öÊÇ²£É«ÆµÂÊ.
+    !     ÕâÊ±ĞèÒª²¹³ä2*nomegaµÄ0. ·´¸µÀïÒ¶±ä»»µÄÊä³ö½á¹û´Ó0¿ªÊ¼
+    ! (2) V*GµÄ¾í»ı, ÊäÈëÊÇ²£É«ÆµÂÊºÍ·ÑÃ×ÆµÂÊ, Êä³öÊÇ·ÑÃ×ÆµÂÊ.
+    !     ÕâÊ±Ç°ÕßÖ»Ğè²¹Ò»¸ö0, ºóÕßÍ¬(1)²¹2*nomegaµÄ0. ·´¸µÀïÒ¶±ä»»µÄ½á¹û´Ó2*nomega¿ªÊ¼.
+    ! ±ä»»µÄÍø¸ñºÍ¸µÀïÒ¶±ä»»µÄÊä³ö¶¼ÊÇ4*nomega, ·´¸µÀïÒ¶±ä»»µÄÊä³ö³¤¶ÈËæÄ£Ê½¶ø¶¨.
+    ! outmodel: 0 - ´Ó0¿ªÊ¼Êä³ö, ´ó²¿·ÖÇé¿ö; ÆäËû - ´Ón*nomegaÊä³ö, ½öÊÊºÏ×ÔÄÜ.
     subroutine dft(input, output, N, length_in, length_out, direction, outmodel)
         use constants
         use parameters2
@@ -287,14 +287,14 @@ contains
             direction2 = FFTW_BACKWARD
         endif
 
-        ! è¾“å‡ºçš„èµ·å§‹ä¸‹æ ‡
+        ! Êä³öµÄÆğÊ¼ÏÂ±ê
         begin_index=1
         if (outmodel/=0) then
             begin_index=2*nomega
         endif
         !!$omp parallel do private(m,dft_in,dft_out,plan)
         do l=1,N; do m=1,N
-            ! å‰å¤„ç†, è¡¥0
+            ! Ç°´¦Àí, ²¹0
             dft_in(:,:,1:length_in) = input(l,m,:,:,1:length_in)
             dft_in(:,:,length_in+1:dft_grid)=complex_0
 
@@ -302,11 +302,11 @@ contains
             call fftw_execute_dft(plan, dft_in, dft_out)
             call fftw_destroy_plan(plan)
 
-            ! åå¤„ç†
+            ! ºó´¦Àí
             output(l,m,:,:,1:length_out) = dft_out(:,:,begin_index:length_out-begin_index+1)
         enddo; enddo
         !!$omp end parallel do
-        ! æ‰€æœ‰æƒ…å†µéƒ½åœ¨åå‚…é‡Œå¶å˜æ¢æ—¶å½’ä¸€åŒ–
+        ! ËùÓĞÇé¿ö¶¼ÔÚ·´¸µÀïÒ¶±ä»»Ê±¹éÒ»»¯
         if (direction2==FFTW_BACKWARD) then
             output = output/nk/dft_grid
         endif
@@ -346,8 +346,8 @@ contains
 
     end subroutine
 
-    ! pulay mixer ç›¸å…³
-    ! ç§»åŠ¨æŒ‡é’ˆ
+    ! pulay mixer Ïà¹Ø
+    ! ÒÆ¶¯Ö¸Õë
     function mixerIncPointer(p, n)
         use parameters2
         implicit none
@@ -358,7 +358,7 @@ contains
         if (mixerIncPointer==0) mixerIncPointer=mix_num
     end function
 
-    ! æ±‚æ¨¡çš„å¹³æ–¹
+    ! ÇóÄ£µÄÆ½·½
     function mixerErrorProduct(a, b)
         use constants
         implicit none
@@ -378,7 +378,7 @@ contains
         enddo;enddo
     end function
 
-    ! åˆå§‹åŒ–æ··åˆå™¨
+    ! ³õÊ¼»¯»ìºÏÆ÷
     subroutine mixerInit()
         use parameters2
         implicit none
@@ -398,22 +398,36 @@ contains
         mixer_b(0) = -1
     end subroutine
 
-    ! G1æ˜¯æ–°çš„, Gæ˜¯ä¸Šä¸€æ­¥
-    ! æ··åˆç®—æ³•
+    ! G1ÊÇĞÂµÄ, GÊÇÉÏÒ»²½
+    ! »ìºÏËã·¨
     ! http://vergil.chemistry.gatech.edu/notes/diis/node2.html
-    subroutine mixer(num)
+    subroutine mixer(num,method)
         use parameters2
         implicit none
-        integer num, n, i, info, next_pointer, prev_pointer
+        integer num, n, i, info, next_pointer, prev_pointer, method
         integer ipiv(mix_num+1)
         complex(8) zdotc
         external zdotc
         complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf):: b1,b2
         complex(8), dimension (mix_num*2) :: lwork
-        complex(8) e
+        real(8) e, e0
 
         !n=nb*nb*nk*totalnomega
-
+        if (method==3) then
+            mixer_error_=G1-G
+            e0=real(mixerErrorProduct(mixer_error_,mixer_error_))
+            ! ±£Áô¼¸¸ö²Ğ²î×îĞ¡µÄ½â
+            if (num>=mix_num+1) then
+                mixer_pointer=mix_num
+                do i=1,mix_num-1
+                    if (real(mixer_A(i,i))>e0) then
+                        mixer_pointer=i
+                        exit
+                    endif
+                enddo
+                !write(*,*) e0,mixer_pointer
+            endif
+        endif
         next_pointer=mixerIncPointer(mixer_pointer,1)
         prev_pointer=mixerIncPointer(mixer_pointer,-1)
         !write(*,*) 'kkk',mixerErrorProduct(G1,G1),mixerErrorProduct(G,G)
@@ -432,7 +446,7 @@ contains
             b2=mixer_error(:,:,:,:,:,i)
             e=real(mixerErrorProduct(b1,b2))
             mixer_A(mixer_pointer,i)=e
-            mixer_A(i,mixer_pointer)=conjg(e)
+            mixer_A(i,mixer_pointer)=e
             !write(*,*)e
         enddo
         !$omp end parallel do
@@ -443,7 +457,7 @@ contains
         mixer_x=mixer_b
 
         n=min(num,mix_num)
-        ! ç³»æ•°çŸ©é˜µå®é™…ä¸Šå¤šä¸€è¡Œ
+        ! ÏµÊı¾ØÕóÊµ¼ÊÉÏ¶àÒ»ĞĞ
         call zhesv('U', n+1, 1, mixer_A1, mix_num+1, ipiv, mixer_x, mix_num+1, lwork, 2*mix_num, info)
         !write(*,*) info, mixer_pointer
         !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
@@ -458,7 +472,7 @@ contains
     end subroutine
 
 
-    ! æ£€æŸ¥æ”¶æ•›ç‚¹æ•°, æ³¨æ„ä½¿ç”¨æ—¶æœº
+    ! ¼ì²éÊÕÁ²µãÊı, ×¢ÒâÊ¹ÓÃÊ±»ú
     ! model: 1-sigma, 2-G
     subroutine convergence_test(conv)
         use parameters
@@ -470,12 +484,12 @@ contains
         real(8) norm_sigma_minus, norm_sigma, norm_sigma0, cur_sigma_tol, tol
         real(8) cur_error, total_error
 
-        ! è®¡ç®—sigma0ä¸sigmaçš„ç¬¦åˆæƒ…å†µ, å‘é‡åº“
-        ! dznrm2: æ¬§å‡ é‡Œå¾—æ¨¡ï¼Œè¡Œå‘é‡ä¹˜ä»¥è‡ªèº«è½¬ç½®å…±è½­
+        ! ¼ÆËãsigma0ÓësigmaµÄ·ûºÏÇé¿ö, ÏòÁ¿¿â
+        ! dznrm2: Å·¼¸ÀïµÃÄ££¬ĞĞÏòÁ¿³ËÒÔ×ÔÉí×ªÖÃ¹²éî
         !if (model==0) then
-            !sigma_minus = sigma0 - sigma
+        !sigma_minus = sigma0 - sigma
         !else
-            !return
+        !return
         !endif
 
         !norm_sigma0 = dznrm2(total_grid, sigma0, 1)
@@ -503,8 +517,8 @@ contains
 #endif
     end subroutine
 
-    ! 1~3æ•°ç»„, ç¬¬ä¸€ä¸ªä¿å­˜æœ€æ¥è¿‘çš„å€¼, åé¢ä¸¤ä¸ªä¿å­˜æœ€è¿‘ä¸¤æ¬¡è®¡ç®—çš„å€¼
-    ! warningè¡¨ç¤ºæœ€æ–°çš„å€¼å¹¶æœªæ›´åŠ é è¿‘, å¯èƒ½å­˜åœ¨æ•°å€¼é—®é¢˜
+    ! 1~3Êı×é, µÚÒ»¸ö±£´æ×î½Ó½üµÄÖµ, ºóÃæÁ½¸ö±£´æ×î½üÁ½´Î¼ÆËãµÄÖµ
+    ! warning±íÊ¾×îĞÂµÄÖµ²¢Î´¸ü¼Ó¿¿½ü, ¿ÉÄÜ´æÔÚÊıÖµÎÊÌâ
     subroutine modify_mu_record(count_, density_group, mu_group, density_, mu_, warning)
         use parameters
         use parameters2
@@ -548,8 +562,8 @@ contains
             return
         else
             if (mu_less_count/=0 .and. mu_more_count/=0) then
-                ! è¿™é‡Œå¥½åƒæ˜¯åœ¨çæ
-                ! å¦‚æœäº§ç”Ÿè­¦å‘Š, å°±ç”¨ä¸¤è¾¹æœ€æ–°çš„å€¼æ„é€ ä¸€ä¸ª
+                ! ÕâÀïºÃÏñÊÇÔÚÏ¹¸ã
+                ! Èç¹û²úÉú¾¯¸æ, ¾ÍÓÃÁ½±ß×îĞÂµÄÖµ¹¹ÔìÒ»¸ö
                 if (warning==0) then
                     mu = (mu_less(1)-mu_more(1))/(density_less(1)-density_more(1)) &
                         *(target_density-density_more(1))+mu_more(1)
@@ -579,7 +593,7 @@ contains
         implicit none
 
 
-        ! ç‚¹æ•°36: 1~11~21~36
+        ! µãÊı36: 1~11~21~36
         integer count_k, i, ik, ix, iy, fileunit
         complex(8) :: fac
         real(8) :: rdotk
@@ -597,8 +611,8 @@ contains
 
         ! ------------------------------------------------------------------------
 
-        ! æµ‹è¯•èƒ½å¸¦æ­£ç¡®æ€§
-        ! ç»„åˆä¸€ç»„é«˜å¯¹ç§°ç‚¹
+        ! ²âÊÔÄÜ´øÕıÈ·ĞÔ
+        ! ×éºÏÒ»×é¸ß¶Ô³Æµã
         k_band = 0d0;
         count_k=0;
         do i = 0,10
@@ -621,8 +635,8 @@ contains
 
         write(stdout,*) 'build k-points of band...'
 
-        ! åå‚…é‡Œå¶å˜æ¢åˆ°kç©ºé—´çš„èƒ½å¸¦
-        ! åœ¨æ¯ä¸ªkç‚¹ä¸Šå¯¹è§’åŒ–å¾—åˆ°èƒ½å¸¦ç‰¹å¾å€¼
+        ! ·´¸µÀïÒ¶±ä»»µ½k¿Õ¼äµÄÄÜ´ø
+        ! ÔÚÃ¿¸ökµãÉÏ¶Ô½Ç»¯µÃµ½ÄÜ´øÌØÕ÷Öµ
         do ik=1,36
             h0_k_band=complex_0
             do ix = -rx, rx
