@@ -359,14 +359,14 @@ contains
     end function
 
     ! 求两个G格式向量的点乘 sum conjg(a(i))*b(i)
-    function mixerErrorProduct(a, b)
+    function GProduct(a, b)
         use constants
         implicit none
-        complex(8) mixerErrorProduct
+        complex(8) GProduct
         complex(8), dimension (total_grid) :: a, b
         complex(8), external :: zdotc
-        !mixerErrorProduct=dot_product(a,b)
-        mixerErrorProduct = zdotc(total_grid,a,1,b,1)
+        !GProduct=dot_product(a,b)
+        GProduct = zdotc(total_grid,a,1,b,1)
     end function
 
     ! 初始化混合器
@@ -404,7 +404,7 @@ contains
 
         if (method==3) then
             mixer_error_=G1-G
-            e0=real(mixerErrorProduct(mixer_error_,mixer_error_))
+            e0=real(GProduct(mixer_error_,mixer_error_))
             ! 保留几个残差最小的解
             if (num>=mix_num+1) then
                 mixer_pointer=mix_num
@@ -434,7 +434,7 @@ contains
         do i=1,mix_num
             b1=mixer_error(:,:,:,:,:,mixer_pointer)
             b2=mixer_error(:,:,:,:,:,i)
-            e=real(mixerErrorProduct(b1,b2))
+            e=real(GProduct(b1,b2))
             mixer_A(mixer_pointer,i)=e
             mixer_A(i,mixer_pointer)=e
             !write(*,*)e
