@@ -419,11 +419,8 @@ contains
         !write(*,*) 'kkk',mixerErrorProduct(G1,G1),mixerErrorProduct(G,G)
         if (num==1) then
             mixer_error(:,:,:,:,:,mixer_pointer)=G1-G
-            !write(*,*) 'hhhh'
         else
             mixer_error(:,:,:,:,:,mixer_pointer)=G1-G!_mixer(:,:,:,:,:,prev_pointer)
-
-            !write(*,*) 'klkl',mixerErrorProduct(error_mixer(:,:,:,:,:,mixer_pointer),error_mixer(:,:,:,:,:,mixer_pointer))
         endif
         mixer_G(:,:,:,:,:,mixer_pointer)=G1
         !sigma_mixer(:,:,:,:,:,mixer_pointer)=sigma
@@ -433,7 +430,7 @@ contains
         do i=1,mix_num
             b1=mixer_error(:,:,:,:,:,mixer_pointer)
             b2=mixer_error(:,:,:,:,:,i)
-            e=mixerErrorProduct(b1,b2)
+            e=real(mixerErrorProduct(b1,b2))
             mixer_A(mixer_pointer,i)=e
             mixer_A(i,mixer_pointer)=conjg(e)
             !write(*,*)e
@@ -467,11 +464,11 @@ contains
         use parameters
         use parameters2
         implicit none
-        real(8) dznrm2
-        external dznrm2
+        real(8), external :: dznrm2
         logical conv
         integer ib1, ib2, ikx, iky, iomegak, conv_grid
         real(8) norm_sigma_minus, norm_sigma, norm_sigma0, cur_sigma_tol, tol
+        real(8) cur_error, total_error
 
         ! 计算sigma0与sigma的符合情况, 向量库
         ! dznrm2: 欧几里得模，行向量乘以自身转置共轭
@@ -481,20 +478,23 @@ contains
             !return
         !endif
 
-        norm_sigma0 = dznrm2(total_grid, sigma0, 1)
+        !norm_sigma0 = dznrm2(total_grid, sigma0, 1)
+        !total_error = dznrm2(total_grid, sigma-sigma0, 1)
         norm_sigma = dznrm2(total_grid, sigma, 1)
         tol = norm_sigma*sigma_tol/total_grid
         conv_grid=0
+        total_error=0
         do ib1=1,nb; do ib2=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
-            if (abs(sigma(ib1,ib2,ikx,iky,iomegak)-sigma0(ib1,ib2,ikx,iky,iomegak)) &
-                    <sigma_tol*abs(sigma(ib1,ib2,ikx,iky,iomegak))) then
+            cur_error = abs(sigma(ib1,ib2,ikx,iky,iomegak)-sigma0(ib1,ib2,ikx,iky,iomegak))
+            total_error = total_error + cur_error
+            if (cur_error<sigma_tol*abs(sigma(ib1,ib2,ikx,iky,iomegak))) then
                 conv_grid=conv_grid+1
             endif
         enddo; enddo; enddo; enddo; enddo;
 
-        cur_sigma_tol = abs(norm_sigma0/norm_sigma - 1)
+        cur_sigma_tol = total_error/norm_sigma
         write(stdout,'(I7,I7,I10,ES20.5)') density_iter, sigma_iter, conv_grid, cur_sigma_tol
-        conv  = (conv_grid==total_grid)
+        conv = (conv_grid==total_grid)
 
 #ifdef _DEBUG
         !norm_sigma0 = dznrm2(nb*nb*nkx*nky*nomegaf, sigma0, 1)
