@@ -180,7 +180,10 @@ program flex_2d
             !call testConvolution3sigma()
             sigma=T_eV/nk*sigma
 
-            ! write(stdout, *) 'calculating New G...'
+            call convergence_test(sigma_conv)
+            if (sigma_conv) then
+                exit
+            endif
 
             ! 新的G, dyson方程
             ! G=G0+G0*sigma*G, then we have G=(I-G0*sigma)**(-1)*G0
@@ -205,18 +208,8 @@ program flex_2d
             !$omp end parallel do
             !sigma_conv=convergence_test(sigma_iter, 1)
 
-            call convergence_test(sigma_conv)
-            if (sigma_conv) then
-                !G=G1
-                !write(*,*) GProduct(sigma,sigma)
-                !exit
-            endif
+            !call convergence_testG(sigma_conv)
 
-            call convergence_testG(sigma_conv)
-            if (sigma_conv) then
-                !write(*,*) GProduct(sigma,sigma)
-                !exit
-            endif
             select case (mixer_method)
                 case (0)
                     G=G1

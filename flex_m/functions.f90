@@ -421,14 +421,9 @@ contains
 
         !prev_pointer=mixerIncPointer(mixer_pointer,-1)
 
-! 误差是G1-G, 这个值越小则说明G是一个接近好的解, 而非G1?
-        if (1==1) then
-            mixer_error(:,:,:,:,:,mixer_pointer)=G1-G
-            mixer_G(:,:,:,:,:,mixer_pointer)=G1
-        else
-            mixer_error(:,:,:,:,:,mixer_pointer)=sigma-sigma0
-            mixer_G(:,:,:,:,:,mixer_pointer)=G1
-        endif
+        ! 误差是G1-G, 这个值越小则说明G是一个接近好的解, 而非G1
+        mixer_error(:,:,:,:,:,mixer_pointer)=G-G1
+        mixer_G(:,:,:,:,:,mixer_pointer)=mixer_beta*G1+(1-mixer_beta)*G
 
         ! A_ij=e_i**H*e_j
         !$omp parallel do private(b1,b2,e)
@@ -446,14 +441,6 @@ contains
 
         next_pointer=mixerIncPointer(mixer_pointer,1)
         mixer_pointer=next_pointer
-
-
-        ! 在首次组合的时候会出现数值问题, 故第二次的输入直接使用G1
-        if (num==1) then
-            G=mixer_beta*G1+(1-mixer_beta)*G
-            !write(*,*) mixer_pointer
-            return
-        endif
 
         mixer_A1=mixer_A
         mixer_x=mixer_b

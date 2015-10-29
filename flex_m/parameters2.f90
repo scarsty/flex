@@ -52,7 +52,7 @@ module parameters2
     complex(8), dimension (nkx, nky, dft_grid) :: dft_out
 
     ! Pulay mixer 相关
-    integer, parameter :: mix_num  = 10, mix_keep = 30
+    integer, parameter :: mix_num  = 20, mix_keep = 30
     integer mixer_pointer
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf, mix_num) :: mixer_G, mixer_error
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: mixer_G_, mixer_error_
