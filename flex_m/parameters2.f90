@@ -57,8 +57,8 @@ module parameters2
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf, mix_num) :: mixer_G, mixer_error
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: mixer_G_, mixer_error_
     ! 根据推导, 这部分应该都是实矩阵和向量, 暂留
-    complex(8), dimension (0:mix_num, 0:mix_num) :: mixer_A, mixer_A1
-    complex(8), dimension(0:mix_num) :: mixer_x, mixer_b
+    real(8), dimension (0:mix_num, 0:mix_num) :: mixer_A, mixer_A1
+    real(8), dimension(0:mix_num) :: mixer_x, mixer_b
 
     ! 占据数相关
     real(8) mu_less(3), mu_more(3), density_less(3), density_more(3)

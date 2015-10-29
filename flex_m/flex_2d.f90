@@ -19,7 +19,7 @@ program flex_2d
     integer l1,m1,l2,m2
     !integer mpiinfo
     complex(8) temp_complex
-
+logical G_conv
     ! 变量段结束-------------------------------------------------------------------------------
 
     mpi_info = mpi_init1()
@@ -206,9 +206,8 @@ program flex_2d
                 endif
             enddo;enddo;enddo
             !$omp end parallel do
-            !sigma_conv=convergence_test(sigma_iter, 1)
 
-            !call convergence_testG(sigma_conv)
+            call convergence_testG(G_conv)
 
             select case (mixer_method)
                 case (0)
@@ -232,7 +231,7 @@ program flex_2d
         enddo
 
         ! sigma loop end
-
+        call convergence_testG(G_conv)
         ! 计算density
         cur_density=0d0
         !$omp parallel do private(ikx,iky,ib) reduction(+:cur_density)
