@@ -170,7 +170,7 @@ contains
         T_beta = 1d0/kB/T
         T_eV = kB*T
 
-        sigma_state = 0
+        iter_method = 0
 
         ! I_chi, (nb*nb) order
         I_chi=complex_0
@@ -475,8 +475,8 @@ contains
     end subroutine
 
 
-    ! 检查收敛点数, 注意使用时机
-    ! model: 1-sigma, 2-G
+    ! 检查sigma收敛点数, 未使用, 因为用自能判断不太可靠
+    ! 两个相同的输入G会导致sigma相同, 但是此时不能保证G收敛
     subroutine convergence_test(conv)
         use parameters
         use parameters2
@@ -484,22 +484,12 @@ contains
         real(8), external :: dznrm2
         logical conv
         integer ib1, ib2, ikx, iky, iomegak, conv_grid
-        real(8) norm_sigma_minus, norm_sigma, norm_sigma0, cur_sigma_tol, tol
+        real(8) norm_sigma_minus, norm_sigma, norm_sigma0, cur_G_tol, tol
         real(8) cur_error, total_error
         complex(8) sigma_one, sigma0_one
 
-        ! 计算sigma0与sigma的符合情况, 向量库
-        ! dznrm2: 欧几里得模，行向量乘以自身转置共轭
-        !if (model==0) then
-        !sigma_minus = sigma0 - sigma
-        !else
-        !return
-        !endif
-
-        !norm_sigma0 = dznrm2(total_grid, sigma0, 1)
-        !total_error = dznrm2(total_grid, sigma-sigma0, 1)
         norm_sigma = dznrm2(total_grid, sigma, 1)
-        tol = norm_sigma*sigma_tol/total_grid
+        tol = norm_sigma*G_tol/total_grid
         conv_grid=0
         total_error=0
         do ib1=1,nb; do ib2=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
@@ -507,13 +497,13 @@ contains
             sigma0_one=sigma0(ib1,ib2,ikx,iky,iomegak)
             cur_error = abs(sigma_one-sigma0_one)
             total_error = total_error + cur_error
-            if (cur_error<sigma_tol*abs(sigma_one)) then
+            if (cur_error<G_tol*abs(sigma_one)) then
                 conv_grid=conv_grid+1
             endif
         enddo; enddo; enddo; enddo; enddo;
 
-        cur_sigma_tol = total_error/norm_sigma
-        write(stdout,'(I7,I7,I10,ES20.5)') density_iter, sigma_iter, conv_grid, cur_sigma_tol
+        cur_G_tol = total_error/norm_sigma
+        write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
         conv = (conv_grid==total_grid)
     end subroutine
 
@@ -528,31 +518,15 @@ contains
         real(8) cur_error, total_error
         complex(8) G_one, G1_one
 
-        ! 计算sigma0与sigma的符合情况, 向量库
-        ! dznrm2: 欧几里得模，行向量乘以自身转置共轭
-        !if (model==0) then
-        !sigma_minus = sigma0 - sigma
-        !else
-        !return
-        !endif
-
-        !norm_sigma0 = dznrm2(total_grid, sigma0, 1)
-        !total_error = dznrm2(total_grid, sigma-sigma0, 1)
         norm_G = dznrm2(total_grid, G, 1)
-        conv_grid=0
-        total_error=0
-        do ib1=1,nb; do ib2=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
-            G_one=G(ib1,ib2,ikx,iky,iomegak)
-            G1_one=G1(ib1,ib2,ikx,iky,iomegak)
-            cur_error = abs(G_one-G1_one)
-            total_error = total_error + cur_error
-            if (cur_error<sigma_tol*abs(G_one)) then
-                conv_grid=conv_grid+1
-            endif
-        enddo; enddo; enddo; enddo; enddo;
 
-        cur_G_tol = total_error/norm_G
-        write(stdout,'(A,I8,A3,ES13.5)') 'Check G convergence: ', conv_grid, '/' ,cur_G_tol
+        ! 这里是复用conjg来表示差, 节省内存
+        conjgG=G-G1
+        ! 该式用于计算收敛的点数, 具体不解释了
+        conv_grid=sum(sign(1d0,G_tol*abs(G)-abs(conjgG))+1)/2
+
+        cur_G_tol = dznrm2(total_grid, conjgG, 1)/norm_G
+        write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
         conv = (conv_grid==total_grid)
     end subroutine
 

@@ -19,7 +19,7 @@ program flex_2d
     integer l1,m1,l2,m2
     !integer mpiinfo
     complex(8) temp_complex
-logical G_conv
+
     ! 变量段结束-------------------------------------------------------------------------------
 
     mpi_info = mpi_init1()
@@ -59,8 +59,8 @@ logical G_conv
 
     do while (.not. density_conv)
 
-        sigma_conv=.false.
-        sigma_iter=0
+        G_conv=.false.
+        G_iter=0
 
         ! G0
         ! 费米频率
@@ -98,13 +98,13 @@ logical G_conv
         density_base=density_base*2/nk
         write(stdout, *) 'base density is ', density_base
 
-        sigma_iter = 1
+        G_iter = 1
         write(stdout,*) '  iter   iter  conv.pts           sigma.tol'
         write(stdout,*) '-----------------------------------------------'
 
         ! sigma迭代中使用openmp并行
 
-        do while (.not. sigma_conv)
+        do while (.not. G_conv)
 
             ! calculate chi_0 with chi(q)= -G1(q-k)G2(-k), the same to -G1(q-k)G2(k)**H
             ! dft G to G_r_tau
@@ -180,16 +180,16 @@ logical G_conv
             !call testConvolution3sigma()
             sigma=T_eV/nk*sigma
 
-            call convergence_test(sigma_conv)
-            if (sigma_conv) then
-                exit
-            endif
+            !call convergence_test(G_conv)
+            !if (G_conv) then
+            !    exit
+            !endif
 
             ! 新的G, dyson方程
             ! G=G0+G0*sigma*G, then we have G=(I-G0*sigma)**(-1)*G0
             !$omp parallel do private(ikx,iky,G0_,sigma_,G_)
             do iomegak=minomegaf,maxomegaf;do ikx=1,nkx;do iky=1,nky
-                if (sigma_state==0)then
+                if (iter_method==0)then
                     G0_=G0(:,:,ikx,iky,iomegak)
                     sigma_=sigma(:,:,ikx,iky,iomegak)
                     G_=AB(G0_,sigma_,nb)
@@ -208,6 +208,10 @@ logical G_conv
             !$omp end parallel do
 
             call convergence_testG(G_conv)
+            if (G_conv) then
+                conjgG=conjg(G)
+                exit
+            endif
 
             select case (mixer_method)
                 case (0)
@@ -215,23 +219,22 @@ logical G_conv
                 case (1)
                     G=mixer_beta*G1+(1-mixer_beta)*G
                 case (2:3)
-                    call mixer(sigma_iter,mixer_method)
+                    call mixer(G_iter,mixer_method)
                     !G=mixer_beta*G1+(1-mixer_beta)*G
             end select
 
             !G2=G
-            sigma0 = sigma
+            !sigma0 = sigma
 
-            sigma_iter=sigma_iter+1;
+            G_iter=G_iter+1;
             total_iter = total_iter + 1
 
-            if (total_iter>20) then
+            if (total_iter>max_iter) then
                 !write(stdout,*) sigma_minus
             endif
         enddo
 
         ! sigma loop end
-        call convergence_testG(G_conv)
         ! 计算density
         cur_density=0d0
         !$omp parallel do private(ikx,iky,ib) reduction(+:cur_density)
@@ -257,7 +260,7 @@ logical G_conv
 
         density_iter = density_iter + 1
 
-        if (total_iter>20) then
+        if (total_iter>max_iter) then
             !exit
         endif
         !stop
