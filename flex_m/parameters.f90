@@ -30,15 +30,16 @@ module parameters
     ! 自旋态
     integer spin_state
 
-    logical, parameter :: solve_eliashberg = .true.
-    logical, parameter :: test_band = .false.
+    logical solve_eliashberg
+    logical test_band
 
     namelist /basic/ T, target_density, density_tol, mu,&
         h1_U, h1_Up, h1_J, h1_Jp,&
         sigma_input,  sigma_input_file,&
         sigma_output, sigma_output_file,&
         sigma_tol, max_it, alpha,  alpha_scheme, spin_state,&
-        mixer_method, mixer_beta
+        mixer_method, mixer_beta, &
+        solve_eliashberg, test_band
 
    ! MPI variables
     INTEGER mpi_rank, mpi_size, mpi_info

@@ -261,7 +261,7 @@ program flex_2d
         if (total_iter>20) then
             !exit
         endif
-
+        !stop
     enddo
     ! density loop end
 
@@ -281,14 +281,15 @@ program flex_2d
     enddo; enddo
 
 
-
     if (solve_eliashberg) then
         call eliashberg()
     endif
 
+
     write(stdout,*)
     write(stdout,*) ' good night.'
     write(stdout,*)
+
 
     mpi_info = mpi_finalize1()
 

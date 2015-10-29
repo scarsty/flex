@@ -52,8 +52,8 @@ module parameters2
     complex(8), dimension (nkx, nky, dft_grid) :: dft_out
 
     ! Pulay mixer 相关
-    integer, parameter :: mix_num  = 20, mix_keep = 30
-    integer mixer_pointer
+    integer, parameter :: mix_num  = 50, mix_keep = 10
+    integer mixer_pointer, mixer_order, mixer_pointer2
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf, mix_num) :: mixer_G, mixer_error
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: mixer_G_, mixer_error_
     ! 根据推导, 这部分应该都是实矩阵和向量, 暂留

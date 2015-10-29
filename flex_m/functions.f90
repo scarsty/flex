@@ -348,14 +348,14 @@ contains
 
     ! pulay mixer 相关
     ! 移动指针
-    function mixerIncPointer(p, n)
+    function mixerIncPointer(p, n, max_value)
         use parameters2
         implicit none
-        integer mixerIncPointer, p, n
+        integer mixerIncPointer, p, n, max_value
 
         mixerIncPointer = p+n
-        mixerIncPointer = mod(mixerIncPointer, mix_num)
-        if (mixerIncPointer==0) mixerIncPointer=mix_num
+        mixerIncPointer = mod(mixerIncPointer, max_value)
+        if (mixerIncPointer==0) mixerIncPointer=max_value
     end function
 
     ! 求两个G格式向量的点乘 sum conjg(a(i))*b(i)
@@ -380,6 +380,8 @@ contains
         !error_mixer(:,:,:,:,:,1) = G1-G0
 
         mixer_pointer=1
+        mixer_pointer2=1
+        mixer_order=0
         mixer_A = 0
         do i=1,mix_num
             mixer_A(0,i)=-1
@@ -400,23 +402,38 @@ contains
         integer ipiv(mix_num+1)
         complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf):: b1,b2
         complex(8), dimension (mix_num*2) :: lwork
-        real(8) e, e0
+        real(8) e, e0, max_error
+        logical find_bigger
 
 
         if (method==3) then
-            mixer_error_=G1-G
-            e0=real(GProduct(mixer_error_,mixer_error_))
-            ! 保留几个残差最小的解
-            if (num>=mix_num+1) then
-                mixer_pointer=mix_num
-                do i=1,mix_num-1
-                    if (real(mixer_A(i,i))>e0) then
+            if (num<=mix_keep) then
+                mixer_order=num
+            else
+                mixer_error_=G1-G
+                e0=real(GProduct(mixer_error_,mixer_error_))
+
+! 在误差列表中找最大的取代
+                find_bigger=.false.
+                max_error=0
+                do i=1,mix_keep
+                    if (real(mixer_A(i,i))>max_error) then
+                        max_error = real(mixer_A(i,i))
                         mixer_pointer=i
-                        exit
                     endif
                 enddo
-                !write(*,*) e0,mixer_pointer
+                if (max_error>e0) then
+                    find_bigger=.true.
+                endif
+                ! 如果没有找到取代位置, 则在后面找一个空位
+                if (.not. find_bigger) then
+                    mixer_pointer=mixer_pointer2+mix_keep
+                    mixer_pointer2 = mixerIncPointer(mixer_pointer2,1,mix_num-mix_keep)
+                    mixer_order=min(mixer_order+1,mix_num)
+                endif
             endif
+        else
+            mixer_order=min(mixer_order+1,mix_num)
         endif
 
         !prev_pointer=mixerIncPointer(mixer_pointer,-1)
@@ -436,23 +453,22 @@ contains
             !write(*,*)e
         enddo
         !$omp end parallel do
-        !Pulay_A(0,mixer_pointer)=-1
-        !Pulay_A(mixer_pointer,0)=-1
 
-        next_pointer=mixerIncPointer(mixer_pointer,1)
+        next_pointer=mixerIncPointer(mixer_pointer,1,mix_num)
         mixer_pointer=next_pointer
 
         mixer_A1=mixer_A
         mixer_x=mixer_b
 
-        n=min(num,mix_num)
+        n=mixer_order
+        !write(stderr,*) n
         ! 系数矩阵实际上多一行
         call zhesv('U', n+1, 1, mixer_A1, mix_num+1, ipiv, mixer_x, mix_num+1, lwork, 2*mix_num, info)
         !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
         G=complex_0
         do i=1,n
             G=G+mixer_G(:,:,:,:,:,i)*real(mixer_x(i))
-            !write(*,*) n,real(mixer_x(i)), real(mixer_A(i,i))
+            !write(stderr,*) n,real(mixer_x(i)), real(mixer_A(i,i))
         enddo
         !G=mixer_beta*G1+(1-mixer_beta)*G
         !call writematrix(Pulay_A,11)
