@@ -209,7 +209,6 @@ program flex_2d
 
             call convergence_testG(G_conv)
             if (G_conv) then
-                conjgG=conjg(G)
                 exit
             endif
 
