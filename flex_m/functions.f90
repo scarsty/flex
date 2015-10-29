@@ -393,6 +393,7 @@ contains
     ! 混合算法
     ! http://vergil.chemistry.gatech.edu/notes/diis/node2.html
     subroutine mixer(num,method)
+        use parameters
         use parameters2
         implicit none
         integer num, n, i, info, next_pointer, prev_pointer, method
@@ -420,14 +421,14 @@ contains
 
         !prev_pointer=mixerIncPointer(mixer_pointer,-1)
 
-        !write(*,*) 'kkk',mixerErrorProduct(G1,G1),mixerErrorProduct(G,G)
-        if (num==1) then
+! 误差是G1-G, 这个值越小则说明G是一个接近好的解, 而非G1?
+        if (1==1) then
             mixer_error(:,:,:,:,:,mixer_pointer)=G1-G
+            mixer_G(:,:,:,:,:,mixer_pointer)=G1
         else
-            mixer_error(:,:,:,:,:,mixer_pointer)=G1-G!_mixer(:,:,:,:,:,prev_pointer)
+            mixer_error(:,:,:,:,:,mixer_pointer)=sigma-sigma0
+            mixer_G(:,:,:,:,:,mixer_pointer)=G1
         endif
-        mixer_G(:,:,:,:,:,mixer_pointer)=G1
-        !sigma_mixer(:,:,:,:,:,mixer_pointer)=sigma
 
         ! A_ij=e_i**H*e_j
         !$omp parallel do private(b1,b2,e)
@@ -443,23 +444,32 @@ contains
         !Pulay_A(0,mixer_pointer)=-1
         !Pulay_A(mixer_pointer,0)=-1
 
+        next_pointer=mixerIncPointer(mixer_pointer,1)
+        mixer_pointer=next_pointer
+
+
+        ! 在首次组合的时候会出现数值问题, 故第二次的输入直接使用G1
+        if (num==1) then
+            G=mixer_beta*G1+(1-mixer_beta)*G
+            !write(*,*) mixer_pointer
+            return
+        endif
+
         mixer_A1=mixer_A
         mixer_x=mixer_b
 
         n=min(num,mix_num)
         ! 系数矩阵实际上多一行
         call zhesv('U', n+1, 1, mixer_A1, mix_num+1, ipiv, mixer_x, mix_num+1, lwork, 2*mix_num, info)
-        !write(*,*) info, mixer_pointer
         !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
         G=complex_0
         do i=1,n
             G=G+mixer_G(:,:,:,:,:,i)*real(mixer_x(i))
-            !write(*,*) real(mixer_x(i)), real(mixer_A(i,i))
+            !write(*,*) n,real(mixer_x(i)), real(mixer_A(i,i))
         enddo
-        next_pointer=mixerIncPointer(mixer_pointer,1)
-        mixer_pointer=next_pointer
+        !G=mixer_beta*G1+(1-mixer_beta)*G
         !call writematrix(Pulay_A,11)
-        !stop
+        !if (n==1) stop
     end subroutine
 
 
@@ -474,6 +484,7 @@ contains
         integer ib1, ib2, ikx, iky, iomegak, conv_grid
         real(8) norm_sigma_minus, norm_sigma, norm_sigma0, cur_sigma_tol, tol
         real(8) cur_error, total_error
+        complex(8) sigma_one, sigma0_one
 
         ! 计算sigma0与sigma的符合情况, 向量库
         ! dznrm2: 欧几里得模，行向量乘以自身转置共轭
@@ -490,9 +501,11 @@ contains
         conv_grid=0
         total_error=0
         do ib1=1,nb; do ib2=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
-            cur_error = abs(sigma(ib1,ib2,ikx,iky,iomegak)-sigma0(ib1,ib2,ikx,iky,iomegak))
+            sigma_one=sigma(ib1,ib2,ikx,iky,iomegak)
+            sigma0_one=sigma0(ib1,ib2,ikx,iky,iomegak)
+            cur_error = abs(sigma_one-sigma0_one)
             total_error = total_error + cur_error
-            if (cur_error<sigma_tol*abs(sigma(ib1,ib2,ikx,iky,iomegak))) then
+            if (cur_error<sigma_tol*abs(sigma_one)) then
                 conv_grid=conv_grid+1
             endif
         enddo; enddo; enddo; enddo; enddo;
@@ -500,12 +513,45 @@ contains
         cur_sigma_tol = total_error/norm_sigma
         write(stdout,'(I7,I7,I10,ES20.5)') density_iter, sigma_iter, conv_grid, cur_sigma_tol
         conv = (conv_grid==total_grid)
+    end subroutine
 
-#ifdef _DEBUG
-        !norm_sigma0 = dznrm2(nb*nb*nkx*nky*nomegaf, sigma0, 1)
-        !write(stdout,*) '0:',norm_sigma0, '1:',norm_sigma
-        !write(stdout,*) '0-1:',norm_sigma_minus
-#endif
+    subroutine convergence_testG(conv)
+        use parameters
+        use parameters2
+        implicit none
+        real(8), external :: dznrm2
+        logical conv
+        integer ib1, ib2, ikx, iky, iomegak, conv_grid
+        real(8) norm_G, cur_G_tol, tol
+        real(8) cur_error, total_error
+        complex(8) G_one, G1_one
+
+        ! 计算sigma0与sigma的符合情况, 向量库
+        ! dznrm2: 欧几里得模，行向量乘以自身转置共轭
+        !if (model==0) then
+        !sigma_minus = sigma0 - sigma
+        !else
+        !return
+        !endif
+
+        !norm_sigma0 = dznrm2(total_grid, sigma0, 1)
+        !total_error = dznrm2(total_grid, sigma-sigma0, 1)
+        norm_G = dznrm2(total_grid, G, 1)
+        conv_grid=0
+        total_error=0
+        do ib1=1,nb; do ib2=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
+            G_one=G(ib1,ib2,ikx,iky,iomegak)
+            G1_one=G1(ib1,ib2,ikx,iky,iomegak)
+            cur_error = abs(G_one-G1_one)
+            total_error = total_error + cur_error
+            if (cur_error<sigma_tol*abs(G_one)) then
+                conv_grid=conv_grid+1
+            endif
+        enddo; enddo; enddo; enddo; enddo;
+
+        cur_G_tol = total_error/norm_G
+        write(stdout,'(I7,I7,I10,ES20.5)') density_iter, sigma_iter, conv_grid, cur_G_tol
+        conv = (conv_grid==total_grid)
     end subroutine
 
     ! 1~3数组, 第一个保存最接近的值, 后面两个保存最近两次计算的值

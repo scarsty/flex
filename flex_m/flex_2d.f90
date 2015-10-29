@@ -178,15 +178,6 @@ program flex_2d
             ! write(*,*) sigma(1,1,1,1,1)
 
             !call testConvolution3sigma()
-
-            !if (sigma_iter > 1) then
-            call convergence_test(sigma_conv)
-            if (sigma_conv) then
-                exit
-            endif
-            !endif
-            sigma0 = sigma
-
             sigma=T_eV/nk*sigma
 
             ! write(stdout, *) 'calculating New G...'
@@ -214,6 +205,18 @@ program flex_2d
             !$omp end parallel do
             !sigma_conv=convergence_test(sigma_iter, 1)
 
+            call convergence_test(sigma_conv)
+            if (sigma_conv) then
+                !G=G1
+                !write(*,*) GProduct(sigma,sigma)
+                !exit
+            endif
+
+            call convergence_testG(sigma_conv)
+            if (sigma_conv) then
+                !write(*,*) GProduct(sigma,sigma)
+                !exit
+            endif
             select case (mixer_method)
                 case (0)
                     G=G1
@@ -225,6 +228,7 @@ program flex_2d
             end select
 
             !G2=G
+            sigma0 = sigma
 
             sigma_iter=sigma_iter+1;
             total_iter = total_iter + 1
