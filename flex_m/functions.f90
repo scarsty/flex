@@ -477,7 +477,7 @@ contains
 
     ! 检查sigma收敛点数, 未使用, 因为用自能判断不太可靠
     ! 两个相同的输入G会导致sigma相同, 但是此时不能保证G收敛
-    subroutine convergence_test(conv)
+    subroutine convergence_testsigma(conv)
         use parameters
         use parameters2
         implicit none
@@ -492,16 +492,7 @@ contains
         tol = norm_sigma*G_tol/total_grid
         conv_grid=0
         total_error=0
-        do ib1=1,nb; do ib2=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
-            sigma_one=sigma(ib1,ib2,ikx,iky,iomegak)
-            sigma0_one=sigma0(ib1,ib2,ikx,iky,iomegak)
-            cur_error = abs(sigma_one-sigma0_one)
-            total_error = total_error + cur_error
-            if (cur_error<G_tol*abs(sigma_one)) then
-                conv_grid=conv_grid+1
-            endif
-        enddo; enddo; enddo; enddo; enddo;
-
+        conv_grid=count(abs(sigma-sigma0)<G_tol*abs(sigma))
         cur_G_tol = total_error/norm_sigma
         write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
         conv = (conv_grid==total_grid)
@@ -522,8 +513,7 @@ contains
 
         ! 这里是复用conjg来表示差, 节省内存
         conjgG=G-G1
-        ! 该式用于计算收敛的点数, 具体不解释了
-        conv_grid=sum(sign(1d0,G_tol*abs(G)-abs(conjgG))+1)/2
+        conv_grid=count(abs(conjgG)<G_tol*abs(G))
 
         cur_G_tol = dznrm2(total_grid, conjgG, 1)/norm_G
         write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
