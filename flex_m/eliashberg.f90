@@ -51,6 +51,7 @@ subroutine eliashberg()
 
         ! 初始值
 
+        conjgG=conjg(G)
         delta0 = complex_1 / (nb*nb*nk*nomegaf)
         lambda0=1d0
         elia_conv = .false.

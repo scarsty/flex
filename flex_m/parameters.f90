@@ -18,12 +18,12 @@ module parameters
     character*128 sigma_input_file, sigma_output_file
 
     ! 自能函数收敛判据
-    real(8) sigma_tol
-    integer max_it
+    real(8) G_tol
+    integer max_iter
     real(8) alpha
     integer alpha_scheme
 
-    integer sigma_state ! 0: dyson方程, others: G_n+1=G0+G0*sigma*G_n
+    integer iter_method ! 0: dyson方程, others: G_n+1=G0+G0*sigma*G_n
 
     integer mixer_method
     real(8) mixer_beta
@@ -37,11 +37,11 @@ module parameters
         h1_U, h1_Up, h1_J, h1_Jp,&
         sigma_input,  sigma_input_file,&
         sigma_output, sigma_output_file,&
-        sigma_tol, max_it, alpha,  alpha_scheme, spin_state,&
+        G_tol, max_iter, alpha, alpha_scheme, spin_state,&
         mixer_method, mixer_beta, &
         solve_eliashberg, test_band
 
-   ! MPI variables
+    ! MPI variables
     INTEGER mpi_rank, mpi_size, mpi_info
     ! Timing variables
     Real(8) start_time, end_time
