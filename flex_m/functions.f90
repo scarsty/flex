@@ -498,7 +498,7 @@ contains
         conv = (conv_grid==total_grid)
     end subroutine
 
-    subroutine convergence_testG(conv)
+    subroutine G_conv_test(conv)
         use parameters
         use parameters2
         implicit none

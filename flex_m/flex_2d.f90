@@ -207,7 +207,7 @@ program flex_2d
             enddo;enddo;enddo
             !$omp end parallel do
 
-            call convergence_testG(G_conv)
+            call G_conv_check(G_conv)
             if (G_conv) then
                 exit
             endif
