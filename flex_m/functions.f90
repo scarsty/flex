@@ -492,7 +492,7 @@ contains
         tol = norm_sigma*G_tol/total_grid
         conv_grid=0
         total_error=0
-        conv_grid=count(abs(sigma-sigma0)<G_tol*abs(sigma))
+        conv_grid=count(abs(sigma-sigma0)<=G_tol*abs(sigma))
         cur_G_tol = total_error/norm_sigma
         write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
         conv = (conv_grid==total_grid)
@@ -513,7 +513,7 @@ contains
 
         ! 这里是复用conjg来表示差, 节省内存
         conjgG=G-G1
-        conv_grid=count(abs(conjgG)<G_tol*abs(G))
+        conv_grid=count(abs(conjgG)<=G_tol*abs(G))
 
         cur_G_tol = dznrm2(total_grid, conjgG, 1)/norm_G
         write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
