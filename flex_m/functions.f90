@@ -517,7 +517,7 @@ contains
 
         cur_G_tol = dznrm2(total_grid, conjgG, 1)/norm_G
         write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
-        conv = (conv_grid==total_grid)
+        conv = (conv_grid==total_grid) .or. cur_G_tol<1d-8
     end subroutine
 
     ! 1~3数组, 第一个保存最接近的值, 后面两个保存最近两次计算的值
