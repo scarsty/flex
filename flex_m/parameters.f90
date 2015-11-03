@@ -28,10 +28,12 @@ module parameters
     integer mixer_method
     real(8) mixer_beta
     ! 自旋态
-    integer spin_state
+    integer :: spin_state
 
-    logical solve_eliashberg
-    logical test_band
+    logical :: solve_eliashberg = .true.
+    logical :: test_band = .false.
+
+    integer :: from_high_T=9
 
     namelist /basic/ T, target_density, density_tol, mu,&
         h1_U, h1_Up, h1_J, h1_Jp,&
@@ -39,7 +41,11 @@ module parameters
         sigma_output, sigma_output_file,&
         G_tol, max_iter, alpha, alpha_scheme, spin_state,&
         mixer_method, mixer_beta, &
-        solve_eliashberg, test_band
+        solve_eliashberg, test_band, &
+        from_high_T
+
+    real(8) eigen_value(5)
+    namelist /band/ eigen_value
 
     ! MPI variables
     INTEGER mpi_rank, mpi_size, mpi_info

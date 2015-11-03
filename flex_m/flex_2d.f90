@@ -57,6 +57,8 @@ program flex_2d
 
     density_conv = .false.
 
+    mu=sum(eigen_value)/nb
+
     do while (.not. density_conv)
 
         G_conv=.false.
@@ -81,8 +83,9 @@ program flex_2d
                     !T_beta / (complex_i*pi*iomegak - (h0_k(l1,m1,ikx,iky)-mu))
             enddo
         enddo; enddo
+        if (density_iter==1) then
         G=G0
-
+        endif
         call mixerInit()
 
         !call testConvolution()
@@ -103,9 +106,7 @@ program flex_2d
         write(stdout,*) '-----------------------------------------------'
 
         ! sigma迭代中使用openmp并行
-
         do while (.not. G_conv)
-
             ! calculate chi_0 with chi(q)= -G1(q-k)G2(-k), the same to -G1(q-k)G2(k)**H
             ! dft G to G_r_tau
             call dft(G, r_tau1, nb, nomegaf, dft_grid, 1, 0)

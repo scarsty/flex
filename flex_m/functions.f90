@@ -440,6 +440,7 @@ contains
         ! 误差是G1-G, 这个值越小则说明G是一个接近好的解, 而非G1
         mixer_error(:,:,:,:,:,mixer_pointer)=G-G1
         mixer_G(:,:,:,:,:,mixer_pointer)=mixer_beta*G1+(1-mixer_beta)*G
+        !mixer_G(:,:,:,:,:,mixer_pointer)=G1
 
         ! A_ij=e_i**H*e_j
         !$omp parallel do private(b1,b2,e)
@@ -516,8 +517,11 @@ contains
         conv_grid=count(abs(conjgG)<=G_tol*abs(G))
 
         cur_G_tol = dznrm2(total_grid, conjgG, 1)/norm_G
-        write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
-        conv = (conv_grid==total_grid) .or. cur_G_tol<1d-8
+        conv = ((conv_grid==total_grid) .or. cur_G_tol<1d-8)
+        !if (conv .or. mod(G_iter,20)==0) then
+            write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
+        !endif
+
     end subroutine
 
     ! 1~3数组, 第一个保存最接近的值, 后面两个保存最近两次计算的值
@@ -558,6 +562,10 @@ contains
             call modify_mu_record(mu_less_count, density_less, mu_less, cur_density, mu, warning)
         else
             call modify_mu_record(mu_more_count, density_more, mu_more, cur_density, mu, warning)
+        endif
+
+        if (density_iter<=nb) then
+            mu = eigen_value(density_iter)
         endif
 
         if (density_iter==1) then

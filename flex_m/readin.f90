@@ -1,12 +1,9 @@
- subroutine readin()
+subroutine readin()
     use constants
     use parameters
     use parameters2
     use functions
-    IMPLICIT NONE
-
-    real(8) eigen_value(5)
-    namelist /band/ eigen_value
+    implicit none
 
     integer ix, iy, iz, ib1, ib2, tempb1, tempb2
     character (len=100) :: text
@@ -56,7 +53,7 @@
                 do ib2 = 1, nb
                     read(fileunit,*) tempb1, tempb2, temp_h0
                     !if (ix/=0 .or. iy/=0) then
-                        h0_r(tempb1, tempb2, ix, iy)=temp_h0
+                    h0_r(tempb1, tempb2, ix, iy)=temp_h0
                     !endif
                     !write(stdout,*) ix,iy,ib1,ib2,h0_r(ix,iy,ib1,ib2)
                 enddo
@@ -64,6 +61,8 @@
             !read(stdin,*)
         enddo
     enddo
-
+    do ib1 = 1, nb
+        eigen_value(ib1)=h0_r(ib1, ib1, 0, 0)
+    enddo
     return
 end subroutine readin
