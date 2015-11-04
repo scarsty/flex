@@ -508,13 +508,24 @@ contains
         integer ib1, ib2, ikx, iky, iomegak, conv_grid
         real(8) norm_G, cur_G_tol, tol
         real(8) cur_error, total_error
-        complex(8) G_one, G1_one
+        complex(8) G_one, G1_one, G_error
 
         norm_G = dznrm2(total_grid, G, 1)
 
         ! 这里是复用conjg来表示差, 节省内存
         conjgG=G-G1
-        conv_grid=count(abs(conjgG)<=G_tol*abs(G))
+        !conv_grid=count(abs(conjgG)<=G_tol*abs(G) .or. abs(G)<=real_error)
+        conv_grid=0
+        !total_error=0
+        do ib1=1,nb; do ib2=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
+            G_one=G(ib1,ib2,ikx,iky,iomegak)
+            G_error=conjgG(ib1,ib2,ikx,iky,iomegak)
+            cur_error = abs(G_error)
+            !total_error = total_error + cur_error
+            if (cur_error<=G_tol*abs(G_one) .or. abs(G_one)<=real_error) then
+                conv_grid=conv_grid+1
+            endif
+        enddo; enddo; enddo; enddo; enddo;
 
         cur_G_tol = dznrm2(total_grid, conjgG, 1)/norm_G
         conv = ((conv_grid==total_grid) .or. cur_G_tol<1d-8)

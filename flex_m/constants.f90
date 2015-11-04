@@ -14,7 +14,7 @@ MODULE constants
     ! 总费米频率个数 2*nomega, 总玻色频率个数4*nomega-1
     ! 计算范围较大值以避开周期
     ! 费米和玻色频率的循环中, 直接计算频率的值, 2*n-1和2*n
-    integer, parameter :: nomega=4
+    integer, parameter :: nomega=16
     integer, parameter :: minomegaf=-(nomega-1), maxomegaf=nomega
     integer, parameter :: minomegab=-(2*nomega-1), maxomegab=2*nomega-1
     integer, parameter :: nomegaf = 2*nomega, nomegab = 4*nomega-1
@@ -57,8 +57,8 @@ MODULE constants
     real(8), parameter :: gs = 2.002319 !不知道
     real(8), parameter :: h_bar  =6.582119514d-16 ! eV s, 普朗克常数
 
-    real(8), parameter, public    :: pi=3.141592653589793238462643383279d0
-    real(8), parameter, public    :: two_pi = 2*pi
+    real(8), parameter, public :: pi=3.141592653589793238462643383279d0
+    real(8), parameter, public :: two_pi = 2*pi
 
     complex(8), parameter, public :: complex_i = (0.0d0,1.0d0)
     complex(8), parameter, public :: complex_0 = (0.0d0,0.0d0)
