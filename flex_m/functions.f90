@@ -389,12 +389,18 @@ contains
         enddo
         mixer_b = 0
         mixer_b(0) = -1
+
+        Jacobian=complex_0
+        do i=1,total_grid
+            Jacobian(i,i)=complex_1
+        enddo
+
     end subroutine
 
     ! G1是新的, G是上一步
     ! 混合算法
     ! http://vergil.chemistry.gatech.edu/notes/diis/node2.html
-    subroutine mixer(num,method)
+    subroutine mixer()
         use parameters
         use parameters2
         implicit none
@@ -475,6 +481,29 @@ contains
         !if (n==1) stop
     end subroutine
 
+    subroutine mixer_Broyden()
+        use parameters
+        use parameters2
+        implicit none
+complex(8) fac
+complex(8), external :: zdotc
+
+! delta R
+        G1= conjgG-sigma0
+        fac=zdotc(total_grid,G1,1,G1,1)
+        fac=1/(real(fac))
+        deltaG=G-G_prev
+        call dgemv('N',total_grid,total_grid,-1,Jacobian,total_grid,G1,1,1,deltaG,1)
+
+        call zgerc(total_grid,total_grid)
+
+        call dgemv('N',total_grid,total_grid,-1,Jacobian,total_grid,conjgG,1,1,G,1)
+
+        sigma0=conjgG
+        G_prev=G
+
+    end subroutine
+
 
     ! 检查sigma收敛点数, 未使用, 因为用自能判断不太可靠
     ! 两个相同的输入G会导致sigma相同, 但是此时不能保证G收敛
@@ -513,7 +542,7 @@ contains
         norm_G = dznrm2(total_grid, G, 1)
 
         ! 这里是复用conjg来表示差, 节省内存
-        conjgG=G-G1
+        conjgG=G1-G
         !conv_grid=count(abs(conjgG)<=G_tol*abs(G) .or. abs(G)<=real_error)
         conv_grid=0
         !total_error=0
@@ -613,7 +642,6 @@ contains
         ! use parameters
         use parameters2
         implicit none
-
 
         ! 点数36: 1~11~21~36
         integer count_k, i, ik, ix, iy, fileunit

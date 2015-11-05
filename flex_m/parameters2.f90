@@ -8,7 +8,7 @@ module parameters2
     ! 格林函数, 反常格林函数
     ! 自能函数, 反常自能函数
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: &
-        G0, G, conjgG, G1, sigma, sigma0 ! 格林函数和自能
+        G0, G, conjgG, G1, sigma, sigma0, G_prev, G1_prev, deltaG ! 格林函数和自能
 
     complex(8), dimension (nb, nb, nkx, nky, dft_grid) :: &
         r_tau1, r_tau2
@@ -59,6 +59,8 @@ module parameters2
     ! 根据推导, 这部分应该都是实矩阵和向量
     real(8), dimension (0:mix_num, 0:mix_num) :: mixer_A, mixer_A1
     real(8), dimension(0:mix_num) :: mixer_x, mixer_b
+
+    real(8), dimension(total_grid,total_grid) :: Jacobian
 
     ! 占据数相关
     real(8) mu_less(3), mu_more(3), density_less(3), density_more(3)

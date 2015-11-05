@@ -219,7 +219,9 @@ program flex_2d
                 case (1)
                     G=mixer_beta*G1+(1-mixer_beta)*G
                 case (2:3)
-                    call mixer(G_iter,mixer_method)
+                    call mixer()
+                case (4)
+                    call mixer_Broyden()
                     !G=mixer_beta*G1+(1-mixer_beta)*G
             end select
 
