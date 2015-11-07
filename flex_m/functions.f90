@@ -391,10 +391,10 @@ contains
         mixer_b = 0
         mixer_b(0) = -1
 
-        Jacobian=complex_0
-        do i=1,total_grid
-            Jacobian(i,i)=complex_1*mixer_beta
-        enddo
+        !        Jacobian=complex_0
+        !        do i=1,total_grid
+        !            Jacobian(i,i)=complex_1*mixer_beta
+        !        enddo
 
     end subroutine
 
@@ -482,6 +482,7 @@ contains
         !if (n==1) stop
     end subroutine
 
+    !未完成
     subroutine mixer_Broyden()
         use parameters
         use parameters2
@@ -497,9 +498,9 @@ contains
         fac2=-complex_1*mixer_beta
         deltaG=G-G_prev
         if (G_iter>1)then
-            call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid,G1,1,complex_1,deltaG,1)
-            call zgerc(total_grid,total_grid,fac,deltaG,1,G1,1,Jacobian,total_grid)
-            call zgemv('N',total_grid,total_grid,fac2,Jacobian,total_grid,conjgG,1,complex_1,G,1)
+            !call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid,G1,1,complex_1,deltaG,1)
+            !call zgerc(total_grid,total_grid,fac,deltaG,1,G1,1,Jacobian,total_grid)
+            !call zgemv('N',total_grid,total_grid,fac2,Jacobian,total_grid,conjgG,1,complex_1,G,1)
         else
             G=G1
         endif
@@ -559,7 +560,7 @@ contains
             cur_error = abs(G_error)
             !total_error = total_error + cur_error
             if (cur_error<=G_tol*abs(G_one) .or. abs(G_one)<=real_error) then
-            !if (cur_error<=G_tol*abs(G_one)) then
+                !if (cur_error<=G_tol*abs(G_one)) then
                 conv_grid=conv_grid+1
             endif
         enddo; enddo; enddo; enddo; enddo;

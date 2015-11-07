@@ -60,7 +60,7 @@ module parameters2
     real(8), dimension (0:mix_num, 0:mix_num) :: mixer_A, mixer_A1
     real(8), dimension(0:mix_num) :: mixer_x, mixer_b
 
-    complex(8), dimension(total_grid,total_grid) :: Jacobian
+    !complex(8), dimension(total_grid,total_grid) :: Jacobian
 
     ! 占据数相关
     real(8) mu_less(3), mu_more(3), density_less(3), density_more(3)
