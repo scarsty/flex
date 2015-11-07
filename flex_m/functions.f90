@@ -371,6 +371,7 @@ contains
 
     ! 初始化混合器
     subroutine mixerInit()
+        use parameters
         use parameters2
         implicit none
         integer i
@@ -392,7 +393,7 @@ contains
 
         Jacobian=complex_0
         do i=1,total_grid
-            Jacobian(i,i)=complex_1
+            Jacobian(i,i)=complex_1*mixer_beta
         enddo
 
     end subroutine
@@ -404,7 +405,7 @@ contains
         use parameters
         use parameters2
         implicit none
-        integer num, n, i, info, next_pointer, prev_pointer, method
+        integer num, n, i, info, next_pointer, prev_pointer
         integer ipiv(mix_num+1)
         complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf):: b1,b2
         real(8), dimension (mix_num*2) :: lwork
@@ -412,7 +413,7 @@ contains
         logical find_bigger
 
 
-        if (method==3) then
+        if (mixer_method==3) then
             if (num<=mix_keep) then
                 mixer_order=num
             else
@@ -485,23 +486,29 @@ contains
         use parameters
         use parameters2
         implicit none
-complex(8) fac
-complex(8), external :: zdotc
+        complex(8) fac, fac2
+        complex(8), external :: zdotc
+        integer i
 
-! delta R
-        G1= conjgG-sigma0
+        ! delta R
+        G1=conjgG-sigma0
         fac=zdotc(total_grid,G1,1,G1,1)
         fac=1/(real(fac))
+        fac2=-complex_1*mixer_beta
         deltaG=G-G_prev
-        call dgemv('N',total_grid,total_grid,-1,Jacobian,total_grid,G1,1,1,deltaG,1)
-
-        call zgerc(total_grid,total_grid)
-
-        call dgemv('N',total_grid,total_grid,-1,Jacobian,total_grid,conjgG,1,1,G,1)
-
+        if (G_iter>1)then
+            call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid,G1,1,complex_1,deltaG,1)
+            call zgerc(total_grid,total_grid,fac,deltaG,1,G1,1,Jacobian,total_grid)
+            call zgemv('N',total_grid,total_grid,fac2,Jacobian,total_grid,conjgG,1,complex_1,G,1)
+        else
+            G=G1
+        endif
         sigma0=conjgG
         G_prev=G
-
+        !do i=1,total_grid
+        !write(stderr,*)G
+        !enddo
+        !stop
     end subroutine
 
 
@@ -552,6 +559,7 @@ complex(8), external :: zdotc
             cur_error = abs(G_error)
             !total_error = total_error + cur_error
             if (cur_error<=G_tol*abs(G_one) .or. abs(G_one)<=real_error) then
+            !if (cur_error<=G_tol*abs(G_one)) then
                 conv_grid=conv_grid+1
             endif
         enddo; enddo; enddo; enddo; enddo;
@@ -559,7 +567,8 @@ complex(8), external :: zdotc
         cur_G_tol = dznrm2(total_grid, conjgG, 1)/norm_G
         conv = ((conv_grid==total_grid) .or. cur_G_tol<1d-8)
         !if (conv .or. mod(G_iter,20)==0) then
-            write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
+        write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
+
         !endif
 
     end subroutine

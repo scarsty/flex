@@ -84,14 +84,14 @@ program flex_2d
             enddo
         enddo; enddo
         if (density_iter==1) then
-        G=G0
+            G=G0
         endif
         call mixerInit()
 
         !call testConvolution()
         !call testConvolution3()
         !call testConvolution3G()
-
+        write(stdout,*) 'mu = ', mu
         ! base density
         density_base = 0d0
         do ib=1,nb; do ikx=1,nkx; do iky=1,nky
@@ -222,7 +222,6 @@ program flex_2d
                     call mixer()
                 case (4)
                     call mixer_Broyden()
-                    !G=mixer_beta*G1+(1-mixer_beta)*G
             end select
 
             !G2=G
@@ -257,7 +256,6 @@ program flex_2d
             !计算结束
         else
             call modify_mu()
-            write(stdout,*) 'modified new mu = ', mu
         endif
 
         density_iter = density_iter + 1
