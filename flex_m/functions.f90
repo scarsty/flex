@@ -406,7 +406,7 @@ contains
     end function
 
     ! 初始化混合器
-    subroutine mixerInit()
+    subroutine mixer_init()
         use parameters
         use parameters2
         implicit none
@@ -429,7 +429,7 @@ contains
 
         Jacobian=complex_0
         do i=1,total_grid
-            Jacobian(i,i)=complex_1*mixer_beta
+            Jacobian(i,i)=complex_1
         enddo
 
         mixer_beta=mixer_beta0
@@ -475,7 +475,7 @@ contains
         G=G_out-G
         error0(2)=dznrm2(total_grid,G,1)
         i=0
-        do i=1,7
+        do i=1,10
             f_=minloc(error0)
             f=f_(1)
             if (f==2)then
@@ -517,10 +517,10 @@ contains
         enddo
         f_=minloc(error0)
         mixer_beta=beta(f_(1))
-        i=i+1
 
         if (mixer_beta==0) then
-            mixer_beta=0.001
+            f_=maxloc(error0)
+        mixer_beta=0.5*(sum(beta)-beta(f_(1)))
         endif
 
         G=mixer_beta*G_out0+(1-mixer_beta)*G_in0
@@ -645,14 +645,14 @@ contains
         conjgG=G_out-G
         G_out=conjgG-sigma0
         fac=zdotc(total_grid,G_out,1,G_out,1)
-        fac=1/(real(fac))*mixer_beta
+        fac=1/(real(fac))
         fac2=-complex_1*mixer_beta
         deltaG=G-G_prev
         if (G_iter>1)then
             call zgemv('N',total_grid,total_grid,complex_1,Jacobian,total_grid,G_out,1,complex_1,deltaG,1)
             call zgerc(total_grid,total_grid,fac,deltaG,1,G_out,1,Jacobian,total_grid)
         endif
-        call zgemv('N',total_grid,total_grid,complex_1,Jacobian,total_grid,conjgG,1,complex_1,G,1)
+        call zgemv('N',total_grid,total_grid,fac2,Jacobian,total_grid,conjgG,1,complex_1,G,1)
         sigma0=conjgG
         G_prev=G
         !do i=1,total_grid
@@ -664,7 +664,7 @@ contains
 
     ! 检查sigma收敛点数, 未使用, 因为用自能判断不太可靠
     ! 两个相同的输入G会导致sigma相同, 但是此时不能保证G收敛
-    subroutine convergence_testsigma(conv)
+    subroutine sigma_convergence_test(conv)
         use parameters
         use parameters2
         implicit none

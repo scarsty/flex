@@ -87,7 +87,7 @@ program flex_2d
         if (density_iter==1) then
             G=G0
         endif
-        call mixerInit()
+        call mixer_init()
 
         !call testConvolution()
         !call testConvolution3()
