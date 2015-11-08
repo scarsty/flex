@@ -63,7 +63,8 @@ MODULE constants
     complex(8), parameter, public :: complex_i = (0.0d0,1.0d0)
     complex(8), parameter, public :: complex_0 = (0.0d0,0.0d0)
     complex(8), parameter, public :: complex_1 = (1.0d0,0.0d0)
-    real(8), parameter, public :: real_error = 1d-5
+    real(8), parameter, public :: real_error = 1d-8
+    real(8), parameter, public :: golden_ratio = (sqrt(5d0)-1)/2d0
 
 
     integer, parameter :: stdin =  5

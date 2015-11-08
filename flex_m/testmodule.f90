@@ -271,9 +271,6 @@ subroutine testConvolution3G()
     integer ikx1, iky1, ikx2, iky2, iomega1, iomega2, kxplus, kyplus, omegaplus
     complex(8) temp_complex
 
-    real(8) dznrm2
-    external dznrm2
-
     integer regionParameter
     external regionParameter
 
@@ -343,9 +340,6 @@ subroutine testConvolution3sigma()
     integer l1, l2, m1, m2
     integer ikx1, iky1, ikx2, iky2, iomega1, iomega2, kxplus, kyplus, omegaplus
     complex(8) temp_complex
-
-    real(8) dznrm2
-    external dznrm2
 
     integer regionParameter
     external regionParameter

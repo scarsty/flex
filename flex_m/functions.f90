@@ -2,6 +2,7 @@ module functions
 #ifdef USE_MPI
     include 'mpif.h'
 #endif
+    real(8), external :: dznrm2
 
 contains
     ! mpi函数系列
@@ -161,6 +162,37 @@ contains
             src, M, dft_matrix, K, complex_0, dst, M)
     end subroutine
 
+    subroutine swap(a,b)
+        real(8) a,b,c
+        c=a
+        a=b
+        b=c
+    end subroutine
+
+    recursive subroutine quick_sort(v,n,s,e)
+        real(8) v(n),key
+        integer n,s,e,l,r,m
+
+        l=s
+        r=e
+        m=s
+        if (l>=r) return
+        key=v(m)
+        do while (l<r)
+            do while(v(l)<key)
+                l=l+1
+            enddo
+            do while(v(r)>key)
+                r=r-1
+            enddo
+            if (l<r) then
+                call swap(v(l),v(r))
+            endif
+        enddo
+        call quick_sort(v,n,s,l-1)
+        call quick_sort(v,n,r+1,e)
+    end subroutine
+
     subroutine init()
         use parameters
         use parameters2
@@ -186,6 +218,10 @@ contains
 
         mu_less_count=0
         mu_more_count=0
+
+        mixer_beta0=mixer_beta
+
+        !allocate(mixer_G(mix_num))
 
     end subroutine
 
@@ -377,8 +413,8 @@ contains
         integer i
 
         mixer_G = 0
-        !G_mixer(:,:,:,:,:,1)=G1
-        !error_mixer(:,:,:,:,:,1) = G1-G0
+        !G_mixer(:,:,:,:,:,1)=G_out
+        !error_mixer(:,:,:,:,:,1) = G_out-G0
 
         mixer_pointer=1
         mixer_pointer2=1
@@ -391,21 +427,130 @@ contains
         mixer_b = 0
         mixer_b(0) = -1
 
-        !        Jacobian=complex_0
-        !        do i=1,total_grid
-        !            Jacobian(i,i)=complex_1*mixer_beta
-        !        enddo
+        Jacobian=complex_0
+        do i=1,total_grid
+            Jacobian(i,i)=complex_1*mixer_beta
+        enddo
+
+        mixer_beta=mixer_beta0
 
     end subroutine
 
-    ! G1是新的, G是上一步
-    ! 混合算法
-    ! http://vergil.chemistry.gatech.edu/notes/diis/node2.html
-    subroutine mixer()
+    subroutine cal_best_mixer_beta()
         use parameters
         use parameters2
         implicit none
-        integer num, n, i, info, next_pointer, prev_pointer
+        integer i,f_(1),f
+        real(8) beta(3), min_error, min_beta, beta1, beta2, error0(3)
+
+!        if (G_iter>20)then
+!            mixer_beta=0.001
+!            G=mixer_beta*G_out+(1-mixer_beta)*G
+!            mixer_method=1
+!            mixer_beta=0.01
+!            return
+!        endif
+
+
+        G_in0=G
+        G_out0=G_out
+        G_error=G_out-G
+        min_error=1d100
+        beta(1)=-1
+        beta(3)=1
+        beta(2)=(beta(1)+beta(3))/2
+
+        G=beta(1)*G_error+G_in0
+        call cal_G_out()
+        G=G_out-G
+        error0(1)=dznrm2(total_grid,G,1)
+
+        G=beta(3)*G_error+G_in0
+        call cal_G_out()
+        G=G_out-G
+        error0(3)=dznrm2(total_grid,G,1)
+
+        G=beta(2)*G_error+G_in0
+        call cal_G_out()
+        G=G_out-G
+        error0(2)=dznrm2(total_grid,G,1)
+        i=0
+        do i=1,7
+            f_=minloc(error0)
+            f=f_(1)
+            if (f==2)then
+                !中间的最小，截断大的一边
+                f_=maxloc(error0)
+                f=f_(1)
+                beta(f)=beta(2)
+                error0(f)=error0(2)
+
+                beta(2)=(beta(1)+beta(3))/2
+                G=beta(2)*G_error+G_in0
+                call cal_G_out()
+                G=G_out-G
+                error0(2)=dznrm2(total_grid,G,1)
+
+            else
+                !中间的不是最小，找小的，外推
+                f_=minloc(error0)
+                f=f_(1)
+
+                beta(4-f)=beta(2)
+                error0(4-f)=error0(2)
+
+                beta(2)=beta(f)
+                error0(2)=error0(f)
+
+                beta(f)=beta(2)+(beta(2)-beta(4-f))
+
+                G=beta(f)*G_error+G_in0
+                call cal_G_out()
+                G=G_out-G
+                error0(f)=dznrm2(total_grid,G,1)
+
+
+            endif
+
+            !write(stdout,*) beta
+            !write(stdout,*) error0
+        enddo
+        f_=minloc(error0)
+        mixer_beta=beta(f_(1))
+        i=i+1
+
+        if (mixer_beta==0) then
+            mixer_beta=0.001
+        endif
+
+        G=mixer_beta*G_out0+(1-mixer_beta)*G_in0
+    end subroutine
+
+
+    subroutine mixer_linear()
+        use parameters
+        use parameters2
+        implicit none
+        integer i
+        real(8) beta, min_error, min_beta, cur_error
+        !real(8), external :: dznrm2
+
+
+        if (mixer_beta0==0) then
+            call cal_best_mixer_beta
+        else
+            G=mixer_beta*G_out+(1-mixer_beta)*G
+        endif
+
+    end subroutine
+    ! G_out是新的, G是上一步
+    ! 混合算法
+    ! http://vergil.chemistry.gatech.edu/notes/diis/node2.html
+    subroutine mixer_Pulay()
+        use parameters
+        use parameters2
+        implicit none
+        integer n, i, info, next_pointer, prev_pointer
         integer ipiv(mix_num+1)
         complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf):: b1,b2
         real(8), dimension (mix_num*2) :: lwork
@@ -414,10 +559,10 @@ contains
 
 
         if (mixer_method==3) then
-            if (num<=mix_keep) then
-                mixer_order=num
+            if (G_iter<=mix_keep) then
+                mixer_order=G_iter
             else
-                mixer_error_=G1-G
+                mixer_error_=G_out-G
                 e0=real(GProduct(mixer_error_,mixer_error_))
                 ! 在误差列表中找最大的取代
                 find_bigger=.false.
@@ -444,10 +589,15 @@ contains
 
         !prev_pointer=mixerIncPointer(mixer_pointer,-1)
 
-        ! 误差是G1-G, 这个值越小则说明G是一个接近好的解, 而非G1
-        mixer_error(:,:,:,:,:,mixer_pointer)=G-G1
-        mixer_G(:,:,:,:,:,mixer_pointer)=mixer_beta*G1+(1-mixer_beta)*G
-        !mixer_G(:,:,:,:,:,mixer_pointer)=G1
+        ! 误差是G_out-G, 这个值越小则说明G是一个接近好的解, 而非G_out
+        mixer_error(:,:,:,:,:,mixer_pointer)=G-G_out
+        if (mixer_beta==0) then
+            call cal_best_mixer_beta()
+            mixer_G(:,:,:,:,:,mixer_pointer)=G
+        else
+            mixer_G(:,:,:,:,:,mixer_pointer)=mixer_beta*G_out+(1-mixer_beta)*G
+        endif
+        !mixer_G(:,:,:,:,:,mixer_pointer)=G_out
 
         ! A_ij=e_i**H*e_j
         !$omp parallel do private(b1,b2,e)
@@ -477,7 +627,7 @@ contains
             G=G+mixer_G(:,:,:,:,:,i)*(mixer_x(i))
             !write(stderr,*) n,real(mixer_x(i)), real(mixer_A(i,i))
         enddo
-        !G=mixer_beta*G1+(1-mixer_beta)*G
+        !G=mixer_beta*G_out+(1-mixer_beta)*G
         !call writematrix(Pulay_A,11)
         !if (n==1) stop
     end subroutine
@@ -492,18 +642,17 @@ contains
         integer i
 
         ! delta R
-        G1=conjgG-sigma0
-        fac=zdotc(total_grid,G1,1,G1,1)
-        fac=1/(real(fac))
+        conjgG=G_out-G
+        G_out=conjgG-sigma0
+        fac=zdotc(total_grid,G_out,1,G_out,1)
+        fac=1/(real(fac))*mixer_beta
         fac2=-complex_1*mixer_beta
         deltaG=G-G_prev
         if (G_iter>1)then
-            !call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid,G1,1,complex_1,deltaG,1)
-            !call zgerc(total_grid,total_grid,fac,deltaG,1,G1,1,Jacobian,total_grid)
-            !call zgemv('N',total_grid,total_grid,fac2,Jacobian,total_grid,conjgG,1,complex_1,G,1)
-        else
-            G=G1
+            call zgemv('N',total_grid,total_grid,complex_1,Jacobian,total_grid,G_out,1,complex_1,deltaG,1)
+            call zgerc(total_grid,total_grid,fac,deltaG,1,G_out,1,Jacobian,total_grid)
         endif
+        call zgemv('N',total_grid,total_grid,complex_1,Jacobian,total_grid,conjgG,1,complex_1,G,1)
         sigma0=conjgG
         G_prev=G
         !do i=1,total_grid
@@ -519,7 +668,7 @@ contains
         use parameters
         use parameters2
         implicit none
-        real(8), external :: dznrm2
+        !real(8), external :: dznrm2
         logical conv
         integer ib1, ib2, ikx, iky, iomegak, conv_grid
         real(8) norm_sigma_minus, norm_sigma, norm_sigma0, cur_G_tol, tol
@@ -540,35 +689,34 @@ contains
         use parameters
         use parameters2
         implicit none
-        real(8), external :: dznrm2
+        !real(8), external :: dznrm2
         logical conv
         integer ib1, ib2, ikx, iky, iomegak, conv_grid
         real(8) norm_G, cur_G_tol, tol
         real(8) cur_error, total_error
-        complex(8) G_one, G1_one, G_error
+        complex(8) G_one, G_out_one, G_error_one
 
         norm_G = dznrm2(total_grid, G, 1)
 
-        ! 这里是复用conjg来表示差, 节省内存
-        conjgG=G1-G
-        !conv_grid=count(abs(conjgG)<=G_tol*abs(G) .or. abs(G)<=real_error)
+        G_error=G_out-G
+        !conv_grid=count(abs(G_error)<=G_tol*abs(G) .or. abs(G)<=real_error)
         conv_grid=0
         !total_error=0
         do ib1=1,nb; do ib2=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
             G_one=G(ib1,ib2,ikx,iky,iomegak)
-            G_error=conjgG(ib1,ib2,ikx,iky,iomegak)
-            cur_error = abs(G_error)
+            G_error_one=G_error(ib1,ib2,ikx,iky,iomegak)
+            cur_error=abs(G_error_one)
             !total_error = total_error + cur_error
-            if (cur_error<=G_tol*abs(G_one) .or. abs(G_one)<=real_error) then
-                !if (cur_error<=G_tol*abs(G_one)) then
+            !if (cur_error<=G_tol*abs(G_one) .or. abs(G_one)<=real_error) then
+            if (cur_error<=G_tol*abs(G_one)) then
                 conv_grid=conv_grid+1
             endif
         enddo; enddo; enddo; enddo; enddo;
 
-        cur_G_tol = dznrm2(total_grid, conjgG, 1)/norm_G
+        cur_G_tol = dznrm2(total_grid, G_error, 1)!/norm_G
         conv = ((conv_grid==total_grid) .or. cur_G_tol<1d-8)
         !if (conv .or. mod(G_iter,20)==0) then
-        write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
+        write(stdout,'(I7,I7,I10,ES20.5,F10.6)') density_iter, G_iter, conv_grid, cur_G_tol, mixer_beta
 
         !endif
 
@@ -751,6 +899,116 @@ contains
         chi_s_ = chi_0_
         call inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
 
+    end subroutine
+
+
+    !从G计算G_out
+    subroutine cal_G_out()
+        use parameters
+        use parameters2
+        implicit none
+
+        integer ikx, iky
+        integer iomegak,iomegaq
+        integer l1,m1,l2,m2
+        call dft(G, r_tau1, nb, nomegaf, dft_grid, 1, 0)
+
+        conjgG=conjg(G)
+        call dft(conjgG, r_tau2, nb, nomegaf, dft_grid, 1, 0)
+
+        ! chi_0, 并行
+        ! 卷积形式, 改成减法 on tau
+        r_tau_sqr=0
+        !$omp parallel do private(l2,m1,m2)
+        do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
+            r_tau_sqr(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
+                = - r_tau1(l1, m1, :, :, :)*r_tau2(m2, l2, :, :, :)
+        enddo; enddo; enddo; enddo
+        !$omp end parallel do
+
+        ! idft chi_0_r_tau to chi_0
+        call dft(r_tau_sqr, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
+        chi_0 = T_ev/nk*chi_0
+
+        ! chi_c, chi_s, V
+        ! the same to solve AX=B, where A = (I +(c)/-(s) chi_0) and B = chi_0
+        !$omp parallel do private(ikx,iky,Iminuschi_0_,chi_0_,chi_c_,chi_s_)
+        do iomegaq=minomegab,maxomegab; do ikx=1,nkx; do iky=1,nky;
+
+            !call cal_chi_cs(ikx,iky,iomegaq)
+            ! 上面的过程并行会导致问题, 这里直接展开
+
+            chi_0_=chi_0(:, :, ikx, iky, iomegaq)
+            ! chi_c = chi_0 - chi_0*U_c*chi_c
+            Iminuschi_0_ = I_chi + AB(chi_0_,U_c,nb*nb)
+            !Iminuschi_0_ = I_chi + AB(U_c,chi_0_,nb*nb)
+            chi_c_ = chi_0_
+            call inverseAbyB(Iminuschi_0_,chi_c_,nb*nb)
+
+            ! chi_s = chi_0 + chi_0*U_s*chi_s
+            Iminuschi_0_ = I_chi - AB(chi_0_,U_s,nb*nb)
+            !Iminuschi_0_ = I_chi - AB(U_s,chi_0_,nb*nb)
+            chi_s_ = chi_0_
+            call inverseAbyB(Iminuschi_0_,chi_s_,nb*nb)
+
+            V(:, :, ikx, iky, iomegaq) = U_ud - 2*U_uu &
+                - ABA(U_ud, chi_0_, nb*nb) &
+                + 1.5*ABA(U_s, chi_s_, nb*nb) &
+                + 0.5*ABA(U_c, chi_c_, nb*nb)
+
+        enddo; enddo; enddo
+        !$omp end parallel do
+
+
+        !sigma(k) = V(k-k')*G(k')
+
+        ! dft V to V_r_tau
+        call dft(V, r_tau_sqr, nb*nb, nomegab, dft_grid, 1, 0)
+
+        ! sigma_r_tau, 并行
+        r_tau2 = complex_0
+        !omp parallel do private(l2,m1,m2) reduction (+:sigma_r_tau)
+        do l1=1,nb; do m1=1,nb;
+            do l2=1,nb; do m2=1,nb
+                r_tau2(l1, m1, :, :, :) = r_tau2(l1, m1, :, :, :) &
+                    + r_tau_sqr(sub_g2chi(l1,l2), sub_g2chi(m1,m2),:,:,:) * r_tau1(l2,m2,:,:,:)
+            enddo; enddo;
+        enddo; enddo
+        !omp end parallel do
+
+        ! idft sigma_r_tau to sigma
+        call dft(r_tau2, sigma, nb, dft_grid, nomegaf, -1, 1)
+        ! write(*,*) sigma(1,1,1,1,1)
+
+        !call testConvolution3sigma()
+        sigma=T_eV/nk*sigma
+
+        !call convergence_test(G_conv)
+        !if (G_conv) then
+        !    exit
+        !endif
+
+        ! 新的G, dyson方程
+        ! G=G0+G0*sigma*G, then we have G=(I-G0*sigma)**(-1)*G0
+        !$omp parallel do private(ikx,iky,G0_,sigma_,G_)
+        do iomegak=minomegaf,maxomegaf;do ikx=1,nkx;do iky=1,nky
+            if (iter_method==0)then
+                G0_=G0(:,:,ikx,iky,iomegak)
+                sigma_=sigma(:,:,ikx,iky,iomegak)
+                G_=AB(G0_,sigma_,nb)
+                G_=I_G - G_
+                call inverseAbyB(G_,G0_,nb)
+                G_out(:,:,ikx,iky,iomegak) = G0_
+            else
+                G(:,:,ikx,iky,iomegak) &
+                    = &
+                    G0(:,:,ikx,iky,iomegak) &
+                    + ABC(G0(:,:,ikx,iky,iomegak), &
+                    sigma(:,:,ikx,iky,iomegak), &
+                    G_out(:,:,ikx,iky,iomegak),nb)
+            endif
+        enddo;enddo;enddo
+        !$omp end parallel do
     end subroutine
 
 end module functions

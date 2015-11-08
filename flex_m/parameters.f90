@@ -26,7 +26,7 @@ module parameters
     integer iter_method ! 0: dyson方程, others: G_n+1=G0+G0*sigma*G_n
 
     integer mixer_method
-    real(8) mixer_beta
+    real(8) mixer_beta, mixer_beta0
     ! 自旋态
     integer :: spin_state
 
