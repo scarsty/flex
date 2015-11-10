@@ -28,7 +28,6 @@
 					<Add option="-ffast-math" />
 					<Add option="-O2" />
 					<Add option="-cpp" />
-					<Add option="-fopenmp" />
 					<Add option="-D_DEBUG" />
 				</Compiler>
 				<Linker>

@@ -48,9 +48,11 @@ module parameters
     namelist /band/ eigen_value
 
     ! MPI variables
-    INTEGER mpi_rank, mpi_size, mpi_info
+    integer mpi_rank, mpi_size, mpi_info
     ! Timing variables
-    Real(8) start_time, end_time
-    Real(8) last_it_time, this_it_time
+    real(8) start_time, end_time
+    real(8) last_it_time, this_it_time
+
+    integer alloc_error
 
 end module parameters

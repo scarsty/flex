@@ -72,7 +72,7 @@ contains
         sub_g2chi = a+(b-1)*nb
     end function
 
-    ! B会改变!
+    ! B直接保存结果
     subroutine inverseAbyB(A, B, n)
         use constants
         implicit none
@@ -162,13 +162,15 @@ contains
             src, M, dft_matrix, K, complex_0, dst, M)
     end subroutine
 
-    subroutine swap(a,b)
+    ! 交换
+    subroutine swap_r8(a,b)
         real(8) a,b,c
         c=a
         a=b
         b=c
     end subroutine
 
+    !快速排序
     recursive subroutine quick_sort(v,n,s,e)
         real(8) v(n),key
         integer n,s,e,l,r,m
@@ -186,7 +188,7 @@ contains
                 r=r-1
             enddo
             if (l<r) then
-                call swap(v(l),v(r))
+                call swap_r8(v(l),v(r))
             endif
         enddo
         call quick_sort(v,n,s,l-1)
@@ -221,8 +223,27 @@ contains
 
         mixer_beta0=mixer_beta
 
-        !allocate(mixer_G(mix_num))
+        select case (mixer_method)
+            case (2:3)
 
+            case (4)
+                allocate(Jacobian(total_grid,total_grid),stat=alloc_error)
+                write(stdout,*) alloc_error
+        end select
+
+    end subroutine
+
+    subroutine destroy()
+        use parameters
+        use parameters2
+        implicit none
+
+        select case (mixer_method)
+            case (2:3)
+
+            case (4)
+                deallocate(Jacobian,stat=alloc_error)
+        end select
     end subroutine
 
     subroutine init_Kpoints()
@@ -412,7 +433,8 @@ contains
         implicit none
         integer i
 
-        mixer_G = 0
+        mixer_G = complex_0
+        mixer_beta=mixer_beta0
         !G_mixer(:,:,:,:,:,1)=G_out
         !error_mixer(:,:,:,:,:,1) = G_out-G0
 
@@ -421,18 +443,19 @@ contains
         mixer_order=0
         mixer_A = 0
         do i=1,mix_num
-            mixer_A(0,i)=-1
-            mixer_A(i,0)=-1
+            mixer_A(0,i)=-1d0
+            mixer_A(i,0)=-1d0
         enddo
-        mixer_b = 0
-        mixer_b(0) = -1
+        mixer_b = 0d0
+        mixer_b(0) = -1d0
 
-        Jacobian=complex_0
-        do i=1,total_grid
-            Jacobian(i,i)=complex_1
-        enddo
-
-        mixer_beta=mixer_beta0
+        if (mixer_method==4) then
+            Jacobian=complex_0
+            !这里我也不知道为什么要用负定阵, 资料上给的好像是正定
+            do i=1,total_grid
+                Jacobian(i,i)=-complex_1*mixer_beta
+            enddo
+        endif
 
     end subroutine
 
@@ -443,13 +466,13 @@ contains
         integer i,f_(1),f
         real(8) beta(3), min_error, min_beta, beta1, beta2, error0(3)
 
-!        if (G_iter>20)then
-!            mixer_beta=0.001
-!            G=mixer_beta*G_out+(1-mixer_beta)*G
-!            mixer_method=1
-!            mixer_beta=0.01
-!            return
-!        endif
+        !        if (G_iter>20)then
+        !            mixer_beta=0.001
+        !            G=mixer_beta*G_out+(1-mixer_beta)*G
+        !            mixer_method=1
+        !            mixer_beta=0.01
+        !            return
+        !        endif
 
 
         G_in0=G
@@ -520,7 +543,7 @@ contains
 
         if (mixer_beta==0) then
             f_=maxloc(error0)
-        mixer_beta=0.5*(sum(beta)-beta(f_(1)))
+            mixer_beta=0.5*(sum(beta)-beta(f_(1)))
         endif
 
         G=mixer_beta*G_out0+(1-mixer_beta)*G_in0
@@ -537,12 +560,13 @@ contains
 
 
         if (mixer_beta0==0) then
-            call cal_best_mixer_beta
+            call cal_best_mixer_beta()
         else
             G=mixer_beta*G_out+(1-mixer_beta)*G
         endif
 
     end subroutine
+
     ! G_out是新的, G是上一步
     ! 混合算法
     ! http://vergil.chemistry.gatech.edu/notes/diis/node2.html
@@ -557,7 +581,7 @@ contains
         real(8) e, e0, max_error
         logical find_bigger
 
-
+        !Refined Pulay方法, 保留残差较小的, 实际上高度非线性时没啥作用
         if (mixer_method==3) then
             if (G_iter<=mix_keep) then
                 mixer_order=G_iter
@@ -642,19 +666,21 @@ contains
         integer i
 
         ! delta R
-        conjgG=G_out-G
-        G_out=conjgG-sigma0
-        fac=zdotc(total_grid,G_out,1,G_out,1)
-        fac=1/(real(fac))
-        fac2=-complex_1*mixer_beta
+        G_error=G_out-G
+        G_out=G_error-G_error0
+        fac=1/dznrm2(total_grid,G_out,1)**2
         deltaG=G-G_prev
-        if (G_iter>1)then
-            call zgemv('N',total_grid,total_grid,complex_1,Jacobian,total_grid,G_out,1,complex_1,deltaG,1)
-            call zgerc(total_grid,total_grid,fac,deltaG,1,G_out,1,Jacobian,total_grid)
-        endif
-        call zgemv('N',total_grid,total_grid,fac2,Jacobian,total_grid,conjgG,1,complex_1,G,1)
-        sigma0=conjgG
         G_prev=G
+        if (G_iter>1) then
+            call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid, &
+                G_out,1,complex_1,deltaG,1)
+            call zgerc(total_grid,total_grid,fac,deltaG,1, &
+                G_out,1,Jacobian,total_grid)
+        endif
+        call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid, &
+            G_error,1,complex_1,G,1)
+
+        G_error0=G_error
         !do i=1,total_grid
         !write(stderr,*)G
         !enddo
