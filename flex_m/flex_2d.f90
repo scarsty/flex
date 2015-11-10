@@ -93,7 +93,7 @@ program flex_2d
         !call testConvolution()
         !call testConvolution3()
         !call testConvolution3G()
-        write(stdout,*) 'mu = ', mu, t_ev/t_ev0
+        write(stdout,*) 'current mu = ', mu
         ! base density
         density_base = 0d0
         do ib=1,nb; do ikx=1,nkx; do iky=1,nky

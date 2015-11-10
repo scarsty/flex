@@ -79,7 +79,6 @@
 		<Unit filename="input_file">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
-		<Unit filename="input_file.module" />
 		<Unit filename="parameters.f90">
 			<Option weight="0" />
 		</Unit>

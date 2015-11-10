@@ -581,7 +581,7 @@ contains
         real(8) e, e0, max_error
         logical find_bigger
 
-        !Refined Pulay方法, 保留残差较小的, 实际上高度非线性时没啥作用
+        ! method.3 - Refined Pulay方法, 保留残差较小的, 实际上高度非线性时没啥作用
         if (mixer_method==3) then
             if (G_iter<=mix_keep) then
                 mixer_order=G_iter
