@@ -169,7 +169,7 @@ program flex_2d
         if (total_iter>max_iter) then
             !exit
         endif
-        stop
+        !stop
     enddo
     ! density loop end
 

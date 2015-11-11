@@ -170,7 +170,7 @@ contains
         b=c
     end subroutine
 
-    !快速排序
+    ! 快速排序
     recursive subroutine quick_sort(v,n,s,e)
         real(8) v(n),key
         integer n,s,e,l,r,m
@@ -218,8 +218,16 @@ contains
             I_G(i,i)=complex_1
         enddo
 
-        mu_less_count=0
-        mu_more_count=0
+        mu_history=0d0
+        mu_error=0d0
+
+        mu_A = 0
+        do i=1,mu_num
+            mu_A(0,i)=-1d0
+            mu_A(i,0)=-1d0
+        enddo
+        mu_b = 0d0
+        mu_b(0) = -1d0
 
         mixer_beta0=mixer_beta
 
@@ -228,7 +236,7 @@ contains
 
             case (4)
                 allocate(Jacobian(total_grid,total_grid),stat=alloc_error)
-                write(stdout,*) alloc_error
+                !write(stdout,*) alloc_error
         end select
 
     end subroutine
@@ -459,6 +467,143 @@ contains
 
     end subroutine
 
+
+    subroutine mixer_linear()
+        use parameters
+        use parameters2
+        implicit none
+        integer i
+        real(8) beta, min_error, min_beta, cur_error
+        !real(8), external :: dznrm2
+
+        if (mixer_beta0==0) then
+            call cal_best_mixer_beta()
+        else
+            G=mixer_beta*G_out+(1-mixer_beta)*G
+        endif
+
+    end subroutine
+
+    ! G_out是新的, G是上一步
+    ! 混合算法
+    ! http://vergil.chemistry.gatech.edu/notes/diis/node2.html
+    subroutine mixer_Pulay()
+        use parameters
+        use parameters2
+        implicit none
+        integer n, i, info, next_pointer, prev_pointer
+        integer ipiv(mix_num+1)
+        real(8), dimension (mix_num*2) :: lwork
+        real(8) e, e0, max_error
+        logical find_bigger
+
+        ! method.3 - Refined Pulay方法, 保留残差较小的, 实际上高度非线性时没啥作用
+        if (mixer_method==3) then
+            if (G_iter<=mix_keep) then
+                mixer_order=G_iter
+            else
+                mixer_error_=G_out-G
+                e0=real(GProduct(mixer_error_,mixer_error_))
+                ! 在误差列表中找最大的取代
+                find_bigger=.false.
+                max_error=0
+                do i=1,mix_keep
+                    if ((mixer_A(i,i))>max_error) then
+                        max_error = (mixer_A(i,i))
+                        mixer_pointer=i
+                    endif
+                enddo
+                if (max_error>e0) then
+                    find_bigger=.true.
+                endif
+                ! 如果没有找到取代位置, 则在后面找一个空位
+                if (.not. find_bigger) then
+                    mixer_pointer=mixer_pointer2+mix_keep
+                    mixer_pointer2 = mixerIncPointer(mixer_pointer2,1,mix_num-mix_keep)
+                    mixer_order=min(mixer_order+1,mix_num)
+                endif
+            endif
+        else
+            mixer_order=min(mixer_order+1,mix_num)
+        endif
+
+        !prev_pointer=mixerIncPointer(mixer_pointer,-1)
+
+        ! 误差是G_out-G, 这个值越小则说明G是一个接近好的解, 而非G_out
+        mixer_error(:,:,:,:,:,mixer_pointer)=G-G_out
+        if (mixer_beta==0) then
+            call cal_best_mixer_beta()
+            mixer_G(:,:,:,:,:,mixer_pointer)=G
+        else
+            mixer_G(:,:,:,:,:,mixer_pointer)=mixer_beta*G_out+(1-mixer_beta)*G
+        endif
+        !mixer_G(:,:,:,:,:,mixer_pointer)=G_out
+
+        ! A_ij=e_i**H*e_j
+        !$omp parallel do private(b1,b2,e)
+        mixer_error_=mixer_error(:,:,:,:,:,mixer_pointer)
+        do i=1,mix_num
+            mixer_error2_=mixer_error(:,:,:,:,:,i)
+            e=real(GProduct(mixer_error_,mixer_error2_))
+            mixer_A(mixer_pointer,i)=e
+            mixer_A(i,mixer_pointer)=e
+            !write(*,*)e
+        enddo
+        !$omp end parallel do
+
+        next_pointer=mixerIncPointer(mixer_pointer,1,mix_num)
+        mixer_pointer=next_pointer
+
+        mixer_A1=mixer_A
+        mixer_x=mixer_b
+
+        n=mixer_order
+        !write(stderr,*) n
+        ! 系数矩阵实际上多一行
+        call dsysv('U', n+1, 1, mixer_A1, mix_num+1, ipiv, mixer_x, mix_num+1, lwork, 2*mix_num, info)
+        !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
+        G=complex_0
+        do i=1,n
+            G=G+mixer_G(:,:,:,:,:,i)*(mixer_x(i))
+            !write(stderr,*) n,real(mixer_x(i)), real(mixer_A(i,i))
+        enddo
+        !G=mixer_beta*G_out+(1-mixer_beta)*G
+        !call writematrix(Pulay_A,11)
+        !if (n==1) stop
+    end subroutine
+
+    !未完成
+    subroutine mixer_Broyden()
+        use parameters
+        use parameters2
+        implicit none
+        complex(8) fac, fac2
+        complex(8), external :: zdotc
+        integer i
+
+        ! delta R
+        G_error=G_out-G
+        G_out=G_error-G_error0
+        fac=1/dznrm2(total_grid,G_out,1)**2
+        deltaG=G-G_prev
+        G_prev=G
+        if (G_iter>1) then
+            call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid, &
+                G_out,1,complex_1,deltaG,1)
+            call zgerc(total_grid,total_grid,fac,deltaG,1, &
+                G_out,1,Jacobian,total_grid)
+        endif
+        call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid, &
+            G_error,1,complex_1,G,1)
+
+        G_error0=G_error
+        !do i=1,total_grid
+        !write(stderr,*)G
+        !enddo
+        !stop
+    end subroutine
+
+
     subroutine cal_best_mixer_beta()
         use parameters
         use parameters2
@@ -550,144 +695,6 @@ contains
     end subroutine
 
 
-    subroutine mixer_linear()
-        use parameters
-        use parameters2
-        implicit none
-        integer i
-        real(8) beta, min_error, min_beta, cur_error
-        !real(8), external :: dznrm2
-
-
-        if (mixer_beta0==0) then
-            call cal_best_mixer_beta()
-        else
-            G=mixer_beta*G_out+(1-mixer_beta)*G
-        endif
-
-    end subroutine
-
-    ! G_out是新的, G是上一步
-    ! 混合算法
-    ! http://vergil.chemistry.gatech.edu/notes/diis/node2.html
-    subroutine mixer_Pulay()
-        use parameters
-        use parameters2
-        implicit none
-        integer n, i, info, next_pointer, prev_pointer
-        integer ipiv(mix_num+1)
-        complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf):: b1,b2
-        real(8), dimension (mix_num*2) :: lwork
-        real(8) e, e0, max_error
-        logical find_bigger
-
-        ! method.3 - Refined Pulay方法, 保留残差较小的, 实际上高度非线性时没啥作用
-        if (mixer_method==3) then
-            if (G_iter<=mix_keep) then
-                mixer_order=G_iter
-            else
-                mixer_error_=G_out-G
-                e0=real(GProduct(mixer_error_,mixer_error_))
-                ! 在误差列表中找最大的取代
-                find_bigger=.false.
-                max_error=0
-                do i=1,mix_keep
-                    if ((mixer_A(i,i))>max_error) then
-                        max_error = (mixer_A(i,i))
-                        mixer_pointer=i
-                    endif
-                enddo
-                if (max_error>e0) then
-                    find_bigger=.true.
-                endif
-                ! 如果没有找到取代位置, 则在后面找一个空位
-                if (.not. find_bigger) then
-                    mixer_pointer=mixer_pointer2+mix_keep
-                    mixer_pointer2 = mixerIncPointer(mixer_pointer2,1,mix_num-mix_keep)
-                    mixer_order=min(mixer_order+1,mix_num)
-                endif
-            endif
-        else
-            mixer_order=min(mixer_order+1,mix_num)
-        endif
-
-        !prev_pointer=mixerIncPointer(mixer_pointer,-1)
-
-        ! 误差是G_out-G, 这个值越小则说明G是一个接近好的解, 而非G_out
-        mixer_error(:,:,:,:,:,mixer_pointer)=G-G_out
-        if (mixer_beta==0) then
-            call cal_best_mixer_beta()
-            mixer_G(:,:,:,:,:,mixer_pointer)=G
-        else
-            mixer_G(:,:,:,:,:,mixer_pointer)=mixer_beta*G_out+(1-mixer_beta)*G
-        endif
-        !mixer_G(:,:,:,:,:,mixer_pointer)=G_out
-
-        ! A_ij=e_i**H*e_j
-        !$omp parallel do private(b1,b2,e)
-        do i=1,mix_num
-            b1=mixer_error(:,:,:,:,:,mixer_pointer)
-            b2=mixer_error(:,:,:,:,:,i)
-            e=real(GProduct(b1,b2))
-            mixer_A(mixer_pointer,i)=e
-            mixer_A(i,mixer_pointer)=e
-            !write(*,*)e
-        enddo
-        !$omp end parallel do
-
-        next_pointer=mixerIncPointer(mixer_pointer,1,mix_num)
-        mixer_pointer=next_pointer
-
-        mixer_A1=mixer_A
-        mixer_x=mixer_b
-
-        n=mixer_order
-        !write(stderr,*) n
-        ! 系数矩阵实际上多一行
-        call dsysv('U', n+1, 1, mixer_A1, mix_num+1, ipiv, mixer_x, mix_num+1, lwork, 2*mix_num, info)
-        !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
-        G=complex_0
-        do i=1,n
-            G=G+mixer_G(:,:,:,:,:,i)*(mixer_x(i))
-            !write(stderr,*) n,real(mixer_x(i)), real(mixer_A(i,i))
-        enddo
-        !G=mixer_beta*G_out+(1-mixer_beta)*G
-        !call writematrix(Pulay_A,11)
-        !if (n==1) stop
-    end subroutine
-
-    !未完成
-    subroutine mixer_Broyden()
-        use parameters
-        use parameters2
-        implicit none
-        complex(8) fac, fac2
-        complex(8), external :: zdotc
-        integer i
-
-        ! delta R
-        G_error=G_out-G
-        G_out=G_error-G_error0
-        fac=1/dznrm2(total_grid,G_out,1)**2
-        deltaG=G-G_prev
-        G_prev=G
-        if (G_iter>1) then
-            call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid, &
-                G_out,1,complex_1,deltaG,1)
-            call zgerc(total_grid,total_grid,fac,deltaG,1, &
-                G_out,1,Jacobian,total_grid)
-        endif
-        call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid, &
-            G_error,1,complex_1,G,1)
-
-        G_error0=G_error
-        !do i=1,total_grid
-        !write(stderr,*)G
-        !enddo
-        !stop
-    end subroutine
-
-
     ! 检查sigma收敛点数, 未使用, 因为用自能判断不太可靠
     ! 两个相同的输入G会导致sigma相同, 但是此时不能保证G收敛
     subroutine sigma_convergence_test(conv)
@@ -733,8 +740,8 @@ contains
             G_error_one=G_error(ib1,ib2,ikx,iky,iomegak)
             cur_error=abs(G_error_one)
             !total_error = total_error + cur_error
-            !if (cur_error<=G_tol*abs(G_one) .or. abs(G_one)<=real_error) then
-            if (cur_error<=G_tol*abs(G_one)) then
+            if (cur_error<=G_tol*abs(G_one) .or. abs(G_one)<=real_error) then
+                !if (cur_error<=G_tol*abs(G_one)) then
                 conv_grid=conv_grid+1
             endif
         enddo; enddo; enddo; enddo; enddo;
@@ -748,75 +755,48 @@ contains
 
     end subroutine
 
-    ! 1~3数组, 第一个保存最接近的值, 后面两个保存最近两次计算的值
-    ! warning表示最新的值并未更加靠近, 可能存在数值问题
-    subroutine modify_mu_record(count_, density_group, mu_group, density_, mu_, warning)
-        use parameters
-        use parameters2
-        implicit none
-        integer count_, warning, i
-        real(8) density_, mu_, density_group(3), mu_group(3)
 
-        count_=count_+1
-        warning=0
-        if (count_==1) then
-            density_group(1)=density_
-            mu_group(1)=mu_
-        else
-            if (abs(density_-target_density)<abs(density_group(1)-target_density)) then
-                density_group(1)=density_
-                mu_group(1)=mu_
-            else
-                warning=1
-            endif
-            i=3-mod(count_,2)
-            density_group(i)=density_
-            mu_group(i)=mu_
-        endif
-
-    end subroutine
-
+    !使用Pulay混合得到一个新的mu
     subroutine modify_mu()
         use parameters
         use parameters2
         implicit none
-        integer warning, i1, i2
+        integer n, mu_pointer, i, info
+        real(8) e
+        integer ipiv(mix_num+1)
+        real(8), dimension (mu_num*2) :: lwork
 
-        if (cur_density<target_density) then
-            call modify_mu_record(mu_less_count, density_less, mu_less, cur_density, mu, warning)
-        else
-            call modify_mu_record(mu_more_count, density_more, mu_more, cur_density, mu, warning)
-        endif
-
-        if (density_iter<=nb) then
-            mu = eigen_value(density_iter)
-        endif
+        mu_pointer=mod(density_iter,mu_num)
+        if (mu_pointer==0) mu_pointer=mu_num
+        n=min(density_iter,mu_num)
+        ! 误差是cur_density-target_density
+        mu_error(mu_pointer)=cur_density-target_density
+        mu_history(mu_pointer)=mu
 
         if (density_iter==1) then
-            mu = mu - 1.0d-1*sign(1.0d0, (cur_density-target_density)*(mu/cur_density))
+            mu=eigen_value(5)
             return
-        else
-            if (mu_less_count/=0 .and. mu_more_count/=0) then
-                ! 这里好像是在瞎搞
-                ! 如果产生警告, 就用两边最新的值构造一个
-                if (warning==0) then
-                    mu = (mu_less(1)-mu_more(1))/(density_less(1)-density_more(1)) &
-                        *(target_density-density_more(1))+mu_more(1)
-                else
-                    i1=3-mod(mu_less_count,2)
-                    i2=3-mod(mu_more_count,2)
-                    mu = (mu_less(i1)-mu_more(i2))/(density_less(i1)-density_more(i2)) &
-                        *(target_density-density_more(i1))+mu_more(i2)
-                endif
-            elseif (mu_less_count==0) then
-                mu = (mu_more(2)-mu_more(3))/(density_more(2)-density_more(3)) &
-                    *(target_density-density_more(3))+mu_more(3)
-            elseif (mu_more_count==0) then
-                mu = (mu_less(2)-mu_less(3))/(density_less(2)-density_less(3)) &
-                    *(target_density-density_less(3))+mu_less(3)
-            endif
         endif
-        ! write(stdout, *) mu_less_count, mu_more_count
+
+        ! A_ij=e_i**H*e_j
+        !$omp parallel do private(e)
+        do i=1,mu_num
+            e=mu_error(i)*mu_error(mu_pointer)
+            mu_A(mu_pointer,i)=e
+            mu_A(i,mu_pointer)=e
+        enddo
+        !$omp end parallel do
+
+        mu_A1=mu_A
+        mu_x=mu_b
+
+        call dsysv('U', n+1, 1, mu_A1, mu_num+1, ipiv, mu_x, mu_num+1, lwork, 2*mu_num, info)
+        !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
+        mu=0d0
+        do i=1,n
+            mu=mu+mu_history(i)*mu_x(i)
+            !write(stderr,*) mu_history(i),mu_x(i),mu_error(i)
+        enddo
 
     end subroutine
 

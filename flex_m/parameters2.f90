@@ -55,16 +55,18 @@ module parameters2
     integer, parameter :: mix_num  = 10, mix_keep = 5
     integer mixer_pointer, mixer_order, mixer_pointer2
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf, mix_num) :: mixer_G, mixer_error
-    complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: mixer_G_, mixer_error_
+    complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: mixer_error_, mixer_error2_
     ! 根据推导, 这部分应该都是实矩阵和向量
     real(8), dimension (0:mix_num, 0:mix_num) :: mixer_A, mixer_A1
-    real(8), dimension(0:mix_num) :: mixer_x, mixer_b
+    real(8), dimension (0:mix_num) :: mixer_x, mixer_b
 
     complex(8), allocatable, dimension(:,:) :: Jacobian
 
-    ! 占据数相关
-    real(8) mu_less(3), mu_more(3), density_less(3), density_more(3)
-    integer mu_less_count, mu_more_count
+    ! 占据数相关, Pulay方法找mu
+    integer, parameter :: mu_num = 100
+    real(8), dimension (mu_num) :: mu_history, mu_error
+    real(8), dimension (0:mu_num, 0:mu_num) :: mu_A, mu_A1
+    real(8), dimension (0:mu_num) :: mu_x, mu_b
 
     ! 迭代G次数, density次数
     integer G_iter, density_iter, total_iter
