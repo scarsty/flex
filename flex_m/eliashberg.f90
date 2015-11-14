@@ -37,12 +37,12 @@ subroutine eliashberg()
         V = complex_0
         do ikx=1,nkx; do iky=1,nky; do iomegaq=minomegab,maxomegab
             call cal_chi_cs(ikx,iky,iomegaq)
-            if (spin_state==3) then
+            if (spin_state==1) then
                 V(:, :, ikx, iky, iomegaq) &
-                    = U_ud - 0.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c, chi_c_,nb*nb)
+                    = U_ud + 1.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c,chi_c_,nb*nb)
             else
                 V(:, :, ikx, iky, iomegaq) &
-                    = U_ud + 1.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c, chi_c_,nb*nb)
+                    = U_uu - 0.5*ABA(U_s,chi_s_,nb*nb) - 0.5*ABA(U_c,chi_c_,nb*nb)
             endif
         enddo; enddo; enddo
 

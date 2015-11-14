@@ -177,7 +177,7 @@ contains
 
         l=s
         r=e
-        m=s
+        m=(s+e)/2
         if (l>=r) return
         key=v(m)
         do while (l<r)
@@ -749,7 +749,7 @@ contains
         cur_G_tol = dznrm2(total_grid, G_error, 1)!/norm_G
         conv = ((conv_grid==total_grid) .or. cur_G_tol<1d-8)
         !if (conv .or. mod(G_iter,20)==0) then
-        write(stdout,'(I7,I7,I10,ES20.5,F10.6)') density_iter, G_iter, conv_grid, cur_G_tol, mixer_beta
+        write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
 
         !endif
 
@@ -763,7 +763,7 @@ contains
         implicit none
         integer n, mu_pointer, i, info
         real(8) e
-        integer ipiv(mix_num+1)
+        integer ipiv(mu_num+1)
         real(8), dimension (mu_num*2) :: lwork
 
         mu_pointer=mod(density_iter,mu_num)
@@ -774,7 +774,8 @@ contains
         mu_history(mu_pointer)=mu
 
         if (density_iter==1) then
-            mu=eigen_value(5)
+            mu=maxval(eigen_value)
+            !mu=eigen_value(5)
             return
         endif
 

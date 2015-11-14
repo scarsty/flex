@@ -1,6 +1,6 @@
 &BASIC
 !------------Basic thermodynamic parameters -----------------------
-T=11600d0            ! temperature (K)
+T=580d0            ! temperature (K)
 target_density=6d0, density_tol=1.0d-3    ! electron density, tolerance
 mu=5.9d+0   ! guess for unrenormalized chemical potential (eV)
 
@@ -15,7 +15,7 @@ sigma_output=.true., sigma_output_file="sig_output"             ! output
 g_tol=1.0d-3, max_iter= 50             ! tolerance in sigma, maximum iterations
 alpha=0.3d0,  alpha_scheme=1       ! alpha, (0 constant, 1 using Sig_HF, 2 using Sig_e0)
 spin_state=1 ! spin state, 1 or 3
-mixer_method=1, mixer_beta=0d-0
+mixer_method=2, mixer_beta=0.3d-0
 ! 0 no mixing, 1 linear mixing, 2 Pulay mixing, 3 Refined pulay mixing
 ! 4 Broyden second mixing
 ! mixer_beta is the ratio of G1, which also be used in Pulay mixing
