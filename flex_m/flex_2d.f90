@@ -151,6 +151,7 @@ program flex_2d
                 - real(G0(ib, ib, ikx, iky, iomegak))
         enddo; enddo; enddo; enddo
         !$omp end parallel do
+        !write(*,*) cur_density
         cur_density=cur_density*2*T_eV/nk + density_base
 
         write(stdout,*) 'density and mu: ', cur_density,'/', mu
