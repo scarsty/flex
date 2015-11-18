@@ -147,7 +147,8 @@ program flex_2d
         !$omp parallel do private(ikx,iky,ib) reduction(+:cur_density)
         do iomegak=minomegaf,maxomegaf; do ib=1,nb; do ikx=1,nkx; do iky=1,nky;
             cur_density = cur_density &
-                + real(G(ib, ib, ikx, iky, iomegak)) &
+                !+ G(ib, ib, ikx, iky, iomegak)*exp(-complex_i*(2*iomegak-1)*pi*T_ev*1d-4)
+            + real(G(ib, ib, ikx, iky, iomegak)) &
                 - real(G0(ib, ib, ikx, iky, iomegak))
         enddo; enddo; enddo; enddo
         !$omp end parallel do
