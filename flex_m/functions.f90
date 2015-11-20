@@ -540,8 +540,8 @@ contains
         !mixer_G(:,:,:,:,:,mixer_pointer)=G_out
 
         ! A_ij=e_i**H*e_j
-        !$omp parallel do private(b1,b2,e)
         mixer_error_=mixer_error(:,:,:,:,:,mixer_pointer)
+        !$omp parallel do private(mixer_error2_,e)
         do i=1,mix_num
             mixer_error2_=mixer_error(:,:,:,:,:,i)
             e=real(GProduct(mixer_error_,mixer_error2_))
