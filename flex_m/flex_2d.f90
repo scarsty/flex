@@ -100,8 +100,15 @@ program flex_2d
             !write(stdout, *) T_beta*(h0_k(ib,ib,ikx,iky)-mu)
             density_base=density_base+1/(exp(T_beta*(real(h0_k(ib,ib,ikx,iky))-mu))+1)
         enddo; enddo; enddo
+        !$omp parallel do private(ikx,iky,ib) reduction(+:cur_density)
+        do iomegak=minomegaf,maxomegaf; do ib=1,nb; do ikx=1,nkx; do iky=1,nky;
+            density_base = density_base &
+                - real(G0(ib, ib, ikx, iky, iomegak)) * T_eV
+        enddo; enddo; enddo; enddo
+        !$omp end parallel do
         density_base=density_base*2/nk
-        write(stdout, *) 'base density is ', density_base
+
+        write(stdout, *) 'base density with G0 is ', density_base
 
         G_iter = 1
         write(stdout,*) '  iter   iter  conv.pts          norm.error'
@@ -146,10 +153,7 @@ program flex_2d
         cur_density=0d0
         !$omp parallel do private(ikx,iky,ib) reduction(+:cur_density)
         do iomegak=minomegaf,maxomegaf; do ib=1,nb; do ikx=1,nkx; do iky=1,nky;
-            cur_density = cur_density &
-                !+ G(ib, ib, ikx, iky, iomegak)*exp(-complex_i*(2*iomegak-1)*pi*T_ev*1d-4)
-            + real(G(ib, ib, ikx, iky, iomegak)) &
-                - real(G0(ib, ib, ikx, iky, iomegak))
+            cur_density = cur_density + real(G(ib, ib, ikx, iky, iomegak))
         enddo; enddo; enddo; enddo
         !$omp end parallel do
         !write(*,*) cur_density
