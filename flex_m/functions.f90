@@ -541,7 +541,7 @@ contains
 
         ! A_ij=e_i**H*e_j
         mixer_error_=mixer_error(:,:,:,:,:,mixer_pointer)
-        !$omp parallel do private(mixer_error2_,e)
+        !omp parallel do private(mixer_error2_,e)
         do i=1,mix_num
             mixer_error2_=mixer_error(:,:,:,:,:,i)
             e=real(GProduct(mixer_error_,mixer_error2_))
@@ -549,7 +549,7 @@ contains
             mixer_A(i,mixer_pointer)=e
             !write(*,*)e
         enddo
-        !$omp end parallel do
+        !omp end parallel do
 
         next_pointer=mixerIncPointer(mixer_pointer,1,mix_num)
         mixer_pointer=next_pointer
