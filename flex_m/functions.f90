@@ -558,7 +558,7 @@ contains
         mixer_x=mixer_b
 
         n=mixer_order
-        !write(stderr,*) n
+        ! write(stderr,*) n
         ! 系数矩阵实际上多一行
         call dsysv('U', n+1, 1, mixer_A1, mix_num+1, ipiv, mixer_x, mix_num+1, lwork, 2*mix_num, info)
         !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
@@ -582,21 +582,20 @@ contains
         integer i
 
         ! delta R
-        G_error=G_out-G
-        G_out=G_error-G_error0
-        fac=1/dznrm2(total_grid,G_out,1)**2
-        deltaG=G-G_prev
-        G_prev=G
-        if (G_iter>1) then
-            call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid, &
-                G_out,1,complex_1,deltaG,1)
-            call zgerc(total_grid,total_grid,fac,deltaG,1, &
-                G_out,1,Jacobian,total_grid)
-        endif
-        call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid, &
-            G_error,1,complex_1,G,1)
-
-        G_error0=G_error
+        !        G_error=G_out-G
+        !        G_out=G_error-G_error0
+        !        fac=1/dznrm2(total_grid,G_out,1)**2
+        !        deltaG=G-G_prev
+        !        G_prev=G
+        !        if (G_iter>1) then
+        !            call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid, &
+            !                G_out,1,complex_1,deltaG,1)
+        !            call zgerc(total_grid,total_grid,fac,deltaG,1, &
+            !                G_out,1,Jacobian,total_grid)
+        !        endif
+        !        call zgemv('N',total_grid,total_grid,-complex_1,Jacobian,total_grid, &
+            !            G_error,1,complex_1,G,1)
+        !        G_error0=G_error
         !do i=1,total_grid
         !write(stderr,*)G
         !enddo
@@ -620,78 +619,78 @@ contains
         !        endif
 
 
-        G_in0=G
-        G_out0=G_out
-        G_error=G_out-G
-        min_error=1d100
-        beta(1)=-1
-        beta(3)=1
-        beta(2)=(beta(1)+beta(3))/2
-
-        G=beta(1)*G_error+G_in0
-        call cal_G_out()
-        G=G_out-G
-        error0(1)=dznrm2(total_grid,G,1)
-
-        G=beta(3)*G_error+G_in0
-        call cal_G_out()
-        G=G_out-G
-        error0(3)=dznrm2(total_grid,G,1)
-
-        G=beta(2)*G_error+G_in0
-        call cal_G_out()
-        G=G_out-G
-        error0(2)=dznrm2(total_grid,G,1)
-        i=0
-        do i=1,10
-            f_=minloc(error0)
-            f=f_(1)
-            if (f==2)then
-                !中间的最小，截断大的一边
-                f_=maxloc(error0)
-                f=f_(1)
-                beta(f)=beta(2)
-                error0(f)=error0(2)
-
-                beta(2)=(beta(1)+beta(3))/2
-                G=beta(2)*G_error+G_in0
-                call cal_G_out()
-                G=G_out-G
-                error0(2)=dznrm2(total_grid,G,1)
-
-            else
-                !中间的不是最小，找小的，外推
-                f_=minloc(error0)
-                f=f_(1)
-
-                beta(4-f)=beta(2)
-                error0(4-f)=error0(2)
-
-                beta(2)=beta(f)
-                error0(2)=error0(f)
-
-                beta(f)=beta(2)+(beta(2)-beta(4-f))
-
-                G=beta(f)*G_error+G_in0
-                call cal_G_out()
-                G=G_out-G
-                error0(f)=dznrm2(total_grid,G,1)
-
-
-            endif
-
-            !write(stdout,*) beta
-            !write(stdout,*) error0
-        enddo
-        f_=minloc(error0)
-        mixer_beta=beta(f_(1))
-
-        if (mixer_beta==0) then
-            f_=maxloc(error0)
-            mixer_beta=0.5*(sum(beta)-beta(f_(1)))
-        endif
-
-        G=mixer_beta*G_out0+(1-mixer_beta)*G_in0
+        !        G_in0=G
+        !        G_out0=G_out
+        !        G_error=G_out-G
+        !        min_error=1d100
+        !        beta(1)=-1
+        !        beta(3)=1
+        !        beta(2)=(beta(1)+beta(3))/2
+        !
+        !        G=beta(1)*G_error+G_in0
+        !        call cal_G_out()
+        !        G=G_out-G
+        !        error0(1)=dznrm2(total_grid,G,1)
+        !
+        !        G=beta(3)*G_error+G_in0
+        !        call cal_G_out()
+        !        G=G_out-G
+        !        error0(3)=dznrm2(total_grid,G,1)
+        !
+        !        G=beta(2)*G_error+G_in0
+        !        call cal_G_out()
+        !        G=G_out-G
+        !        error0(2)=dznrm2(total_grid,G,1)
+        !        i=0
+        !        do i=1,10
+        !            f_=minloc(error0)
+        !            f=f_(1)
+        !            if (f==2)then
+        !                !中间的最小，截断大的一边
+        !                f_=maxloc(error0)
+        !                f=f_(1)
+        !                beta(f)=beta(2)
+        !                error0(f)=error0(2)
+        !
+        !                beta(2)=(beta(1)+beta(3))/2
+        !                G=beta(2)*G_error+G_in0
+        !                call cal_G_out()
+        !                G=G_out-G
+        !                error0(2)=dznrm2(total_grid,G,1)
+        !
+        !            else
+        !                !中间的不是最小，找小的，外推
+        !                f_=minloc(error0)
+        !                f=f_(1)
+        !
+        !                beta(4-f)=beta(2)
+        !                error0(4-f)=error0(2)
+        !
+        !                beta(2)=beta(f)
+        !                error0(2)=error0(f)
+        !
+        !                beta(f)=beta(2)+(beta(2)-beta(4-f))
+        !
+        !                G=beta(f)*G_error+G_in0
+        !                call cal_G_out()
+        !                G=G_out-G
+        !                error0(f)=dznrm2(total_grid,G,1)
+        !
+        !
+        !            endif
+        !
+        !            !write(stdout,*) beta
+        !            !write(stdout,*) error0
+        !        enddo
+        !        f_=minloc(error0)
+        !        mixer_beta=beta(f_(1))
+        !
+        !        if (mixer_beta==0) then
+        !            f_=maxloc(error0)
+        !            mixer_beta=0.5*(sum(beta)-beta(f_(1)))
+        !        endif
+        !
+        !        G=mixer_beta*G_out0+(1-mixer_beta)*G_in0
     end subroutine
 
 
@@ -712,7 +711,7 @@ contains
         tol = norm_sigma*G_tol/total_grid
         conv_grid=0
         total_error=0
-        conv_grid=count(abs(sigma-sigma0)<=G_tol*abs(sigma))
+        !conv_grid=count(abs(sigma-sigma0)<=G_tol*abs(sigma))
         cur_G_tol = total_error/norm_sigma
         write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
         conv = (conv_grid==total_grid)
