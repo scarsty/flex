@@ -117,7 +117,7 @@ subroutine eliashberg()
 
         ! output delta_nn (gap function)
         write(stdout,*) 'gap function'
-        write(stdout,*) '       kx        ky        delta(real and imag)'
+        write(stdout,'(2A10,A28)') 'kx','ky','delta(real and imag)'
         write(stdout,*) '---------------------------------------------------'
         do ikx=1,nkx; do iky=1,nky
             temp_complex=complex_0
@@ -137,7 +137,7 @@ subroutine eliashberg()
     write(stdout,*)
     write(stdout,*) 'Temperature is ', T
     write(stdout,*)
-    write(stdout,*) '  spin      max.eigenvalue'
+    write(stdout,'(A7,A20)') 'spin','max.eigenvalue'
     write(stdout,*) '------------------------------'
 
     do spin_state=1,3,2

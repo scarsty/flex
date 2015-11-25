@@ -1,6 +1,7 @@
 FC=ifort
 MPIF90=mpif90
-FFLAGS=-I. -O3 -mcmodel=large -shared-intel -w -mkl -fpp -extend-source -finline-functions -no-inline-factor -qopenmp #-ipo
+FFLAGS=-I. -O3 -mcmodel=large -shared-intel -w -mkl -fpp -finline-functions
+FFLAGS=$(FFLAGS) -extend-source -no-inline-factor -qopenmp -parallel -xHost #-ipo
 MPIFFLAGS=$(FFLAGS) -DUSE_MPI
 #LDFLAGS=-L. -llapack -lblas
 SOURCES=$(wildcard *.f90)

@@ -108,10 +108,10 @@ program flex_2d
         !        !$omp end parallel do
         density_base=density_base*2/nk
 
-        write(stdout, *) 'base density with G0 is ', density_base
+        write(stdout, *) 'base density is ', density_base
 
         G_iter = 1
-        write(stdout,*) '  iter   iter  conv.pts          norm.error'
+        write(stdout,'(A7,A7,A10,A20)') 'iter','iter','conv.pts','norm.error'
         write(stdout,*) '-----------------------------------------------'
 
         ! sigma迭代中使用openmp并行
@@ -142,7 +142,10 @@ program flex_2d
 
             G_iter=G_iter+1;
             total_iter = total_iter + 1
-
+            if (G_iter>2000) then
+                write(stdout,*) 'G not convergence'
+                exit
+            endif
             if (total_iter>max_iter) then
                 !write(stdout,*) sigma_minus
             endif
@@ -184,7 +187,7 @@ program flex_2d
 
     ! output chi_s(q,0), 未完成, 需要计算chi_s
     write(stdout,*) 'chi_s at omega = 0'
-    write(stdout,*) '       kx        ky        chi_s(real and imag)'
+    write(stdout,'(2A10,A28)') 'kx','ky','chi_s(real and imag)'
     write(stdout,*) '---------------------------------------------------'
     do ikx=1,nkx; do iky=1,nky
         temp_complex=complex_0
