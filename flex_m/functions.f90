@@ -772,20 +772,14 @@ contains
         mu_error(mu_pointer)=cur_density-target_density
         mu_history(mu_pointer)=mu
 
-        if (density_iter==1) then
-            mu=maxval(eigen_value)
-            !mu=eigen_value(5)
-            return
-        endif
-
         ! A_ij=e_i**H*e_j
-        !$omp parallel do private(e)
+        !!$omp parallel do private(e)
         do i=1,mu_num
             e=mu_error(i)*mu_error(mu_pointer)
             mu_A(mu_pointer,i)=e
             mu_A(i,mu_pointer)=e
         enddo
-        !$omp end parallel do
+        !!$omp end parallel do
 
         mu_A1=mu_A
         mu_x=mu_b
@@ -797,6 +791,11 @@ contains
             mu=mu+mu_history(i)*mu_x(i)
             !write(stderr,*) mu_history(i),mu_x(i),mu_error(i)
         enddo
+
+        if (density_iter==1) then
+            mu=maxval(eigen_value)
+            !mu=eigen_value(5)
+        endif
 
     end subroutine
 
