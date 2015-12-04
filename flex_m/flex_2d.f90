@@ -60,7 +60,7 @@ program flex_2d
     density_conv = .false.
 
     mu=sum(eigen_value)/nb
-
+ mu=6.1175423233185811
     do while (.not. density_conv)
 
         G_conv=.false.

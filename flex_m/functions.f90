@@ -749,14 +749,53 @@ contains
         conv = ((conv_grid==total_grid) .or. cur_G_tol<1d-8)
         !if (conv .or. mod(G_iter,20)==0) then
         write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
-
         !endif
 
     end subroutine
 
+    ! 修改的牛顿迭代, 使用已经得到的结果拟合一个多项式, 求其导数代入牛顿迭代
+    ! 最多100次, 100次仍不收敛报错不管了
+    subroutine modify_mu()
+        use parameters
+        use parameters2
+        implicit none
+        integer n, mu_pointer, i, info
+        real(8) d
+        integer ipiv(mu_num+1)
+        real(8), dimension (mu_num*2) :: lwork
+
+        mu_pointer=density_iter-1
+        n=density_iter
+        ! 误差是cur_density-target_density
+        mu_history(mu_pointer)=mu
+        mu_b(mu_pointer)=cur_density-target_density
+
+        do i=0,mu_pointer
+            mu_A(i,mu_pointer)=mu_history(i)**mu_pointer
+            mu_A(mu_pointer,i)=mu_history(mu_pointer)**i
+        enddo
+
+        mu_A1=mu_A
+        mu_x=mu_b
+
+        call dgesv(n,1,mu_A1,mu_num+1,ipiv,mu_x,mu_num+1,info)
+
+        d=0d0
+        do i=1,mu_pointer
+            d=d+mu_x(i)*i*mu**(i-1)
+        enddo
+
+        mu=mu-mu_b(mu_pointer)/d
+
+        if (density_iter==1) then
+            mu=maxval(eigen_value)
+        endif
+
+    end subroutine
 
     !使用Pulay混合得到一个新的mu
-    subroutine modify_mu()
+    !如果对单值函数使用Pulay方法, 得到的系数矩阵很大可能是奇异阵, 会导致结果不正确, 废弃
+    subroutine modify_mu_pulay()
         use parameters
         use parameters2
         implicit none
@@ -781,6 +820,7 @@ contains
         enddo
         !!$omp end parallel do
 
+
         mu_A1=mu_A
         mu_x=mu_b
 
@@ -789,9 +829,13 @@ contains
         mu=0d0
         do i=1,n
             mu=mu+mu_history(i)*mu_x(i)
-            !write(stderr,*) mu_history(i),mu_x(i),mu_error(i)
+            !write(stdout,*) mu_history(i),mu_x(i),mu_error(i)
         enddo
-
+        do i=1,n
+            !mu=mu+mu_history(i)*mu_x(i)
+            !write(stdout,*) mu_history(i),mu_x(i),mu_error(i)
+        enddo
+        !write(stdout,*) mu
         if (density_iter==1) then
             mu=maxval(eigen_value)
             !mu=eigen_value(5)

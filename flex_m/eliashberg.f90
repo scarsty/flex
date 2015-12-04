@@ -16,17 +16,16 @@ subroutine eliashberg()
     ! end
 
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: &
-        F, GGdelta, delta, delta0 ! Eliashberg方程所需变量
+        GGdelta, delta, delta0 ! Eliashberg方程所需变量
 
     integer iomegak,iomegaq
     integer ikx, iky
-    integer l1,m1,l2,m2,l3,m3
+    integer l1,m1,l2,m2,l3,m3,count_iter
     real(8) lambda, lambda0, lambda_list(3)
     logical elia_conv
     complex(8) temp_complex
 
     ! ---------------------------------------------------------------------------------------------
-
 
     ! 文献中自旋3态有区别, 需自行推导
     ! 自旋态不是3就是1
@@ -55,10 +54,11 @@ subroutine eliashberg()
         delta0 = complex_1 / (nb*nb*nk*nomegaf)
         lambda0=1d0
         elia_conv = .false.
+        count_iter = 0
 
 
         do while (.not.elia_conv)
-
+            count_iter = count_iter+1
             ! 用上一个值计算出新的delta_r_tau
 
             ! 频域上G*G*delta, 下标l2,m2,l3,m3
@@ -100,7 +100,7 @@ subroutine eliashberg()
                 enddo; enddo; enddo
             enddo; enddo
             delta = delta/lambda
-            write(stdout, *) lambda
+            !write(stdout, *) lambda
             ! 检测收敛性, 计算lambda
             if (abs(lambda0 - lambda) < 1e-5) then
                 elia_conv=.true.
@@ -112,7 +112,7 @@ subroutine eliashberg()
             lambda0 = lambda
         enddo
 
-        write(stdout,*) 'Solving ended'
+        write(stdout,*) 'Solving ended in ', count_iter, 'iterations.'
         write(stdout,*)
 
         ! output delta_nn (gap function)
