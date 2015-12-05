@@ -357,20 +357,20 @@ contains
         if (outmodel/=0) then
             begin_index=2*nomega
         endif
-        plan=fftw_plan_dft_3d(dft_grid, nky, nkx, dft_in, dft_out, direction2, FFTW_ESTIMATE)
-        !!$omp parallel do private(m,dft_in,dft_out)
+        !!$omp parallel do private(m,dft_in,dft_out,plan)
         do l=1,N; do m=1,N
             ! 前处理, 补0
             dft_in(:,:,1:length_in) = input(l,m,:,:,1:length_in)
             dft_in(:,:,length_in+1:dft_grid)=complex_0
 
+            plan=fftw_plan_dft_3d(dft_grid, nky, nkx, dft_in, dft_out, direction2, FFTW_ESTIMATE)
             call fftw_execute_dft(plan, dft_in, dft_out)
+            call fftw_destroy_plan(plan)
 
             ! 后处理
             output(l,m,:,:,1:length_out) = dft_out(:,:,begin_index:length_out-begin_index+1)
         enddo; enddo
         !!$omp end parallel do
-        call fftw_destroy_plan(plan)
         ! 所有情况都在反傅里叶变换时归一化
         if (direction2==FFTW_BACKWARD) then
             output = output/nk/dft_grid
@@ -770,8 +770,8 @@ contains
         mu_history(mu_pointer)=mu
         mu_b(mu_pointer)=cur_density-target_density
 
-        do i=0,mu_num
-            !mu_A(i,mu_pointer)=mu_history(i)**mu_pointer
+        do i=0,mu_pointer
+            mu_A(i,mu_pointer)=mu_history(i)**mu_pointer
             mu_A(mu_pointer,i)=mu_history(mu_pointer)**i
         enddo
 
