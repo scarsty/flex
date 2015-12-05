@@ -60,7 +60,7 @@ program flex_2d
     density_conv = .false.
 
     mu=sum(eigen_value)/nb
- mu=6.1175423233185811
+
     do while (.not. density_conv)
 
         G_conv=.false.
@@ -102,8 +102,7 @@ program flex_2d
         enddo; enddo; enddo
         !        !$omp parallel do private(ikx,iky,ib) reduction(+:cur_density)
         !        do iomegak=minomegaf,maxomegaf; do ib=1,nb; do ikx=1,nkx; do iky=1,nky;
-        !            density_base = density_base &
-            !                - real(G0(ib, ib, ikx, iky, iomegak)) * T_eV
+        !            density_base = density_base - real(G0(ib, ib, ikx, iky, iomegak)) * T_eV
         !        enddo; enddo; enddo; enddo
         !        !$omp end parallel do
         density_base=density_base*2/nk
@@ -159,9 +158,13 @@ program flex_2d
             cur_density = cur_density + real(G(ib, ib, ikx, iky, iomegak)) &
                 - real(G0(ib, ib, ikx, iky, iomegak))
         enddo; enddo; enddo; enddo
+!        do iomegak=minomegaf,maxomegaf; do ib=1,nb; do ikx=1,nkx; do iky=1,nky;
+!            cur_density = cur_density + real(G(ib, ib, ikx, iky, iomegak))
+!        enddo; enddo; enddo; enddo
         !$omp end parallel do
         !write(*,*) cur_density
         cur_density=cur_density*2*T_eV/nk + density_base
+!        cur_density=cur_density*2*T_eV/nk + 2*nb
 
         write(stdout,*) 'density and mu: ', cur_density,'/', mu
         write(stdout,*)
