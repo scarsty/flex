@@ -15,15 +15,15 @@ subroutine eliashberg()
     !     u=v/lambda1
     ! end
 
-    complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: &
+    complex(4), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: &
         GGdelta, delta, delta0 ! Eliashberg方程所需变量
 
     integer iomegak,iomegaq
     integer ikx, iky
     integer l1,m1,l2,m2,l3,m3,count_iter
-    real(8) lambda, lambda0, lambda_list(3)
+    real(4) lambda, lambda0, lambda_list(3)
     logical elia_conv
-    complex(8) temp_complex
+    complex(4) temp_complex
 
     ! ---------------------------------------------------------------------------------------------
 

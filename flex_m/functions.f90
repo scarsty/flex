@@ -2,7 +2,7 @@ module functions
 #ifdef USE_MPI
     include 'mpif.h'
 #endif
-    real(8), external :: dznrm2
+    real(4), external :: scnrm2
 
 contains
     ! mpi函数系列
@@ -55,7 +55,7 @@ contains
     integer function mpi_reduce1(A,n)
         implicit none
         integer ierr, n
-        complex(8) A(n),B(n)
+        complex(4) A(n),B(n)
 #ifdef USE_MPI
         call mpi_allreduce(A,B,16,MPI_DOUBLE_COMPLEX,MPI_SUM,MPI_COMM_WORLD,ierr)
 #else
@@ -77,10 +77,10 @@ contains
         use constants
         implicit none
         integer n
-        complex(8), dimension (n, n) :: A, B
+        complex(4), dimension (n, n) :: A, B
         integer info, lda, ldb
         integer ipiv(n)
-        call zgesv(n, n, A, n, ipiv, B, n, info)
+        call cgesv(n, n, A, n, ipiv, B, n, info)
         !write(stderr,*) info
     end subroutine
 
@@ -90,10 +90,10 @@ contains
         use constants
         implicit none
         integer n
-        complex(8), dimension (n, n) :: A, B, ABA, C
-        call zgemm('N', 'N', n, n, n, complex_1, &
+        complex(4), dimension (n, n) :: A, B, ABA, C
+        call cgemm('N', 'N', n, n, n, complex_1, &
             A, n, B, n, complex_0, C, n)
-        call zgemm('N', 'N', n, n, n, complex_1, &
+        call cgemm('N', 'N', n, n, n, complex_1, &
             C, n, A, n, complex_0, ABA, n)
     end function
 
@@ -101,10 +101,10 @@ contains
         use constants
         implicit none
         integer n
-        complex(8), dimension (n, n) :: A, B, C, AB, ABC
-        call zgemm('N', 'N', n, n, n, complex_1, &
+        complex(4), dimension (n, n) :: A, B, C, AB, ABC
+        call cgemm('N', 'N', n, n, n, complex_1, &
             A, n, B, n, complex_0, AB, n)
-        call zgemm('N', 'N', n, n, n, complex_1, &
+        call cgemm('N', 'N', n, n, n, complex_1, &
             AB, n, C, n, complex_0, ABC, n)
     end function
 
@@ -113,8 +113,8 @@ contains
         use constants
         implicit none
         integer n
-        complex(8), dimension (n, n) :: A, B, AB
-        call zgemm('N', 'N', n, n, n, complex_1, &
+        complex(4), dimension (n, n) :: A, B, AB
+        call cgemm('N', 'N', n, n, n, complex_1, &
             A, n, B, n, complex_0, AB, n)
     end function
 
@@ -123,10 +123,10 @@ contains
         use constants
         implicit none
         integer n
-        complex(8), dimension (n, n) :: A, B, AHBA, C
-        call zgemm('C', 'N', n, n, n, complex_1, &
+        complex(4), dimension (n, n) :: A, B, AHBA, C
+        call cgemm('C', 'N', n, n, n, complex_1, &
             A, n, B, n, complex_0, C, n)
-        call zgemm('N', 'N', n, n, n, complex_1, &
+        call cgemm('N', 'N', n, n, n, complex_1, &
             C, n, A, n, complex_0, AHBA, n)
     end function
 
@@ -134,10 +134,10 @@ contains
         use constants
         implicit none
         integer n
-        complex(8), dimension (n, n) :: A, B, ABAH, C
-        call zgemm('N', 'N', n, n, n, complex_1, &
+        complex(4), dimension (n, n) :: A, B, ABAH, C
+        call cgemm('N', 'N', n, n, n, complex_1, &
             A, n, B, n, complex_0, C, n)
-        call zgemm('N', 'C', n, n, n, complex_1, &
+        call cgemm('N', 'C', n, n, n, complex_1, &
             C, n, A, n, complex_0, ABAH, n)
     end function
 
@@ -157,14 +157,14 @@ contains
         use constants
         implicit none
         integer M,N,K
-        complex(8) dft_matrix(K,N), src(M,K), dst(M,N)
-        call zgemm('N', 'N', M, N, K, complex_1, &
+        complex(4) dft_matrix(K,N), src(M,K), dst(M,N)
+        call cgemm('N', 'N', M, N, K, complex_1, &
             src, M, dft_matrix, K, complex_0, dst, M)
     end subroutine
 
     ! 交换
-    subroutine swap_r8(a,b)
-        real(8) a,b,c
+    subroutine swap_r(a,b)
+        real(4) a,b,c
         c=a
         a=b
         b=c
@@ -172,7 +172,7 @@ contains
 
     ! 快速排序
     recursive subroutine quick_sort(v,n,s,e)
-        real(8) v(n),key
+        real(4) v(n),key
         integer n,s,e,l,r,m
 
         l=s
@@ -188,7 +188,7 @@ contains
                 r=r-1
             enddo
             if (l<r) then
-                call swap_r8(v(l),v(r))
+                call swap_r(v(l),v(r))
             endif
         enddo
         call quick_sort(v,n,s,l-1)
@@ -259,8 +259,8 @@ contains
         use parameters2
         implicit none
         integer ikx, iky, irx, iry, info
-        real(8) rdotk, temp(2)
-        complex(8) fac
+        real(4) rdotk, temp(2)
+        complex(4) fac
 
         ! 计算k点的坐标
         write(stdout, *) "Building k-points grid..."
@@ -289,7 +289,7 @@ contains
             ! 计算特征值和特征向量
             h0_k_=h0_k(:,:,ikx,iky)
             u_h0_k_=h0_k_
-            call zheev('V','L',nb,u_h0_k_,nb,ev_h0_k_,ev_h0_k_lwork,nb*nb,ev_h0_k_rwork,info)
+            call cheev('V','L',nb,u_h0_k_,nb,ev_h0_k_,ev_h0_k_lwork,nb*nb,ev_h0_k_rwork,info)
             u_h0_k(:,:,ikx,iky)=u_h0_k_
             ev_h0_k(:,ikx,iky)=ev_h0_k_
             ! write(stdout,*) diag_h0_tilde_k_
@@ -340,8 +340,8 @@ contains
         use, intrinsic :: iso_c_binding
         implicit none
         include 'fftw3.f03'
-        complex(8), dimension(N,N,nkx,nky,length_in) :: input
-        complex(8), dimension(N,N,nkx,nky,length_out) :: output
+        complex(4), dimension(N,N,nkx,nky,length_in) :: input
+        complex(4), dimension(N,N,nkx,nky,length_out) :: output
         integer N, length_in, length_out, direction, outmodel
         integer(C_INT) direction2, l, m, begin_index
         type(C_PTR) :: plan
@@ -357,14 +357,14 @@ contains
         if (outmodel/=0) then
             begin_index=2*nomega
         endif
-        plan=fftw_plan_dft_3d(dft_grid, nky, nkx, dft_in, dft_out, direction2, FFTW_ESTIMATE)
+        plan=fftwf_plan_dft_3d(dft_grid, nky, nkx, dft_in, dft_out, direction2, FFTW_ESTIMATE)
         !!$omp parallel do private(m,dft_in,dft_out)
         do l=1,N; do m=1,N
             ! 前处理, 补0
             dft_in(:,:,1:length_in) = input(l,m,:,:,1:length_in)
             dft_in(:,:,length_in+1:dft_grid)=complex_0
 
-            call fftw_execute_dft(plan, dft_in, dft_out)
+            call fftwf_execute_dft(plan, dft_in, dft_out)
 
             ! 后处理
             output(l,m,:,:,1:length_out) = dft_out(:,:,begin_index:length_out-begin_index+1)
@@ -385,7 +385,7 @@ contains
         implicit none
 
         integer ix, iy, n
-        complex(8), dimension(n,n) :: A
+        complex(4), dimension(n,n) :: A
 
         do ix=1,n
             do iy=1,n
@@ -401,7 +401,7 @@ contains
         implicit none
 
         integer i, n
-        complex(8), dimension(n) :: A
+        complex(4), dimension(n) :: A
 
         do i=1,n
             if (abs(A(i))<real_error) then
@@ -427,11 +427,11 @@ contains
     function GProduct(a, b)
         use constants
         implicit none
-        complex(8) GProduct
-        complex(8), dimension (total_grid) :: a, b
-        complex(8), external :: zdotc
+        complex(4) GProduct
+        complex(4), dimension (total_grid) :: a, b
+        complex(4), external :: cdotc
         !GProduct=dot_product(a,b)
-        GProduct = zdotc(total_grid,a,1,b,1)
+        GProduct = cdotc(total_grid,a,1,b,1)
     end function
 
     ! 初始化混合器
@@ -473,8 +473,8 @@ contains
         use parameters2
         implicit none
         integer i
-        real(8) beta, min_error, min_beta, cur_error
-        !real(8), external :: dznrm2
+        real(4) beta, min_error, min_beta, cur_error
+        !real(4), external :: dznrm2
 
         if (mixer_beta0==0) then
             call cal_best_mixer_beta()
@@ -493,8 +493,8 @@ contains
         implicit none
         integer n, i, info, next_pointer, prev_pointer
         integer ipiv(mix_num+1)
-        real(8), dimension (mix_num*2) :: lwork
-        real(8) e, e0, max_error
+        real(4), dimension (mix_num*2) :: lwork
+        real(4) e, e0, max_error
         logical find_bigger
 
         ! method.3 - Refined Pulay方法, 保留残差较小的, 实际上高度非线性时没啥作用
@@ -560,7 +560,7 @@ contains
         n=mixer_order
         ! write(stderr,*) n
         ! 系数矩阵实际上多一行
-        call dsysv('U', n+1, 1, mixer_A1, mix_num+1, ipiv, mixer_x, mix_num+1, lwork, 2*mix_num, info)
+        call ssysv('U', n+1, 1, mixer_A1, mix_num+1, ipiv, mixer_x, mix_num+1, lwork, 2*mix_num, info)
         !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
         G=complex_0
         do i=1,n
@@ -577,8 +577,8 @@ contains
         use parameters
         use parameters2
         implicit none
-        complex(8) fac, fac2
-        complex(8), external :: zdotc
+        complex(4) fac, fac2
+        complex(4), external :: zdotc
         integer i
 
         ! delta R
@@ -608,7 +608,7 @@ contains
         use parameters2
         implicit none
         integer i,f_(1),f
-        real(8) beta(3), min_error, min_beta, beta1, beta2, error0(3)
+        real(4) beta(3), min_error, min_beta, beta1, beta2, error0(3)
 
         !        if (G_iter>20)then
         !            mixer_beta=0.001
@@ -700,14 +700,14 @@ contains
         use parameters
         use parameters2
         implicit none
-        !real(8), external :: dznrm2
+        !real(4), external :: dznrm2
         logical conv
         integer ib1, ib2, ikx, iky, iomegak, conv_grid
-        real(8) norm_sigma_minus, norm_sigma, norm_sigma0, cur_G_tol, tol
-        real(8) cur_error, total_error
-        complex(8) sigma_one, sigma0_one
+        real(4) norm_sigma_minus, norm_sigma, norm_sigma0, cur_G_tol, tol
+        real(4) cur_error, total_error
+        complex(4) sigma_one, sigma0_one
 
-        norm_sigma = dznrm2(total_grid, sigma, 1)
+        norm_sigma = scnrm2(total_grid, sigma, 1)
         tol = norm_sigma*G_tol/total_grid
         conv_grid=0
         total_error=0
@@ -721,14 +721,14 @@ contains
         use parameters
         use parameters2
         implicit none
-        !real(8), external :: dznrm2
+        !real(4), external :: dznrm2
         logical conv
         integer ib1, ib2, ikx, iky, iomegak, conv_grid
-        real(8) norm_G, cur_G_tol, tol
-        real(8) cur_error, total_error
-        complex(8) G_one, G_out_one, G_error_one
+        real(4) norm_G, cur_G_tol, tol
+        real(4) cur_error, total_error
+        complex(4) G_one, G_out_one, G_error_one
 
-        norm_G = dznrm2(total_grid, G, 1)
+        norm_G = scnrm2(total_grid, G, 1)
 
         G_error=G_out-G
         !conv_grid=count(abs(G_error)<=G_tol*abs(G) .or. abs(G)<=real_error)
@@ -745,7 +745,7 @@ contains
             endif
         enddo; enddo; enddo; enddo; enddo;
 
-        cur_G_tol = dznrm2(total_grid, G_error, 1)!/norm_G
+        cur_G_tol = scnrm2(total_grid, G_error, 1)!/norm_G
         conv = ((conv_grid==total_grid) .or. cur_G_tol<1d-8)
         !if (conv .or. mod(G_iter,20)==0) then
         write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
@@ -760,9 +760,9 @@ contains
         use parameters2
         implicit none
         integer n, mu_pointer, i, info
-        real(8) d
+        real(4) d
         integer ipiv(mu_num+1)
-        real(8), dimension (mu_num*2) :: lwork
+        real(4), dimension (mu_num*2) :: lwork
 
         mu_pointer=density_iter-1
         n=density_iter
@@ -778,7 +778,7 @@ contains
         mu_A1=mu_A
         mu_x=mu_b
 
-        call dgesv(n,1,mu_A1,mu_num+1,ipiv,mu_x,mu_num+1,info)
+        call sgesv(n,1,mu_A1,mu_num+1,ipiv,mu_x,mu_num+1,info)
 
         d=0d0
         do i=1,mu_pointer
@@ -800,9 +800,9 @@ contains
         use parameters2
         implicit none
         integer n, mu_pointer, i, info
-        real(8) e
+        real(4) e
         integer ipiv(mu_num+1)
-        real(8), dimension (mu_num*2) :: lwork
+        real(4), dimension (mu_num*2) :: lwork
 
         mu_pointer=mod(density_iter,mu_num)
         if (mu_pointer==0) mu_pointer=mu_num
@@ -824,7 +824,7 @@ contains
         mu_A1=mu_A
         mu_x=mu_b
 
-        call dsysv('U', n+1, 1, mu_A1, mu_num+1, ipiv, mu_x, mu_num+1, lwork, 2*mu_num, info)
+        call ssysv('U', n+1, 1, mu_A1, mu_num+1, ipiv, mu_x, mu_num+1, lwork, 2*mu_num, info)
         !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
         mu=0d0
         do i=1,n
@@ -852,18 +852,18 @@ contains
 
         ! 点数36: 1~11~21~36
         integer count_k, i, ik, ix, iy, fileunit
-        complex(8) :: fac
-        real(8) :: rdotk
-        real(8), dimension (2) :: temp
-        real(8), dimension (36, 2) :: k_band
-        complex(8), dimension (nb, nb, 36) :: h0_k_band
-        complex(8), dimension (nb,nb) :: A, B
-        complex(8), dimension (nb, 36) :: ev_band
-        complex(8), dimension (nb) :: alpha, beta
-        complex(8), dimension (nb, nb) :: vl, vr
-        complex(8), dimension (nb*2) :: work
+        complex(4) :: fac
+        real(4) :: rdotk
+        real(4), dimension (2) :: temp
+        real(4), dimension (36, 2) :: k_band
+        complex(4), dimension (nb, nb, 36) :: h0_k_band
+        complex(4), dimension (nb,nb) :: A, B
+        complex(4), dimension (nb, 36) :: ev_band
+        complex(4), dimension (nb) :: alpha, beta
+        complex(4), dimension (nb, nb) :: vl, vr
+        complex(4), dimension (nb*2) :: work
         integer info
-        real(8), dimension (nb*8) :: rwork
+        real(4), dimension (nb*8) :: rwork
 
 
         ! ------------------------------------------------------------------------
@@ -913,7 +913,7 @@ contains
                 B(i,i)=complex_1
             enddo
             ! write(stdout,*) 'calling cggev...'
-            call zggev('N', 'N', nb, A, nb, B, nb, alpha, beta, vl, 1, vr, 1, work, 2*nb, rwork, info)
+            call cggev('N', 'N', nb, A, nb, B, nb, alpha, beta, vl, 1, vr, 1, work, 2*nb, rwork, info)
             ! write(stdout,*) 'finish state ', info
             ev_band(:,ik) = alpha/beta
         enddo

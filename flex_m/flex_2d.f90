@@ -19,8 +19,8 @@ program flex_2d
     integer l1,m1,l2,m2
     integer conv_count
     !integer mpiinfo
-    complex(8) temp_complex
-    real(8) T_ev0
+    complex(4) temp_complex
+    real(4) T_ev0
 
     ! 变量段结束-------------------------------------------------------------------------------
 

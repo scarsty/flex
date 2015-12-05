@@ -11,7 +11,7 @@ subroutine readin()
 
     integer fileunit;
 
-    complex(8) temp_h0
+    complex(4) temp_h0
 
     !rank=mpi_rank()
     !读取

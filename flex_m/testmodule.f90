@@ -2,7 +2,7 @@
 subroutine testFunctions()
     implicit none
 
-    real(8), dimension (512) :: k1, k2
+    real(4), dimension (512) :: k1, k2
 
 
 
@@ -30,8 +30,8 @@ subroutine testConvolution()
 
     integer, parameter:: n=8,n1=n-1
     integer, parameter:: m=4,m1=m-1
-    complex(8), dimension (-n1:n) :: f, g
-    complex(8), dimension (-m1:m) :: f_ft
+    complex(4), dimension (-n1:n) :: f, g
+    complex(4), dimension (-m1:m) :: f_ft
 
     integer i, x, t, i1, i2, x_minus_t
 
@@ -97,11 +97,11 @@ subroutine testConvolution2()
     include 'fftw3.f03'
     integer i, x, t, i1, i2, j1, j2, i_minus_j1, i_minus_j2, num
     type(C_PTR) :: plan
-    real(8) :: start, finish, summary
+    real(4) :: start, finish, summary
     integer,parameter:: n=8,n1=n-1
 
-    complex(8), dimension (0:n-1,0:n-1) :: f, g, g1
-    complex(8), dimension (0:n-1,0:n-1) :: f_ft
+    complex(4), dimension (0:n-1,0:n-1) :: f, g, g1
+    complex(4), dimension (0:n-1,0:n-1) :: f_ft
 
     ! calculate 2D convolution g(x)=f(t)f(x-t) with 2 methods
 
@@ -138,16 +138,16 @@ subroutine testConvolution2()
     call cpu_time(start)
     do num=1,1
         f_ft=0
-        plan=fftw_plan_dft_2d(n, n, f, f_ft, FFTW_BACKWARD, FFTW_ESTIMATE)
-        call fftw_execute_dft(plan, f, f_ft)
-        call fftw_destroy_plan(plan)
+        plan=fftwf_plan_dft_2d(n, n, f, f_ft, FFTW_BACKWARD, FFTW_ESTIMATE)
+        call fftwf_execute_dft(plan, f, f_ft)
+        call fftwf_destroy_plan(plan)
         !write(0, *) f_ft
 
         f_ft=f_ft*f_ft
 
-        plan=fftw_plan_dft_2d(n, n, f_ft, g, FFTW_FORWARD, FFTW_ESTIMATE)
-        call fftw_execute_dft(plan, f_ft, g)
-        call fftw_destroy_plan(plan)
+        plan=fftwf_plan_dft_2d(n, n, f_ft, g, FFTW_FORWARD, FFTW_ESTIMATE)
+        call fftwf_execute_dft(plan, f_ft, g)
+        call fftwf_destroy_plan(plan)
         g=g/n/n
     enddo
 
@@ -180,13 +180,13 @@ subroutine testConvolution3()
     include 'fftw3.f03'
     integer i, x, t, i1, i2, i3, j1, j2, j3, i_minus_j1, i_minus_j2, i_minus_j3, num
     type(C_PTR) :: plan
-    real(8) :: start, finish, summary
+    real(4) :: start, finish, summary
     integer,parameter:: n=2,n1=3,n2=1, n3=1
 
-    !complex(8), dimension (n,n,n) :: f, g, g1, conjg_f
-    !complex(8), dimension (n,n,n1) :: f_ft, conjg_f_ft
-    complex(8), dimension (0:n1,0:n2,0:n3) :: f, g, g1, conjg_f
-    complex(8), dimension (0:n1,0:n2,0:n3) :: f_ft, conjg_f_ft
+    !complex(4), dimension (n,n,n) :: f, g, g1, conjg_f
+    !complex(4), dimension (n,n,n1) :: f_ft, conjg_f_ft
+    complex(4), dimension (0:n1,0:n2,0:n3) :: f, g, g1, conjg_f
+    complex(4), dimension (0:n1,0:n2,0:n3) :: f_ft, conjg_f_ft
 
     integer regionParameter
     external regionParameter
@@ -223,20 +223,20 @@ subroutine testConvolution3()
     call cpu_time(start)
     do num=1,1
         !f_ft=0
-        plan=fftw_plan_dft_3d(n3+1, n2+1, n1+1, f, f_ft, FFTW_FORWARD, FFTW_ESTIMATE)
-        call fftw_execute_dft(plan, f, f_ft)
-        call fftw_destroy_plan(plan)
+        plan=fftwf_plan_dft_3d(n3+1, n2+1, n1+1, f, f_ft, FFTW_FORWARD, FFTW_ESTIMATE)
+        call fftwf_execute_dft(plan, f, f_ft)
+        call fftwf_destroy_plan(plan)
 
-        plan=fftw_plan_dft_3d(n1+1, n2+1, n3+1, conjg_f, conjg_f_ft, FFTW_FORWARD, FFTW_ESTIMATE)
-        call fftw_execute_dft(plan, conjg_f, conjg_f_ft)
-        call fftw_destroy_plan(plan)
+        plan=fftwf_plan_dft_3d(n1+1, n2+1, n3+1, conjg_f, conjg_f_ft, FFTW_FORWARD, FFTW_ESTIMATE)
+        call fftwf_execute_dft(plan, conjg_f, conjg_f_ft)
+        call fftwf_destroy_plan(plan)
         !write(0, *) f_ft
 
         f_ft=f_ft*f_ft
 
-        plan=fftw_plan_dft_3d(n3+1, n2+1, n1+1, f_ft, g, FFTW_BACKWARD, FFTW_ESTIMATE)
-        call fftw_execute_dft(plan, f_ft, g)
-        call fftw_destroy_plan(plan)
+        plan=fftwf_plan_dft_3d(n3+1, n2+1, n1+1, f_ft, g, FFTW_BACKWARD, FFTW_ESTIMATE)
+        call fftwf_execute_dft(plan, f_ft, g)
+        call fftwf_destroy_plan(plan)
         g=g/(n1+1)/(n2+1)/(n3+1)
     enddo
 
@@ -269,12 +269,12 @@ subroutine testConvolution3G()
 
     integer l1, l2, m1, m2
     integer ikx1, iky1, ikx2, iky2, iomega1, iomega2, kxplus, kyplus, omegaplus
-    complex(8) temp_complex
+    complex(4) temp_complex
 
     integer regionParameter
     external regionParameter
 
-    complex(8) a(1,1,1,1,8),b(1,1,1,1,8)
+    complex(4) a(1,1,1,1,8),b(1,1,1,1,8)
 
     a=0
     a(1,1,1,1,1)=1
@@ -324,8 +324,8 @@ subroutine testConvolution3G()
     write(stderr, *) chi_0(:,:,:,:,:)
 
     V = chi_0-V
-    write(stderr, *) dznrm2(nb**4*nk*nomegab, V, 1) &
-        / dznrm2(nb**4*nk*nomegab, chi_0, 1)
+    write(stderr, *) scnrm2(nb**4*nk*nomegab, V, 1) &
+        / scnrm2(nb**4*nk*nomegab, chi_0, 1)
     stop
     !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
 
@@ -339,7 +339,7 @@ subroutine testConvolution3sigma()
 
     integer l1, l2, m1, m2
     integer ikx1, iky1, ikx2, iky2, iomega1, iomega2, kxplus, kyplus, omegaplus
-    complex(8) temp_complex
+    complex(4) temp_complex
 
     integer regionParameter
     external regionParameter
@@ -365,7 +365,7 @@ subroutine testConvolution3sigma()
 
     write(stderr, *) sigma0
     write(stderr, *) sigma
-    write(stderr, *) dznrm2(nb**2*nk*nomegaf, sigma-sigma0, 1)
+    write(stderr, *) scnrm2(nb**2*nk*nomegaf, sigma-sigma0, 1)
     stop
     !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
 
@@ -644,7 +644,7 @@ end subroutine build_h0_k
 !        implicit none
 !        integer k1, omega1, fb1, k2, omega2, fb2, k3, omega3, fb3, sign_omega3, zero_k
 !        integer f1, f2, f3
-!        real(8), dimension (nk, 2) :: k
+!        real(4), dimension (nk, 2) :: k
 !        integer, dimension (nk, nk) :: k_minus
 !
 !        f1=calfreq(omega1, fb1)

@@ -52,19 +52,19 @@ MODULE constants
     !integer, parameter :: m1 = m - 1
 
     ! Mathematical and physical constants
-    real(8), parameter :: kB = 8.61733035d-05  ! eV/K, 玻尔兹曼常数
-    real(8), parameter :: mub = 5.788381755d-5 ! eV/T, 磁导率, 此处无用
-    real(8), parameter :: gs = 2.002319 !不知道
-    real(8), parameter :: h_bar  =6.582119514d-16 ! eV s, 普朗克常数
+    real(4), parameter :: kB = 8.61733035d-05  ! eV/K, 玻尔兹曼常数
+    real(4), parameter :: mub = 5.788381755d-5 ! eV/T, 磁导率, 此处无用
+    real(4), parameter :: gs = 2.002319 !不知道
+    real(4), parameter :: h_bar  =6.582119514d-16 ! eV s, 普朗克常数
 
-    real(8), parameter, public :: pi=3.141592653589793238462643383279d0
-    real(8), parameter, public :: two_pi = 2*pi
+    real(4), parameter, public :: pi=3.141592653589793238462643383279d0
+    real(4), parameter, public :: two_pi = 2*pi
 
-    complex(8), parameter, public :: complex_i = (0.0d0,1.0d0)
-    complex(8), parameter, public :: complex_0 = (0.0d0,0.0d0)
-    complex(8), parameter, public :: complex_1 = (1.0d0,0.0d0)
-    real(8), parameter, public :: real_error = 1d-8
-    real(8), parameter, public :: golden_ratio = (sqrt(5d0)-1)/2d0
+    complex(4), parameter, public :: complex_i = (0.0d0,1.0d0)
+    complex(4), parameter, public :: complex_0 = (0.0d0,0.0d0)
+    complex(4), parameter, public :: complex_1 = (1.0d0,0.0d0)
+    real(4), parameter, public :: real_error = 1d-8
+    real(4), parameter, public :: golden_ratio = (sqrt(5d0)-1)/2d0
 
 
     integer, parameter :: stdin =  5
