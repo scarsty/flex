@@ -298,7 +298,7 @@ contains
 
         if (density_iter==1) then
             mu=maxval(eigen_value)
-            !mu=0.1
+            !mu=mu+10d0
         endif
 
     end subroutine

@@ -36,6 +36,8 @@ contains
 
         complex(8), dimension (nb, nb) :: G_, G0_, sigma_
 
+        !call cleanError(G,total_grid)
+
         call dft(G, r_tau1, nb, nomegaf, dft_grid, 1, 0)
         conjgG=conjg(G)
         call dft(conjgG, r_tau2, nb, nomegaf, dft_grid, 1, 0)
@@ -43,12 +45,12 @@ contains
         ! chi_0, 并行
         ! 卷积形式, 改成减法 on tau
         r_tau_sqr=0
-        !$omp parallel do private(l2,m1,m2)
+        !omp parallel do private(l2,m1,m2)
         do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
             r_tau_sqr(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
                 = - r_tau1(l1, m1, :, :, :)*r_tau2(m2, l2, :, :, :)
         enddo; enddo; enddo; enddo
-        !$omp end parallel do
+        !omp end parallel do
 
         ! idft chi_0_r_tau to chi_0
         call dft(r_tau_sqr, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
@@ -82,7 +84,6 @@ contains
 
         enddo; enddo; enddo
         !$omp end parallel do
-
 
         !sigma(k) = V(k-k')*G(k')
 

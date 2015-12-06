@@ -62,6 +62,7 @@ subroutine eliashberg()
             ! 用上一个值计算出新的delta_r_tau
 
             ! 频域上G*G*delta, 下标l2,m2,l3,m3
+            !call cleanError(delta0,total_grid)
             GGdelta = complex_0
             do l2=1,nb; do m2=1,nb
                 do l3=1,nb; do m3=1,nb
@@ -105,10 +106,10 @@ subroutine eliashberg()
 
             ! 检测收敛性, 计算lambda
             delta = delta/lambda
-            write(stdout, *) lambda
+            !write(stdout, *) lambda
             !call conv_test(delta, delta0, elia_conv, .true.)
-            if (abs(lambda0/lambda - 1d0) < 1d-5) then
-            !if (elia_conv) then
+             if (abs(lambda0/lambda - 1d0) < 1d-5) then
+        !if (elia_conv) then
                 elia_conv=.true.
                 lambda_list(spin_state)=lambda
                 exit
@@ -134,8 +135,8 @@ subroutine eliashberg()
             write(stdout, '(2F10.4,2F14.8)') k(ikx,iky,:), temp_complex
         enddo; enddo
 
-        write(stdout,*)
-        write(stdout,*) 'The maximum eigenvalue is ', lambda, 'for spin', spin_state
+        write(stdout,*) 'Spin state', spin_state
+        write(stdout,*) 'Maximum eigenvalue ', lambda
         write(stdout,*)
     enddo
 
@@ -144,11 +145,11 @@ subroutine eliashberg()
     write(stdout,*)
     write(stdout,*) 'Temperature is ', T
     write(stdout,*)
-    write(stdout,'(A7,A20)') 'spin','leading.eigenvalue'
+    write(stdout,'(A7,A20)') 'spin','eigenvalue'
     write(stdout,*) '------------------------------'
 
     do spin_state=1,3,2
-        write(stdout,'(I7, F20.8)') spin_state, real(lambda_list(spin_state))
+        write(stdout,'(I7, F20.8)') spin_state, abs(real(lambda_list(spin_state)))
     enddo
 
 end subroutine eliashberg

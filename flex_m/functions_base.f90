@@ -211,7 +211,7 @@ contains
 
     end subroutine
 
-    subroutine cleanError(A,n)
+    subroutine cleanError_c(A,n)
         use constants
         implicit none
 
@@ -225,6 +225,29 @@ contains
         enddo
 
     end subroutine
+
+      subroutine cleanError(A,n)
+        use constants
+        implicit none
+
+        integer i, n
+        complex(8) A(n)
+        real(8) r1,r2
+
+        do i=1,n
+            r1=real(A(i))
+            r2=imag(A(i))
+            if (abs(r1)<real_error) then
+                r1=0d0
+            endif
+            if (abs(r2)<real_error) then
+                r2=0d0
+            endif
+            A(i)=complex_1*r1+complex_i*r2
+        enddo
+
+    end subroutine
+
 
         ! 求两个G格式向量的点乘 sum conjg(a(i))*b(i)
     function GProduct(a, b)

@@ -13,11 +13,15 @@
 				<Option compiler="gfortran" />
 				<Compiler>
 					<Add option="-cpp" />
+					<Add option="-fopenmp" />
 					<Add option="-ffree-line-length-none" />
 					<Add option="-w" />
 					<Add option="-g" />
 					<Add option="-D_DEBUG" />
 				</Compiler>
+				<Linker>
+					<Add option="-fopenmp" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/flex_m" prefix_auto="1" extension_auto="1" />
@@ -28,11 +32,13 @@
 					<Add option="-ffast-math" />
 					<Add option="-O2" />
 					<Add option="-cpp" />
+					<Add option="-fopenmp" />
 					<Add option="-fimplicit-none" />
 					<Add option="-D_DEBUG" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-fopenmp" />
 					<Add option="-lgomp" />
 				</Linker>
 			</Target>
@@ -58,7 +64,7 @@
 			<Option weight="0" />
 		</Unit>
 		<Unit filename="eliashberg.f90">
-			<Option weight="3" />
+			<Option weight="5" />
 		</Unit>
 		<Unit filename="fftw3.f03">
 			<Option weight="0" />
@@ -69,13 +75,28 @@
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="flex_2d.f90">
-			<Option weight="3" />
+			<Option weight="5" />
 		</Unit>
 		<Unit filename="flex_m.cbp">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="functions.f90">
+			<Option weight="4" />
+		</Unit>
+		<Unit filename="functions_base.f90">
 			<Option weight="2" />
+		</Unit>
+		<Unit filename="functions_g_chi.f90">
+			<Option weight="3" />
+		</Unit>
+		<Unit filename="functions_init.f90">
+			<Option weight="3" />
+		</Unit>
+		<Unit filename="functions_mixer.f90">
+			<Option weight="3" />
+		</Unit>
+		<Unit filename="functions_test.f90">
+			<Option weight="3" />
 		</Unit>
 		<Unit filename="input_file">
 			<Option target="&lt;{~None~}&gt;" />
@@ -87,10 +108,10 @@
 			<Option weight="1" />
 		</Unit>
 		<Unit filename="readin.f90">
-			<Option weight="3" />
+			<Option weight="5" />
 		</Unit>
-		<Unit filename="testmodule.f90">
-			<Option weight="3" />
+		<Unit filename="testmodule.f03">
+			<Option weight="5" />
 		</Unit>
 		<Extensions>
 			<code_completion />

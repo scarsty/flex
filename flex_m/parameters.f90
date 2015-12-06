@@ -30,7 +30,7 @@ module parameters
     ! 自旋态
     integer :: spin_state
 
-    integer :: density_method
+    integer :: density_method=1
 
     logical :: solve_eliashberg = .true.
     logical :: test_band = .false.

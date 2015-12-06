@@ -60,7 +60,7 @@ program flex_2d
     density_conv = .false.
 
     mu=sum(eigen_value)/nb
-    !mu=0
+    !mu=10
 
     do while (.not. density_conv)
 
@@ -142,7 +142,7 @@ program flex_2d
 
             G_iter=G_iter+1;
             total_iter = total_iter + 1
-            if (G_iter>2000) then
+            if (G_iter>5000) then
                 write(stdout,*) 'G not convergence'
                 exit
             endif
@@ -159,10 +159,10 @@ program flex_2d
             case(0)
                 !!$omp parallel do private(ikx,iky,ib) reduction(+:cur_density)
                 do iomegak=minomegaf,maxomegaf; do ib=1,nb; do ikx=1,nkx; do iky=1,nky;
-                    cur_density = cur_density + real(G(ib, ib, ikx, iky, iomegak))
+                    cur_density = cur_density + real(G(ib, ib, ikx, iky, iomegak)*exp(-complex_i*(2*iomegak-1)*pi*1d-8))
                 enddo; enddo; enddo; enddo
                 !!$omp end parallel do
-                cur_density=cur_density*2*T_eV/nk + 2*nb
+                cur_density=cur_density*2*T_eV/nk+nb*0
             case(1)
                 !!$omp parallel do private(ikx,iky,ib) reduction(+:cur_density)
                 do iomegak=minomegaf,maxomegaf; do ib=1,nb; do ikx=1,nkx; do iky=1,nky;
