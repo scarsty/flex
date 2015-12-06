@@ -64,12 +64,6 @@ readin.o: \
     functions.o \
     parameters.o \
     parameters2.o
-testmodule.o: \
-    testmodule.f90 \
-    constants.o \
-    functions.o \
-    parameters2.o \
-    fftw3.f03
 functions_g_chi.o: \
     functions_g_chi.f90 \
     functions_base.o \
