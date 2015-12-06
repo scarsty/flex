@@ -717,25 +717,27 @@ contains
         conv = (conv_grid==total_grid)
     end subroutine
 
-    subroutine G_conv_test(conv)
+    subroutine conv_test(test1, test2, conv, output)
         use parameters
         use parameters2
         implicit none
+
+        complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: test1, test2
         !real(8), external :: dznrm2
-        logical conv
+        logical conv, output
         integer ib1, ib2, ikx, iky, iomegak, conv_grid
         real(8) norm_G, cur_G_tol, tol
         real(8) cur_error, total_error
         complex(8) G_one, G_out_one, G_error_one
 
-        norm_G = dznrm2(total_grid, G, 1)
+        norm_G = dznrm2(total_grid, test1, 1)
 
-        G_error=G_out-G
+        G_error=test2-test1
         !conv_grid=count(abs(G_error)<=G_tol*abs(G) .or. abs(G)<=real_error)
         conv_grid=0
         !total_error=0
         do ib1=1,nb; do ib2=1,nb; do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
-            G_one=G(ib1,ib2,ikx,iky,iomegak)
+            G_one=test1(ib1,ib2,ikx,iky,iomegak)
             G_error_one=G_error(ib1,ib2,ikx,iky,iomegak)
             cur_error=abs(G_error_one)
             !total_error = total_error + cur_error
@@ -748,7 +750,10 @@ contains
         cur_G_tol = dznrm2(total_grid, G_error, 1)!/norm_G
         conv = ((conv_grid==total_grid) .or. cur_G_tol<1d-8)
         !if (conv .or. mod(G_iter,20)==0) then
-        write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
+        if (output) then
+            write(stdout,'(I7,I7,I10,ES20.5)') density_iter, G_iter, conv_grid, cur_G_tol
+        endif
+
         !endif
 
     end subroutine
@@ -789,6 +794,7 @@ contains
 
         if (density_iter==1) then
             mu=maxval(eigen_value)
+            !mu=0.1
         endif
 
     end subroutine
@@ -960,8 +966,8 @@ contains
         integer ikx, iky
         integer iomegak,iomegaq
         integer l1,m1,l2,m2
-        call dft(G, r_tau1, nb, nomegaf, dft_grid, 1, 0)
 
+        call dft(G, r_tau1, nb, nomegaf, dft_grid, 1, 0)
         conjgG=conjg(G)
         call dft(conjgG, r_tau2, nb, nomegaf, dft_grid, 1, 0)
 

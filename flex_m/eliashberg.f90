@@ -21,7 +21,7 @@ subroutine eliashberg()
     integer iomegak,iomegaq
     integer ikx, iky
     integer l1,m1,l2,m2,l3,m3,count_iter
-    real(8) lambda, lambda0, lambda_list(3)
+    complex(8) lambda, lambda0, lambda_list(3)
     logical elia_conv
     complex(8) temp_complex
 
@@ -51,13 +51,13 @@ subroutine eliashberg()
         ! 初始值
 
         conjgG=conjg(G)
-        delta0 = complex_1 / (nb*nb*nk*nomegaf)
+        delta0 = complex_1
         lambda0=1d0
         elia_conv = .false.
         count_iter = 0
 
 
-        do while (.not.elia_conv)
+        do while (.true.)
             count_iter = count_iter+1
             ! 用上一个值计算出新的delta_r_tau
 
@@ -96,15 +96,22 @@ subroutine eliashberg()
             lambda = 0
             do l1=1,nb; do m1=1,nb
                 do ikx=1,nkx; do iky=1,nky; do iomegak=minomegaf,maxomegaf
-                    lambda = max(lambda, abs(delta(l1,m1,ikx,iky,iomegak)))
+                    if (abs(real(delta(l1,m1,ikx,iky,iomegak)))>abs(lambda)) then
+                        lambda=delta(l1,m1,ikx,iky,iomegak)
+                    endif
+                    !lambda = max(lambda, abs(real(delta(l1,m1,ikx,iky,iomegak))))
                 enddo; enddo; enddo
             enddo; enddo
-            delta = delta/lambda
-            !write(stdout, *) lambda
+
             ! 检测收敛性, 计算lambda
-            if (abs(lambda0 - lambda) < 1e-5) then
+            delta = delta/lambda
+            write(stdout, *) lambda
+            !call conv_test(delta, delta0, elia_conv, .true.)
+            if (abs(lambda0/lambda - 1d0) < 1d-5) then
+            !if (elia_conv) then
                 elia_conv=.true.
                 lambda_list(spin_state)=lambda
+                exit
             endif
 
             ! 下一步
@@ -137,11 +144,11 @@ subroutine eliashberg()
     write(stdout,*)
     write(stdout,*) 'Temperature is ', T
     write(stdout,*)
-    write(stdout,'(A7,A20)') 'spin','max.eigenvalue'
+    write(stdout,'(A7,A20)') 'spin','leading.eigenvalue'
     write(stdout,*) '------------------------------'
 
     do spin_state=1,3,2
-        write(stdout,'(I7, F20.8)') spin_state, lambda_list(spin_state)
+        write(stdout,'(I7, F20.8)') spin_state, real(lambda_list(spin_state))
     enddo
 
 end subroutine eliashberg

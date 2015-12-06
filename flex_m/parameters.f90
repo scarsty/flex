@@ -30,6 +30,8 @@ module parameters
     ! 自旋态
     integer :: spin_state
 
+    integer :: density_method
+
     logical :: solve_eliashberg = .true.
     logical :: test_band = .false.
 
@@ -42,7 +44,7 @@ module parameters
         G_tol, max_iter, alpha, alpha_scheme, spin_state,&
         mixer_method, mixer_beta, &
         solve_eliashberg, test_band, &
-        from_high_T
+        from_high_T, density_method
 
     real(8) eigen_value(5)
     namelist /band/ eigen_value
