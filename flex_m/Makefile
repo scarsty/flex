@@ -24,16 +24,38 @@ clean:
 	$(FC) $(FFLAGS) -c $(@:.o=.f90)
 
 # Dependencies of files
+parameters.o: \
+    parameters.f90
+constants.o: \
+    constants.f90
 eliashberg.o: \
     eliashberg.f90 \
     constants.o \
     functions.o \
     parameters.o \
     parameters2.o
+functions_test.o: \
+    functions_test.f90 \
+    functions_base.o \
+    parameters.o \
+    parameters2.o
+functions_base.o: \
+    functions_base.f90 \
+    constants.o \
+    parameters2.o \
+    fftw3.f03
 flex_2d.o: \
     flex_2d.f90 \
     constants.o \
     functions.o \
+    parameters.o \
+    parameters2.o
+parameters2.o: \
+    parameters2.f90 \
+    constants.o
+functions_init.o: \
+    functions_init.f90 \
+    functions_base.o \
     parameters.o \
     parameters2.o
 readin.o: \
@@ -42,22 +64,27 @@ readin.o: \
     functions.o \
     parameters.o \
     parameters2.o
-functions.o: \
-    functions.f90 \
-    constants.o \
-    parameters.o \
-    parameters2.o \
-    fftw3.f03
-parameters2.o: \
-    parameters2.f90 \
-    constants.o
 testmodule.o: \
     testmodule.f90 \
     constants.o \
     functions.o \
     parameters2.o \
     fftw3.f03
-parameters.o: \
-    parameters.f90
-constants.o: \
-    constants.f90
+functions_g_chi.o: \
+    functions_g_chi.f90 \
+    functions_base.o \
+    parameters.o \
+    parameters2.o
+functions_mixer.o: \
+    functions_mixer.f90 \
+    functions_base.o \
+    parameters.o \
+    parameters2.o
+functions.o: \
+    functions.f90 \
+    functions_base.o \
+    functions_g_chi.o \
+    functions_init.o \
+    functions_mixer.o \
+    functions_test.o
+

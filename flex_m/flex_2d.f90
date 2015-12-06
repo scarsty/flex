@@ -173,12 +173,8 @@ program flex_2d
                 cur_density=cur_density*2*T_eV/nk + density_base
         end select
 
-
-
-
         write(stdout,*) 'density and mu: ', cur_density,'/', mu
         write(stdout,*)
-
 
         if (abs(cur_density-target_density)<density_tol) then
             density_conv=.true.
