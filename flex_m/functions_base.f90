@@ -293,5 +293,25 @@ contains
 
     end subroutine
 
+    subroutine build_h0_k()
+    use constants
+    use parameters2
+    implicit none
+
+    integer l1, m1, ikx, iky
+
+    h0_k = complex_0
+
+    do l1=1,nb; do m1=1,nb
+        do ikx=1,nkx; do iky=1,nky
+            h0_k(l1,m1,ikx,iky) = - cos(k(ikx,iky,1)*pi) - cos(k(ikx,iky,2)*pi)
+        enddo; enddo
+    enddo; enddo
+    write(stderr,*) h0_k
+    return
+
+end subroutine build_h0_k
+
+
 
 end module
