@@ -19,13 +19,13 @@ module parameters2
         chi_0, V !,V_s, chi_s, chi_c,
 
     complex(8), dimension (nb*nb, nb*nb, nkx, nky, dft_grid) :: &
-        r_tau_sqr, r_tau_sqr2
+        r_tau_sqr
 
 
     ! 交换能, 单位矩阵
     complex(8), dimension (nb*nb, nb*nb) :: U_s, U_c, U_ud, U_uu, I_chi
     ! dyson方程的辅助计算矩阵
-    complex(8), dimension (nb, nb) :: I_G, G_, G0_, sigma_
+    complex(8), dimension (nb, nb) :: I_G!, G_, G0_, sigma_
 
     ! H0
     ! u_h0_k是计算G0所使用的辅助幺正阵, G0=u_h0_k**H*diag(1/(i*omage-e+mu))*u_h0_k

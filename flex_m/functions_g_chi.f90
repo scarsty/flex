@@ -34,6 +34,8 @@ contains
         integer iomegak,iomegaq
         integer l1,m1,l2,m2
 
+        complex(8), dimension (nb, nb) :: G_, G0_, sigma_
+
         call dft(G, r_tau1, nb, nomegaf, dft_grid, 1, 0)
         conjgG=conjg(G)
         call dft(conjgG, r_tau2, nb, nomegaf, dft_grid, 1, 0)
@@ -47,13 +49,6 @@ contains
                 = - r_tau1(l1, m1, :, :, :)*r_tau2(m2, l2, :, :, :)
         enddo; enddo; enddo; enddo
         !$omp end parallel do
-        !r_tau_sqr=0
-        do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-            r_tau_sqr2(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
-                = - r_tau1(l1, m1, :, :, :)*r_tau2(m2, l2, :, :, :)
-        enddo; enddo; enddo; enddo
-        r_tau_sqr2=r_tau_sqr2-r_tau_sqr
-        write(*,*) dznrm2(r_tau_sqr2,total_grid2,1)*total_grid2,count(r_tau_sqr2/=0d0)
 
         ! idft chi_0_r_tau to chi_0
         call dft(r_tau_sqr, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
@@ -61,7 +56,7 @@ contains
 
         ! chi_c, chi_s, V
         ! the same to solve AX=B, where A = (I +(c)/-(s) chi_0) and B = chi_0
-        !$omp parallel do private(iomegaq,ikx,iky,Iminuschi_0_,chi_0_,chi_c_,chi_s_)
+        !$omp parallel do private(ikx,iky,Iminuschi_0_,chi_0_,chi_c_,chi_s_) firstprivate(I_chi)
         do iomegaq=minomegab,maxomegab; do ikx=1,nkx; do iky=1,nky;
 
             !call cal_chi_cs(ikx,iky,iomegaq)
@@ -138,6 +133,7 @@ contains
             endif
         enddo;enddo;enddo
         !$omp end parallel do
+
     end subroutine
 
 end module
