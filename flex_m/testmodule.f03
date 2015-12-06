@@ -262,72 +262,72 @@ end subroutine testConvolution3
 
 ! 实际卷积测试
 subroutine testConvolution3G()
-    use constants
-    use parameters2
-    use functions
-    implicit none
-
-    integer l1, l2, m1, m2
-    integer ikx1, iky1, ikx2, iky2, iomega1, iomega2, kxplus, kyplus, omegaplus
-    complex(8) temp_complex
-
-    integer regionParameter
-    external regionParameter
-
-    complex(8) a(1,1,1,1,8),b(1,1,1,1,8)
-
-    a=0
-    a(1,1,1,1,1)=1
-    a(1,1,1,1,2)=2
-    a(1,1,1,1,3)=3
-    a(1,1,1,1,4)=4
-
-    call dft(a,b,1,4,8,1,0)
-    !write(stderr,*) b
-    b=b*b
-    call dft(b,a,1,8,7,-1,0)
-    !write(stderr,*) a
-
-    !stop
-
-    ! dft G to G_r_tau
-    write(stderr,*)nomegaf,nomegab
-    call dft(G, r_tau1, nb, nomegaf, dft_grid, 1, 0)
-    call dft(conjgG, r_tau2, nb, nomegaf, dft_grid, 1, 0)
-    ! 卷积形式, 改成减法
-    r_tau_sqr=0
-    do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-        r_tau_sqr(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
-            = - r_tau1(l1, m1, :, :, :)*r_tau2(m2, l2, :, :, :)
-    enddo; enddo; enddo; enddo
-
-    ! idft chi_0_r_tau to chi_0
-    call dft(r_tau_sqr, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
-    write(stderr, *) chi_0(:,:,:,:,:)
-
-    V = chi_0
-    chi_0=complex_0
-    do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
-        do ikx1=1,nkx;do iky1=1,nky;do iomega1=minomegaf,maxomegaf
-            do ikx2=1,nkx;do iky2=1,nky;do iomega2=minomegab,maxomegab
-                kxplus=regionParameter(ikx1+ikx2-1,1,nkx)
-                kyplus=regionParameter(iky1+iky2-1,1,nky)
-                omegaplus=((2*iomega1-1+2*iomega2)+1)/2
-                if (omegaplus>=minomegaf .and. omegaplus<=maxomegaf) then
-                    chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, iomega2) &
-                        = chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, iomega2) &
-                        - G(l1, m1, kxplus, kyplus, omegaplus)*G(m2, l2, ikx1, iky1, iomega1)
-                endif
-            enddo;enddo;enddo
-        enddo;enddo;enddo
-    enddo;enddo;enddo;enddo
-    write(stderr, *) chi_0(:,:,:,:,:)
-
-    V = chi_0-V
-    write(stderr, *) dznrm2(nb**4*nk*nomegab, V, 1) &
-        / dznrm2(nb**4*nk*nomegab, chi_0, 1)
-    stop
-    !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
+!    use constants
+!    use parameters2
+!    use functions
+!    implicit none
+!
+!    integer l1, l2, m1, m2
+!    integer ikx1, iky1, ikx2, iky2, iomega1, iomega2, kxplus, kyplus, omegaplus
+!    complex(8) temp_complex
+!
+!    integer regionParameter
+!    external regionParameter
+!
+!    complex(8) a(1,1,1,1,8),b(1,1,1,1,8)
+!
+!    a=0
+!    a(1,1,1,1,1)=1
+!    a(1,1,1,1,2)=2
+!    a(1,1,1,1,3)=3
+!    a(1,1,1,1,4)=4
+!
+!    call dft(a,b,1,4,8,1,0)
+!    !write(stderr,*) b
+!    b=b*b
+!    call dft(b,a,1,8,7,-1,0)
+!    !write(stderr,*) a
+!
+!    !stop
+!
+!    ! dft G to G_r_tau
+!    write(stderr,*)nomegaf,nomegab
+!    call dft(G, r_tau1, nb, nomegaf, dft_grid, 1, 0)
+!    call dft(conjgG, r_tau2, nb, nomegaf, dft_grid, 1, 0)
+!    ! 卷积形式, 改成减法
+!    r_tau_sqr=0
+!    do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
+!        r_tau_sqr(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
+!            = - r_tau1(l1, m1, :, :, :)*r_tau2(m2, l2, :, :, :)
+!    enddo; enddo; enddo; enddo
+!
+!    ! idft chi_0_r_tau to chi_0
+!    call dft(r_tau_sqr, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
+!    write(stderr, *) chi_0(:,:,:,:,:)
+!
+!    V = chi_0
+!    chi_0=complex_0
+!    do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
+!        do ikx1=1,nkx;do iky1=1,nky;do iomega1=minomegaf,maxomegaf
+!            do ikx2=1,nkx;do iky2=1,nky;do iomega2=minomegab,maxomegab
+!                kxplus=regionParameter(ikx1+ikx2-1,1,nkx)
+!                kyplus=regionParameter(iky1+iky2-1,1,nky)
+!                omegaplus=((2*iomega1-1+2*iomega2)+1)/2
+!                if (omegaplus>=minomegaf .and. omegaplus<=maxomegaf) then
+!                    chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, iomega2) &
+!                        = chi_0(sub_g2chi(l1,l2), sub_g2chi(m1,m2), ikx2, iky2, iomega2) &
+!                        - G(l1, m1, kxplus, kyplus, omegaplus)*G(m2, l2, ikx1, iky1, iomega1)
+!                endif
+!            enddo;enddo;enddo
+!        enddo;enddo;enddo
+!    enddo;enddo;enddo;enddo
+!    write(stderr, *) chi_0(:,:,:,:,:)
+!
+!    V = chi_0-V
+!    write(stderr, *) dznrm2(nb**4*nk*nomegab, V, 1) &
+!        / dznrm2(nb**4*nk*nomegab, chi_0, 1)
+!    stop
+!    !write(stderr, *) G0(1,1,1,1,1), G0(1,1,1,1,-1)
 
 end subroutine testConvolution3G
 

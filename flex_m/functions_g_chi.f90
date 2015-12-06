@@ -41,12 +41,19 @@ contains
         ! chi_0, 并行
         ! 卷积形式, 改成减法 on tau
         r_tau_sqr=0
-        !$omp parallel do private(l2,m1,m2)
+        !!$omp parallel do private(l2,m1,m2)
         do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
             r_tau_sqr(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
                 = - r_tau1(l1, m1, :, :, :)*r_tau2(m2, l2, :, :, :)
         enddo; enddo; enddo; enddo
-        !$omp end parallel do
+        !!$omp end parallel do
+        !r_tau_sqr=0
+                do l1=1,nb; do l2=1,nb; do m1=1,nb; do m2=1,nb
+            r_tau_sqr2(sub_g2chi(l1, l2), sub_g2chi(m1, m2), :, :, :) &
+                = - r_tau1(l1, m1, :, :, :)*r_tau2(m2, l2, :, :, :)
+        enddo; enddo; enddo; enddo
+        r_tau_sqr2=r_tau_sqr2-r_tau_sqr
+        write(*,*) dznrm2(r_tau_sqr2,total_grid2,1)*total_grid2,count(r_tau_sqr2/=0d0)
 
         ! idft chi_0_r_tau to chi_0
         call dft(r_tau_sqr, chi_0, nb*nb, dft_grid, nomegab, -1, 0)
@@ -54,7 +61,7 @@ contains
 
         ! chi_c, chi_s, V
         ! the same to solve AX=B, where A = (I +(c)/-(s) chi_0) and B = chi_0
-        !$omp parallel do private(ikx,iky,Iminuschi_0_,chi_0_,chi_c_,chi_s_)
+        !!$omp parallel do private(iomegaq,ikx,iky,Iminuschi_0_,chi_0_,chi_c_,chi_s_)
         do iomegaq=minomegab,maxomegab; do ikx=1,nkx; do iky=1,nky;
 
             !call cal_chi_cs(ikx,iky,iomegaq)
@@ -79,7 +86,7 @@ contains
                 + 0.5*ABA(U_c, chi_c_, nb*nb)
 
         enddo; enddo; enddo
-        !$omp end parallel do
+        !!$omp end parallel do
 
 
         !sigma(k) = V(k-k')*G(k')
@@ -112,7 +119,7 @@ contains
 
         ! 新的G, dyson方程
         ! G=G0+G0*sigma*G, then we have G=(I-G0*sigma)**(-1)*G0
-        !$omp parallel do private(ikx,iky,G0_,sigma_,G_)
+        !!$omp parallel do private(ikx,iky,G0_,sigma_,G_)
         do iomegak=minomegaf,maxomegaf;do ikx=1,nkx;do iky=1,nky
             if (iter_method==0)then
                 G0_=G0(:,:,ikx,iky,iomegak)
@@ -130,7 +137,7 @@ contains
                     G_out(:,:,ikx,iky,iomegak),nb)
             endif
         enddo;enddo;enddo
-        !$omp end parallel do
+        !!$omp end parallel do
     end subroutine
 
 end module

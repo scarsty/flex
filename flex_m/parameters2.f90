@@ -19,7 +19,7 @@ module parameters2
         chi_0, V !,V_s, chi_s, chi_c,
 
     complex(8), dimension (nb*nb, nb*nb, nkx, nky, dft_grid) :: &
-        r_tau_sqr
+        r_tau_sqr, r_tau_sqr2
 
 
     ! 交换能, 单位矩阵

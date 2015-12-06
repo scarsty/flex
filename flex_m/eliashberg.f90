@@ -119,11 +119,11 @@ subroutine eliashberg()
             lambda0 = lambda
         enddo
 
-        write(stdout,*) 'Solving ended in ', count_iter, 'iterations.'
+        write(stdout,*) 'Solving converged in ', count_iter, 'iterations.'
         write(stdout,*)
 
         ! output delta_nn (gap function)
-        write(stdout,*) 'gap function'
+        write(stdout,*) 'Gap function'
         write(stdout,'(2A10,A28)') 'kx','ky','delta(real and imag)'
         write(stdout,*) '---------------------------------------------------'
         do ikx=1,nkx; do iky=1,nky
