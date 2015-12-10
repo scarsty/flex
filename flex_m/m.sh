@@ -1,2 +1,2 @@
-cp constants.f90_ constants.f90
+cp constants.f03 constants.f90
 make
