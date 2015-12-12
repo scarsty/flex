@@ -15,8 +15,8 @@ subroutine eliashberg()
     !     u=v/lambda1
     ! end
 
-    complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: &
-        GGdelta, delta, delta0 ! Eliashberg方程所需变量
+    !complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: &
+        !GGdelta, delta, delta0 ! Eliashberg方程所需变量
 
     integer iomegak,iomegaq
     integer ikx, iky

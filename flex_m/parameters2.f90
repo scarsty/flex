@@ -8,7 +8,7 @@ module parameters2
     ! 格林函数, 反常格林函数
     ! 自能函数, 反常自能函数
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: &
-        G0, G, conjgG, G_out, G_error, sigma, sigma0
+        G0, G, conjgG, G_out, G_error, sigma, sigma0,  GGdelta, delta, delta0
         !G_in0, G_out0, G_error0, G_prev, G1_prev, deltaG
 
     complex(8), dimension (nb, nb, nkx, nky, dft_grid) :: &
