@@ -22,6 +22,8 @@ program flex_2d
     complex(8) temp_complex
     real(8) T_ev0
 
+    integer :: mu_history_file=9002, open_stat
+
     ! 变量段结束-------------------------------------------------------------------------------
 
     mpi_info = mpi_init1()
@@ -45,13 +47,15 @@ program flex_2d
         !T_beta = 0.25
     endif
 
+    open(unit=mu_history_file, file='mu_history')
 
     ! 迭代部分---------------------------------------------------------------------------------
     write(stdout, *) "Temperature in K = ", T
     write(stdout, *) "Temperature in eV = ", T_eV
     write(stdout, *) "Temperature in beta = ", T_beta
+    write(stdout, '(A,3I4)') " K-grid:", nkx,nky,nkz
+    write(stdout, '(A,I7)') " Positive fermic frequency count:", nomega
     write(stdout, *)
-
     write(stdout, *) "Begin to calculate FLEX"
     total_iter = 1
     density_iter = 1
@@ -86,7 +90,7 @@ program flex_2d
                     !T_beta / (complex_i*pi*iomegak - (h0_k(l1,m1,ikx,iky)-mu))
             enddo
         enddo; enddo
-        if (density_iter==1) then
+        if (density_iter==mu_history_count+1) then
             G=G0
         endif
         call mixer_init()
@@ -110,69 +114,72 @@ program flex_2d
 
         write(stdout, *) 'base density is ', density_base
 
-        G_iter = 1
-        write(stdout,'(A7,A7,A10,A20)') 'iter','iter','conv.pts','norm.error'
-        write(stdout,*) '-----------------------------------------------'
+        if (density_iter>mu_history_count) then
+            G_iter = 1
+            write(stdout,'(A7,A7,A10,A20)') 'iter','iter','conv.pts','norm.error'
+            write(stdout,*) '-----------------------------------------------'
 
-        ! sigma迭代中使用openmp并行
-        do while (.not. G_conv)
-            ! calculate chi_0 with chi(q)= -G1(q-k)G2(-k), the same to -G1(q-k)G2(k)**H
-            ! dft G to G_r_tau
+            ! sigma迭代中使用openmp并行
+            do while (.not. G_conv)
+                ! calculate chi_0 with chi(q)= -G1(q-k)G2(-k), the same to -G1(q-k)G2(k)**H
+                ! dft G to G_r_tau
 
-            call cal_G_out()
-            call conv_test(G, G_out, G_conv, .true.)
-            if (G_conv) then
-                exit
-            endif
+                call cal_G_out()
+                call conv_test(G, G_out, G_conv, .true.)
+                if (G_conv) then
+                    exit
+                endif
 
-            select case (mixer_method)
-                case (0)
-                    G=G_out
-                case (1)
-                    call mixer_linear()
-                case (2:3)
-                    call mixer_Pulay()
-                case (4)
-                    call mixer_Broyden()
+                select case (mixer_method)
+                    case (0)
+                        G=G_out
+                    case (1)
+                        call mixer_linear()
+                    case (2:3)
+                        call mixer_Pulay()
+                    case (4)
+                        call mixer_Broyden()
+                end select
+
+                !if (mod(G_iter,100)==0) mixer_beta=mixer_beta/2
+                !G2=G
+                !sigma0 = sigma
+
+                G_iter=G_iter+1;
+                total_iter = total_iter + 1
+                if (G_iter>5000) then
+                    write(stdout,*) 'G not convergence'
+                    exit
+                endif
+                if (total_iter>max_iter) then
+                    !write(stdout,*) sigma_minus
+                endif
+            enddo
+
+            ! sigma loop end
+            ! 计算density
+            cur_density=0d0
+
+            select case (density_method)
+                case(0)
+                    !!$omp parallel do private(ikx,iky,ib) reduction(+:cur_density)
+                    do iomegak=minomegaf,maxomegaf; do ib=1,nb; do ikx=1,nkx; do iky=1,nky;
+                        cur_density = cur_density + real(G(ib, ib, ikx, iky, iomegak)*exp(-complex_i*(2*iomegak-1)*pi*1d-8))
+                    enddo; enddo; enddo; enddo
+                    !!$omp end parallel do
+                    cur_density=cur_density*2*T_eV/nk+nb*0
+                case(1)
+                    !!$omp parallel do private(ikx,iky,ib) reduction(+:cur_density)
+                    do iomegak=minomegaf,maxomegaf; do ib=1,nb; do ikx=1,nkx; do iky=1,nky;
+                        cur_density = cur_density + real(G(ib, ib, ikx, iky, iomegak)) &
+                            - real(G0(ib, ib, ikx, iky, iomegak))
+                    enddo; enddo; enddo; enddo
+                    !!$omp end parallel do
+                    cur_density=cur_density*2*T_eV/nk + density_base
             end select
-
-            !if (mod(G_iter,100)==0) mixer_beta=mixer_beta/2
-            !G2=G
-            !sigma0 = sigma
-
-            G_iter=G_iter+1;
-            total_iter = total_iter + 1
-            if (G_iter>5000) then
-                write(stdout,*) 'G not convergence'
-                exit
-            endif
-            if (total_iter>max_iter) then
-                !write(stdout,*) sigma_minus
-            endif
-        enddo
-
-        ! sigma loop end
-        ! 计算density
-        cur_density=0d0
-
-        select case (density_method)
-            case(0)
-                !!$omp parallel do private(ikx,iky,ib) reduction(+:cur_density)
-                do iomegak=minomegaf,maxomegaf; do ib=1,nb; do ikx=1,nkx; do iky=1,nky;
-                    cur_density = cur_density + real(G(ib, ib, ikx, iky, iomegak)*exp(-complex_i*(2*iomegak-1)*pi*1d-8))
-                enddo; enddo; enddo; enddo
-                !!$omp end parallel do
-                cur_density=cur_density*2*T_eV/nk+nb*0
-            case(1)
-                !!$omp parallel do private(ikx,iky,ib) reduction(+:cur_density)
-                do iomegak=minomegaf,maxomegaf; do ib=1,nb; do ikx=1,nkx; do iky=1,nky;
-                    cur_density = cur_density + real(G(ib, ib, ikx, iky, iomegak)) &
-                        - real(G0(ib, ib, ikx, iky, iomegak))
-                enddo; enddo; enddo; enddo
-                !!$omp end parallel do
-                cur_density=cur_density*2*T_eV/nk + density_base
-        end select
-
+        else
+            read(mu_history_file, *) mu, cur_density
+        endif
         write(stdout,*) 'density and mu: ', cur_density,'/', mu
         write(stdout,*)
 
@@ -212,7 +219,8 @@ program flex_2d
         call eliashberg()
     endif
 
-
+    write(stdout,*)
+    write(stdout,*) 'final mu = ', mu
     write(stdout,*)
     write(stdout,*) ' good night.'
     write(stdout,*)
@@ -220,6 +228,7 @@ program flex_2d
 
     mpi_info = mpi_finalize1()
 
+    close(mu_history_file)
     call destroy()
 
 end program

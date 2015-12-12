@@ -5,6 +5,9 @@ target_density=6d0, density_tol=1.0d-3    ! electron density, tolerance
 mu=5.9d+0   ! guess for unrenormalized chemical potential (eV)
 density_method=1
 ! 0 - Classical (seems not right), 1 - Physical Review B, 81, 054502
+mu_method=1
+! 0 - newton (sometime not stable), 1 - dichotomy, 2 - pulay (not stable)
+mu_history_count=2
 
 !-------------------- Interaction parameters  ------------------------------
 h1_U=1.5d0, h1_Up= 1.2d0, h1_J= 0.15d0, h1_Jp= 0.15d0 ! U , U' , J , J' (eV) for H1
