@@ -270,7 +270,7 @@ contains
             case (0)
                 call modify_mu_newton()
             case (1)
-                call modify_mu_dichotomy()
+                call modify_mu_bisection()
             case (2)
                 call modify_mu_pulay()
         end select
@@ -317,7 +317,7 @@ contains
 
     ! 二分法, 必须保证头两个能构成区间, 否则失败
     ! 在另外两个方法数值跳跃的时候, 此方法能限制范围
-    subroutine modify_mu_dichotomy()
+    subroutine modify_mu_bisection()
         implicit none
         integer i
         real(8) cur_error

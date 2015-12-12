@@ -6,7 +6,7 @@ mu=5.9d+0   ! guess for unrenormalized chemical potential (eV)
 density_method=1
 ! 0 - Classical (seems not right), 1 - Physical Review B, 81, 054502
 mu_method=1
-! 0 - newton (sometime not stable), 1 - dichotomy, 2 - pulay (not stable)
+! 0 - newton (sometime not stable), 1 - bisection, 2 - pulay (not stable)
 mu_history_count=2
 
 !-------------------- Interaction parameters  ------------------------------
