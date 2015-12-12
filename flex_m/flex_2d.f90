@@ -9,6 +9,7 @@ program flex_2d
     use functions
     use parameters
     use parameters2
+    use eliashberg
     implicit none
 
 
@@ -121,7 +122,7 @@ program flex_2d
 
         if (density_iter>mu_history_count) then
             G_iter = 1
-            write(stdout,'(A7,A7,A10,A20,A12)') 'iter','iter','conv.pts','norm.error','time'
+            write(stdout,'(A7,A7,A10,A18,A12)') 'iter','iter','conv.pts','norm.error','time'
             write(stdout,*) '-----------------------------------------------------------'
             call get_time(last_it_time)
             ! sigma迭代中使用openmp并行
@@ -222,7 +223,7 @@ program flex_2d
 
 
     if (solve_eliashberg) then
-        call eliashberg()
+        call eliashberg_equ()
     endif
 
 

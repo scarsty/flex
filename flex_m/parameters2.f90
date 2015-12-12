@@ -9,7 +9,8 @@ module parameters2
     ! 自能函数, 反常自能函数
     complex(8), dimension (nb, nb, nkx, nky, minomegaf:maxomegaf) :: &
         G0, G, conjgG, G_out, G_error, sigma, sigma0,  GGdelta, delta, delta0
-        !G_in0, G_out0, G_error0, G_prev, G1_prev, deltaG
+    ! G_in0, G_out0, G_error0, G_prev, G1_prev, deltaG
+    ! 后3个是Eliashberg方程所需变量
 
     complex(8), dimension (nb, nb, nkx, nky, dft_grid) :: &
         r_tau1, r_tau2
