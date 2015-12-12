@@ -123,15 +123,15 @@ program flex_2d
             G_iter = 1
             write(stdout,'(A7,A7,A10,A20,A12)') 'iter','iter','conv.pts','norm.error','time'
             write(stdout,*) '-----------------------------------------------------------'
-
+            call get_time(last_it_time)
             ! sigma迭代中使用openmp并行
             do while (.not. G_conv)
                 ! calculate chi_0 with chi(q)= -G1(q-k)G2(-k), the same to -G1(q-k)G2(k)**H
                 ! dft G to G_r_tau
-                call get_time(last_it_time)
                 call cal_G_out()
                 call get_time(this_it_time)
                 call conv_test(G, G_out, G_conv, .true.)
+                last_it_time=this_it_time
                 if (G_conv) then
                     exit
                 endif
