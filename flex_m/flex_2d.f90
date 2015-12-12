@@ -26,6 +26,7 @@ program flex_2d
 
     ! 变量段结束-------------------------------------------------------------------------------
 
+    call get_time(start_time)
     mpi_info = mpi_init1()
     mpi_rank = mpi_rank1()
     mpi_size = mpi_size1()
@@ -120,15 +121,16 @@ program flex_2d
 
         if (density_iter>mu_history_count) then
             G_iter = 1
-            write(stdout,'(A7,A7,A10,A20)') 'iter','iter','conv.pts','norm.error'
-            write(stdout,*) '-----------------------------------------------'
+            write(stdout,'(A7,A7,A10,A20,A12)') 'iter','iter','conv.pts','norm.error','time'
+            write(stdout,*) '-----------------------------------------------------------'
 
             ! sigma迭代中使用openmp并行
             do while (.not. G_conv)
                 ! calculate chi_0 with chi(q)= -G1(q-k)G2(-k), the same to -G1(q-k)G2(k)**H
                 ! dft G to G_r_tau
-
+                call get_time(last_it_time)
                 call cal_G_out()
+                call get_time(this_it_time)
                 call conv_test(G, G_out, G_conv, .true.)
                 if (G_conv) then
                     exit
@@ -223,8 +225,14 @@ program flex_2d
         call eliashberg()
     endif
 
+
     write(stdout,*)
     write(stdout,*) 'final mu = ', mu
+    write(stdout,*)
+
+
+    call get_time(end_time)
+    write(stdout,*) 'elapsed time is ', end_time-start_time,' s.'
     write(stdout,*)
     write(stdout,*) ' good night.'
     write(stdout,*)

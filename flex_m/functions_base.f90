@@ -226,7 +226,7 @@ contains
 
     end subroutine
 
-      subroutine cleanError(A,n)
+    subroutine cleanError(A,n)
         use constants
         implicit none
 
@@ -249,7 +249,7 @@ contains
     end subroutine
 
 
-        ! 求两个G格式向量的点乘 sum conjg(a(i))*b(i)
+    ! 求两个G格式向量的点乘 sum conjg(a(i))*b(i)
     function GProduct(a, b)
         use constants
         implicit none
@@ -317,23 +317,31 @@ contains
     end subroutine
 
     subroutine build_h0_k()
-    use constants
-    use parameters2
-    implicit none
+        use constants
+        use parameters2
+        implicit none
 
-    integer l1, m1, ikx, iky
+        integer l1, m1, ikx, iky
 
-    h0_k = complex_0
+        h0_k = complex_0
 
-    do l1=1,nb; do m1=1,nb
-        do ikx=1,nkx; do iky=1,nky
-            h0_k(l1,m1,ikx,iky) = - cos(k(ikx,iky,1)*pi) - cos(k(ikx,iky,2)*pi)
+        do l1=1,nb; do m1=1,nb
+            do ikx=1,nkx; do iky=1,nky
+                h0_k(l1,m1,ikx,iky) = - cos(k(ikx,iky,1)*pi) - cos(k(ikx,iky,2)*pi)
+            enddo; enddo
         enddo; enddo
-    enddo; enddo
-    write(stderr,*) h0_k
-    return
+        write(stderr,*) h0_k
+        return
 
-end subroutine build_h0_k
+    end subroutine build_h0_k
+
+    subroutine get_time(t)
+        implicit none
+        real(8) t
+        integer t1, clock_rate, clock_max
+        call system_clock(t1,clock_rate,clock_max)
+        t=1d0*t1/clock_rate
+    end subroutine
 
 
 
