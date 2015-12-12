@@ -29,6 +29,7 @@ mixer_method=2, mixer_beta=0.5d-1
 
 !----------Data Processing----------------------------------
 solve_eliashberg = .true.
+solve_g=.true.
 test_band = .false.
 
 /

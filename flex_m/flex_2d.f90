@@ -36,6 +36,10 @@ program flex_2d
         call testband()
     endif
 
+    if (.not. solve_g) then
+        stop
+    endif
+
     call init()
 
     call init_Kpoints()

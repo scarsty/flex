@@ -33,6 +33,7 @@ module parameters
     integer :: density_method=1, mu_method=0, mu_history_count=0
 
     logical :: solve_eliashberg = .true.
+    logical :: solve_g = .true.
     logical :: test_band = .false.
 
     integer :: from_high_T=9
@@ -43,7 +44,7 @@ module parameters
         sigma_output, sigma_output_file,&
         G_tol, max_iter, alpha, alpha_scheme, spin_state,&
         mixer_method, mixer_beta, &
-        solve_eliashberg, test_band, &
+        solve_eliashberg, solve_g, test_band, &
         from_high_T, density_method, mu_method, mu_history_count
 
     real(8) eigen_value(5)
