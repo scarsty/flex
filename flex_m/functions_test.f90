@@ -141,7 +141,7 @@ contains
         fileunit = 9999
         open(fileunit, file='testband.dat')
         do ik=1,36
-            write(fileunit, *) ik, real(ev_band(:,ik))
+            write(fileunit, '(I5,5F8.3)') ik, real(ev_band(:,ik))
         enddo
 
         close(fileunit)
