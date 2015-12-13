@@ -267,13 +267,49 @@ contains
     subroutine modify_mu()
         implicit none
         select case (mu_method)
-            case (0)
+            case (0,1)
                 call modify_mu_bisection()
-            case (1)
-                call modify_mu_newton()
             case (2)
                 call modify_mu_pulay()
+            case (3)
+                call modify_mu_newton()
         end select
+    end subroutine
+
+    ! 二分法, 必须保证头两个能构成区间, 否则失败
+    ! 在另外两个方法数值跳跃的时候, 此方法能限制范围
+    subroutine modify_mu_bisection()
+        implicit none
+        integer i
+        real(8) cur_error
+
+        if (mu_error(0)>mu_error(1)) then
+            call swap_r8(mu_error(0),mu_error(1))
+            call swap_r8(mu_history(0),mu_history(1))
+        endif
+
+        cur_error=cur_density-target_density
+
+        if (cur_error<0) then
+            i=0
+        else
+            i=1
+        endif
+
+        mu_history(i)=mu
+        mu_error(i)=cur_error
+
+        select case (mu_method)
+            case (0)
+                mu=0.5d0*(mu_history(0)+mu_history(1))
+            case (1)
+                mu=mu_history(0)-mu_error(0)*(mu_history(0)-mu_history(1))/(mu_error(0)-mu_error(1))
+        end select
+
+        if (density_iter==1) then
+            mu=maxval(eigen_value)
+            !mu=mu+10d0
+        endif
     end subroutine
 
     ! 修改的牛顿迭代, 使用已经得到的结果拟合一个多项式, 求其导数代入牛顿迭代
@@ -313,37 +349,6 @@ contains
             !mu=mu+10d0
         endif
 
-    end subroutine
-
-    ! 二分法, 必须保证头两个能构成区间, 否则失败
-    ! 在另外两个方法数值跳跃的时候, 此方法能限制范围
-    subroutine modify_mu_bisection()
-        implicit none
-        integer i
-        real(8) cur_error
-
-        if (mu_error(0)>mu_error(1)) then
-            call swap_r8(mu_error(0),mu_error(1))
-            call swap_r8(mu_history(0),mu_history(1))
-        endif
-
-        cur_error=cur_density-target_density
-
-        if (cur_error<0) then
-            i=0
-        else
-            i=1
-        endif
-
-        mu_history(i)=mu
-        mu_error(i)=cur_error
-
-        mu=0.5d0*(mu_history(0)+mu_history(1))
-
-        if (density_iter==1) then
-            mu=maxval(eigen_value)
-            !mu=mu+10d0
-        endif
     end subroutine
 
     !使用Pulay混合得到一个新的mu
