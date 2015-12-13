@@ -43,7 +43,8 @@ functions_test.o: \
 functions_base.o: \
     functions_base.f90 \
     constants.o \
-    parameters2.o
+    parameters2.o \
+    parameters.o
 flex_2d.o: \
     flex_2d.f90 \
     constants.o \
