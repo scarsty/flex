@@ -122,8 +122,8 @@ program flex_2d
 
         if (density_iter>mu_history_count) then
             G_iter = 1
-            write(stdout,'(A7,A7,A10,A18,A12)') 'iter','iter','conv.pts','norm.error','time'
-            write(stdout,*) '-----------------------------------------------------------'
+            write(stdout,'(A7,A7,A7,A10,A18,A12)') 'iter.d','g','t','conv.pts','norm.error','time'
+            write(stdout,*) '------------------------------------------------------------------'
             call get_time(last_it_time)
             ! sigma迭代中使用openmp并行
             do while (.not. G_conv)
@@ -133,6 +133,18 @@ program flex_2d
                 call get_time(this_it_time)
                 call conv_test(G, G_out, G_conv, .true.)
                 last_it_time=this_it_time
+
+                G_iter=G_iter+1;
+                total_iter = total_iter + 1
+                if (G_iter>max_g_iter) then
+                    write(stdout,*) 'G not convergence'
+                    exit
+                endif
+
+                if (total_iter>max_g_iter) then
+                    !write(stdout,*) sigma_minus
+                endif
+
                 if (G_conv) then
                     exit
                 endif
@@ -148,19 +160,6 @@ program flex_2d
                         call mixer_Broyden()
                 end select
 
-                !if (mod(G_iter,100)==0) mixer_beta=mixer_beta/2
-                !G2=G
-                !sigma0 = sigma
-
-                G_iter=G_iter+1;
-                total_iter = total_iter + 1
-                if (G_iter>5000) then
-                    write(stdout,*) 'G not convergence'
-                    exit
-                endif
-                if (total_iter>max_iter) then
-                    !write(stdout,*) sigma_minus
-                endif
             enddo
 
             ! sigma loop end
@@ -199,7 +198,7 @@ program flex_2d
 
         density_iter = density_iter + 1
 
-        if (total_iter>max_iter) then
+        if (total_iter>max_g_iter) then
             !exit
         endif
         !stop

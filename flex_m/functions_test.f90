@@ -58,8 +58,8 @@ contains
         conv = ((conv_grid==total_grid) .or. cur_G_tol<1d-8)
         !if (conv .or. mod(G_iter,20)==0) then
         if (output) then
-            write(stdout,'(I7,I7,I10,ES18.5,F12.3)') &
-                density_iter, G_iter, conv_grid, cur_G_tol, this_it_time-last_it_time
+            write(stdout,'(I7,I7,I7,I10,ES18.5,F12.3)') &
+                density_iter, G_iter, total_iter, conv_grid, cur_G_tol, this_it_time-last_it_time
         endif
 
         !endif

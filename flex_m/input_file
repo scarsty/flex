@@ -6,7 +6,7 @@ mu=5.9d+0   ! guess for unrenormalized chemical potential (eV)
 density_method=1
 ! 0 - Classical (seems not right), 1 - Physical Review B, 81, 054502
 mu_method=1
-! 0 - bisection, 1 - secant with slope
+! 0 - bisection, 1 - inside secant
 ! 2 - pulay (not stable), 3 - newton (sometime not stable)
 mu_history_count=0
 
@@ -18,7 +18,7 @@ sigma_input=.true.,  sigma_input_file="sig_output"             ! input
 sigma_output=.true., sigma_output_file="sig_output"             ! output
 
 !----------FEA parameters ------------------------------------------------
-g_tol=1.0d-3, max_iter= 50             ! tolerance in sigma, maximum iterations
+g_tol=1.0d-3, max_g_iter= 5000             ! tolerance in sigma, maximum iterations
 alpha=0.3d0,  alpha_scheme=1       ! alpha, (0 constant, 1 using Sig_HF, 2 using Sig_e0)
 spin_state=1 ! spin state, 1 or 3
 mixer_method=2, mixer_beta=0.5d-1

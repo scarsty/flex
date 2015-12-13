@@ -19,7 +19,7 @@ module parameters
 
     ! 自能函数收敛判据
     real(8) G_tol
-    integer max_iter
+    integer max_g_iter
     real(8) alpha
     integer alpha_scheme
 
@@ -40,9 +40,9 @@ module parameters
 
     namelist /basic/ T, target_density, density_tol, mu,&
         h1_U, h1_Up, h1_J, h1_Jp,&
-        sigma_input,  sigma_input_file,&
+        sigma_input, sigma_input_file,&
         sigma_output, sigma_output_file,&
-        G_tol, max_iter, alpha, alpha_scheme, spin_state,&
+        G_tol, max_g_iter, alpha, alpha_scheme, spin_state,&
         mixer_method, mixer_beta, &
         solve_eliashberg, solve_g, test_band, &
         from_high_T, density_method, mu_method, mu_history_count

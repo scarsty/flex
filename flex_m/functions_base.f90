@@ -408,6 +408,8 @@ contains
         do ib1 = 1, nb
             eigen_value(ib1)=h0_r(ib1, ib1, 0, 0)
         enddo
+
+        close(fileunit)
         return
     end subroutine readin
 
