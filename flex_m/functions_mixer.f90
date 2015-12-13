@@ -268,9 +268,9 @@ contains
         implicit none
         select case (mu_method)
             case (0)
-                call modify_mu_newton()
-            case (1)
                 call modify_mu_bisection()
+            case (1)
+                call modify_mu_newton()
             case (2)
                 call modify_mu_pulay()
         end select
