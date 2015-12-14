@@ -61,7 +61,8 @@ contains
             write(stdout,'(I7,I7,I7,I10,ES18.5,F12.3)') &
                 density_iter, G_iter, total_iter, conv_grid, cur_G_tol, this_it_time-last_it_time
         endif
-
+        global_conv_grid=conv_grid
+        global_cur_g_tol=cur_G_tol
         !endif
 
     end subroutine
@@ -90,22 +91,22 @@ contains
 
         ! 测试能带正确性
         ! 组合一组高对称点
-        k_band = 0d0;
-        count_k=0;
+        k_band = 0d0
+        count_k=0
         do i = 0,10
-            count_k = count_k+1;
+            count_k = count_k+1
             k_band(count_k, 1) = 0d0
-            k_band(count_k, 2) = i*0.5d0/10;
+            k_band(count_k, 2) = i*0.5d0/10
         enddo
         do i = 1,10
-            count_k = count_k+1;
-            k_band(count_k, 1) = i*0.5d0/10;
-            k_band(count_k, 2) = 0.5d0;
+            count_k = count_k+1
+            k_band(count_k, 1) = i*0.5d0/10
+            k_band(count_k, 2) = 0.5d0
         enddo
         do i = 1,15
-            count_k = count_k+1;
-            k_band(count_k, 1) = 0.5d0-i*0.5d0/15;
-            k_band(count_k, 2) = 0.5d0-i*0.5d0/15;
+            count_k = count_k+1
+            k_band(count_k, 1) = 0.5d0-i*0.5d0/15
+            k_band(count_k, 2) = 0.5d0-i*0.5d0/15
         enddo
 
         h0_k = complex_0

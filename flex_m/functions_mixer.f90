@@ -4,6 +4,22 @@ module functions_mixer
     use parameters2
 
 contains
+
+    subroutine mixer()
+        implicit none
+        select case (mixer_method)
+            case (0)
+                G=G_out
+            case (1)
+                call mixer_linear()
+            case (2:3)
+                call mixer_Pulay()
+            case (4)
+                call mixer_Broyden()
+        end select
+    end subroutine
+
+
     ! 初始化混合器
     subroutine mixer_init()
         implicit none
@@ -69,38 +85,11 @@ contains
         integer n, i, info, next_pointer, prev_pointer
         integer ipiv(mix_num+1)
         real(8), dimension (mix_num*2) :: lwork
-        real(8) e, e0, max_error
+        real(8) e, e0, max_error, mixer_beta2
         logical find_bigger
 
-        ! method.3 - Refined Pulay方法, 保留残差较小的, 实际上高度非线性时没啥作用
-        if (mixer_method==3) then
-            if (G_iter<=mix_keep) then
-                mixer_order=G_iter
-            else
-                mixer_error_=G_out-G
-                e0=real(GProduct(mixer_error_,mixer_error_))
-                ! 在误差列表中找最大的取代
-                find_bigger=.false.
-                max_error=0
-                do i=1,mix_keep
-                    if ((mixer_A(i,i))>max_error) then
-                        max_error = (mixer_A(i,i))
-                        mixer_pointer=i
-                    endif
-                enddo
-                if (max_error>e0) then
-                    find_bigger=.true.
-                endif
-                ! 如果没有找到取代位置, 则在后面找一个空位
-                if (.not. find_bigger) then
-                    mixer_pointer=mixer_pointer2+mix_keep
-                    mixer_pointer2 = mixerIncPointer(mixer_pointer2,1,mix_num-mix_keep)
-                    mixer_order=min(mixer_order+1,mix_num)
-                endif
-            endif
-        else
-            mixer_order=min(mixer_order+1,mix_num)
-        endif
+        ! method.3 - Refined Pulay方法, 残差较小的时候动态调整混合, 增加收敛速度, 实际上没啥用
+        mixer_order=min(mixer_order+1,mix_num)
 
         !prev_pointer=mixerIncPointer(mixer_pointer,-1)
 
@@ -110,7 +99,16 @@ contains
             call cal_best_mixer_beta()
             mixer_G(:,:,:,:,:,mixer_pointer)=G
         else
-            mixer_G(:,:,:,:,:,mixer_pointer)=mixer_beta*G_out+(1-mixer_beta)*G
+            select case (mixer_method)
+                case(2)
+                    mixer_G(:,:,:,:,:,mixer_pointer)=mixer_beta*G_out+(1-mixer_beta)*G
+                case(3)
+                    mixer_beta2=mixer_beta
+                    if (global_cur_g_tol<1e-4) then
+                        mixer_beta2=(0.5d0-mixer_beta)*global_conv_grid/total_grid+mixer_beta
+                    endif
+                    mixer_G(:,:,:,:,:,mixer_pointer)=mixer_beta2*G_out+(1-mixer_beta2)*G
+            end select
         endif
         !mixer_G(:,:,:,:,:,mixer_pointer)=G_out
 
@@ -298,6 +296,8 @@ contains
 
         mu_history(i)=mu
         mu_error(i)=cur_error
+
+        write(*,*) mu_history(0),mu_history(1)
 
         select case (mu_method)
             case (0)

@@ -149,16 +149,7 @@ program flex_2d
                     exit
                 endif
 
-                select case (mixer_method)
-                    case (0)
-                        G=G_out
-                    case (1)
-                        call mixer_linear()
-                    case (2:3)
-                        call mixer_Pulay()
-                    case (4)
-                        call mixer_Broyden()
-                end select
+                call mixer()
 
             enddo
 

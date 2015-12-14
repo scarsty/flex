@@ -23,6 +23,9 @@ module parameters
     real(8) alpha
     integer alpha_scheme
 
+    integer global_conv_grid
+    real(8) global_cur_g_tol
+
     integer iter_method ! 0: dyson方程, others: G_n+1=G0+G0*sigma*G_n
 
     integer mixer_method
