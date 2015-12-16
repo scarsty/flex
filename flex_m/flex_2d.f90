@@ -134,7 +134,7 @@ program flex_2d
                 call conv_test(G, G_out, G_conv, .true.)
                 last_it_time=this_it_time
 
-                G_iter=G_iter+1;
+                G_iter=G_iter+1
                 total_iter = total_iter + 1
                 if (G_iter>max_g_iter) then
                     write(stdout,*) 'G not convergence'
