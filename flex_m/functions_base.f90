@@ -338,7 +338,7 @@ contains
     subroutine get_time(t)
         implicit none
         real(8) t
-        integer t1, clock_rate, clock_max
+        integer(8) t1, clock_rate, clock_max
         call system_clock(t1,clock_rate,clock_max)
         t=1d0*t1/clock_rate
     end subroutine
