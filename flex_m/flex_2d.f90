@@ -23,7 +23,7 @@ program flex_2d
     complex(8) temp_complex
     real(8) T_ev0
 
-    integer :: mu_history_file=9002, open_stat
+    integer :: mu_history_file=9005
 
     ! 变量段结束-------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ program flex_2d
         !T_beta = 0.25
     endif
 
-    open(unit=mu_history_file, file='mu_history')
+    open(unit=mu_history_file, file='mu_history_new')
 
     ! 迭代部分---------------------------------------------------------------------------------
     write(stdout, *) "Temperature in K = ", T
@@ -175,10 +175,12 @@ program flex_2d
                     cur_density=cur_density*2*T_eV/nk + density_base
             end select
         else
-            read(mu_history_file, *) mu, cur_density
+            mu=mu_history0(density_iter-1)
+            cur_density=mu_density0(density_iter-1)
         endif
         write(stdout,*) 'density and mu: ', cur_density,'/', mu
         write(stdout,*)
+        write(mu_history_file,*) mu, cur_density
 
         if (abs(cur_density-target_density)<density_tol) then
             density_conv=.true.
@@ -231,8 +233,8 @@ program flex_2d
 
     mpi_info = mpi_finalize1()
 
-    close(mu_history_file)
     call destroy()
+    close(mu_history_file)
 
 end program
 

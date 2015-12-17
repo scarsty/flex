@@ -65,8 +65,8 @@ module parameters2
     complex(8), allocatable, dimension(:,:) :: Jacobian
 
     ! 占据数相关
-    integer, parameter :: mu_num = 50
-    real(8), dimension (0:mu_num) :: mu_history, mu_error
+    integer, parameter :: mu_num = 100
+    real(8), dimension (0:mu_num) :: mu_history, mu_error, mu_history0, mu_density0
     real(8), dimension (0:mu_num, 0:mu_num) :: mu_A, mu_A1
     real(8), dimension (0:mu_num) :: mu_x, mu_b
 
