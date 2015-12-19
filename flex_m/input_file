@@ -9,6 +9,8 @@ mu_method=0
 ! 0 - bisection, 1 - inside secant
 ! 2 - pulay (not stable), 3 - newton (sometime not stable)
 mu_history_count=0
+! if this parameter is not zero, the program will read 'mu_histroy' to determine the first
+! [mu_history_count] mu's to save time for them.
 
 !-------------------- Interaction parameters  ------------------------------
 h1_U=1.5d0, h1_Up= 1.2d0, h1_J= 0.15d0, h1_Jp= 0.15d0 ! U , U' , J , J' (eV) for H1

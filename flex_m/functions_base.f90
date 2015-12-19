@@ -336,7 +336,7 @@ contains
 
     end subroutine build_h0_k
 
-    subroutine get_stick(t)
+    subroutine get_tick(t)
         implicit none
         real(8) t
         integer(8) t1, clock_rate, clock_max
