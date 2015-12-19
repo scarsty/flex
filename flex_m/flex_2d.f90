@@ -30,8 +30,11 @@ program flex_2d
     ! 变量段结束-------------------------------------------------------------------------------
 
     call get_date(date0)
-    call output_date(date0,'Begin at  ')
+    write (stdout,'(A,$)') ' begin at '
+    call output_date(date0,.true.)
+
     call get_tick(start_time)
+
     mpi_info = mpi_init1()
     mpi_rank = mpi_rank1()
     mpi_size = mpi_size1()
@@ -60,13 +63,13 @@ program flex_2d
     open(unit=mu_history_file, file='mu_history_new')
 
     ! 迭代部分---------------------------------------------------------------------------------
-    write(stdout, *) "Temperature in K = ", T
-    write(stdout, *) "Temperature in eV = ", T_eV
-    write(stdout, *) "Temperature in beta = ", T_beta
-    write(stdout, '(A,3I4)') " K-grid:", nkx,nky,nkz
-    write(stdout, '(A,I7)') " Positive fermic frequency count:", nomega
+    write(stdout, *) 'temperature in K = ', T
+    write(stdout, *) 'temperature in eV = ', T_eV
+    write(stdout, *) 'temperature in beta = ', T_beta
+    write(stdout, '(A,3I4)') ' k-grid', nkx,nky,nkz
+    write(stdout, '(A,I7)') ' positive fermic frequency count', nomega
     write(stdout, *)
-    write(stdout, *) "Begin to calculate FLEX"
+    write(stdout, *) 'begin to calculate FLEX'
     total_iter = 1
     density_iter = 1
     cur_density = 1000d0
@@ -226,17 +229,19 @@ program flex_2d
     write(stdout,*)
     write(stdout,*) 'final mu = ', mu
     write(stdout,*)
-    write(stdout,*)
 
     call get_date(date1)
-    call output_date(date0,'Begin at  ')
-    call output_date(date1,'End   at  ')
+    write(stdout,'(A,$)') ' from '
+    call output_date(date0,.false.)
+    write(stdout,'(A,$)') ' to '
+    call output_date(date1,.true.)
+
     call get_tick(end_time)
-    write(stdout,*) 'Elapsed time is ', end_time-start_time,' s'
+    write(stdout,*) 'elapsed time is ', end_time-start_time,' s'
 
     write(stdout,*)
     write(stdout,*)
-    write(stdout,*) ' good night.'
+    write(stdout,*) 'good night.'
     write(stdout,*)
 
 

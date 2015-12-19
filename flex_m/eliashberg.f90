@@ -35,7 +35,7 @@ contains
         ! 注意: 为节省内存, 复用V表示V_s
         do spin_state=1,3,2
             write(stdout,*)
-            write(stdout,*) 'Solving Eliashberg equation for spin ', spin_state
+            write(stdout,*) 'solving Eliashberg equation for spin ', spin_state
             V = complex_0
             do ikx=1,nkx; do iky=1,nky; do iomegaq=minomegab,maxomegab
                 call cal_chi_cs(ikx,iky,iomegaq)
@@ -123,11 +123,11 @@ contains
                 lambda0 = lambda
             enddo
 
-            write(stdout,*) 'Solving converged in ', count_iter, 'iterations.'
+            write(stdout,*) 'converged in ', count_iter, 'iterations.'
             write(stdout,*)
 
             ! output delta_nn (gap function)
-            write(stdout,*) 'Gap function'
+            write(stdout,*) 'gap function'
             write(stdout,'(2A10,A28)') 'kx','ky','delta(real and imag)'
             write(stdout,*) '---------------------------------------------------'
             do ikx=1,nkx; do iky=1,nky
@@ -138,15 +138,13 @@ contains
                 write(stdout, '(2F10.4,2F14.8)') k(ikx,iky,:), temp_complex
             enddo; enddo
 
-            write(stdout,*) 'Spin state', spin_state
-            write(stdout,*) 'Maximum eigenvalue ', lambda
+            !write(stdout,*) 'spin state', spin_state
+            write(stdout,*) 'maximum eigenvalue ', lambda
             write(stdout,*)
         enddo
 
         write(stdout,*)
-        write(stdout,*) 'Summary:'
-        write(stdout,*)
-        write(stdout,*) 'Temperature is ', T
+        write(stdout,*) 'temperature is ', T
         write(stdout,*)
         write(stdout,'(A7,A20)') 'spin','eigenvalue'
         write(stdout,*) '------------------------------'

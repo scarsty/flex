@@ -67,7 +67,7 @@ contains
         complex(8) fac
 
         ! 计算k点的坐标
-        write(stdout, *) "Building k-points grid..."
+        !write(stdout, *) "Building k-points grid..."
         !zero_k = 1    ! k原点
         do ikx = 1, nkx
             do iky = 1, nky
@@ -75,7 +75,7 @@ contains
                 k(ikx, iky, 2)=1d0/nky*(iky-1)
                 if (k(ikx, iky, 1)>0.5) k(ikx, iky, 1)=k(ikx, iky, 1)-1
                 if (k(ikx, iky, 2)>0.5) k(ikx, iky, 2)=k(ikx, iky, 2)-1
-                write(stdout, '(2I3,2F9.4)') ikx, iky, k(ikx,iky,:)
+                !write(stdout, '(2I3,2F9.4)') ikx, iky, k(ikx,iky,:)
             enddo
         enddo
         write(stdout, *)
