@@ -226,6 +226,7 @@ program flex_2d
     write(stdout,*)
     write(stdout,*) 'final mu = ', mu
     write(stdout,*)
+    write(stdout,*)
 
     call get_date(date1)
     call output_date(date0,'Begin at  ')
