@@ -25,9 +25,13 @@ program flex_2d
 
     integer :: mu_history_file=9005
 
+    integer date0(8), date1(8)
+
     ! 变量段结束-------------------------------------------------------------------------------
 
-    call get_time(start_time)
+    call get_date(date0)
+    call output_date(date0,'Begin at  ')
+    call get_stick(start_time)
     mpi_info = mpi_init1()
     mpi_rank = mpi_rank1()
     mpi_size = mpi_size1()
@@ -124,13 +128,13 @@ program flex_2d
             G_iter = 1
             write(stdout,'(A7,A7,A7,A10,A18,A12)') 'iter.d','g','t','conv.pts','norm.error','time'
             write(stdout,*) '------------------------------------------------------------------'
-            call get_time(last_it_time)
+            call get_stick(last_it_time)
             ! sigma迭代中使用openmp并行
             do while (.not. G_conv)
                 ! calculate chi_0 with chi(q)= -G1(q-k)G2(-k), the same to -G1(q-k)G2(k)**H
                 ! dft G to G_r_tau
                 call cal_G_out()
-                call get_time(this_it_time)
+                call get_stick(this_it_time)
                 call conv_test(G, G_out, G_conv, .true.)
                 last_it_time=this_it_time
 
@@ -223,9 +227,13 @@ program flex_2d
     write(stdout,*) 'final mu = ', mu
     write(stdout,*)
 
+    call get_date(date1)
+    call output_date(date0,'Begin at  ')
+    call output_date(date1,'End   at  ')
+    call get_stick(end_time)
+    write(stdout,*) 'Elapsed time is ', end_time-start_time,' s.'
 
-    call get_time(end_time)
-    write(stdout,*) 'elapsed time is ', end_time-start_time,' s.'
+    write(stdout,*)
     write(stdout,*)
     write(stdout,*) ' good night.'
     write(stdout,*)

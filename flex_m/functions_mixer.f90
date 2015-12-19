@@ -297,7 +297,7 @@ contains
         mu_history(i)=mu
         mu_error(i)=cur_error
 
-        write(*,*) mu_history(0),mu_history(1)
+        !write(*,*) mu_history(0),mu_history(1)
 
         select case (mu_method)
             case (0)

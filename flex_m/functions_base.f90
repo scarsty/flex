@@ -2,6 +2,7 @@ module functions_base
 #ifdef USE_MPI
     include 'mpif.h'
 #endif
+    use constants
     real(8), external :: dznrm2
 
 contains
@@ -335,12 +336,26 @@ contains
 
     end subroutine build_h0_k
 
-    subroutine get_time(t)
+    subroutine get_stick(t)
         implicit none
         real(8) t
         integer(8) t1, clock_rate, clock_max
         call system_clock(t1,clock_rate,clock_max)
         t=1d0*t1/clock_rate
+    end subroutine
+
+    subroutine get_date(d)
+        implicit none
+        integer d(8)
+        call date_and_time(values=d)
+    end subroutine
+
+    subroutine output_date(d,str)
+        implicit none
+        integer d(8)
+        character(10) str
+        write (stdout,'(A11,I4,A,I2.2,A,I2.2,A,I2.2,A,I2.2,A,I2.2,A,I3.3)') &
+            str, d(1),'-',d(2),'-',d(3),', ',d(5),':',d(6),':',d(7),'.',d(8)
     end subroutine
 
 end module
