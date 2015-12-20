@@ -18,18 +18,18 @@ module parameters
     character*128 sigma_input_file, sigma_output_file
 
     ! 自能函数收敛判据
-    real(8) G_tol
-    integer max_g_iter
+    real(8) :: G_tol=1d-3
+    integer :: max_g_iter=5000
     real(8) alpha
     integer alpha_scheme
 
     integer global_conv_grid
     real(8) global_cur_g_tol
 
-    integer iter_method ! 0: dyson方程, others: G_n+1=G0+G0*sigma*G_n
+    integer :: iter_method=0 ! 0: dyson方程, others: G_n+1=G0+G0*sigma*G_n
 
-    integer mixer_method
-    real(8) mixer_beta, mixer_beta0
+    integer :: mixer_method=2
+    real(8) :: mixer_beta, mixer_beta0
     ! 自旋态
     integer :: spin_state
 
