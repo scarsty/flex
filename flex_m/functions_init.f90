@@ -66,9 +66,9 @@ contains
         real(8) rdotk, temp(2)
         complex(8) fac
 
-        ! ¼ÆËãkµãµÄ×ø±ê
+        ! è®¡ç®—kç‚¹çš„åæ ‡
         !write(stdout, *) "Building k-points grid..."
-        !zero_k = 1    ! kÔ­µã
+        !zero_k = 1    ! kåŸç‚¹
         do ikx = 1, nkx
             do iky = 1, nky
                 k(ikx, iky, 1)=1d0/nkx*(ikx-1)
@@ -80,7 +80,7 @@ contains
         enddo
         write(stdout, *)
 
-        ! ·´¸µÀïÒ¶±ä»»h0µ½k¿Õ¼ä
+        ! åå‚…é‡Œå¶å˜æ¢h0åˆ°kç©ºé—´
         h0_k = complex_0
         do ikx=1,nkx; do iky=1,nky
             do irx=-rx,rx; do iry=-ry,ry
@@ -90,7 +90,7 @@ contains
                 h0_k(:,:,ikx,iky)=h0_k(:,:,ikx,iky)+fac*h0_r(:,:,irx,iry)
             enddo; enddo
 
-            ! ¼ÆËãÌØÕ÷ÖµºÍÌØÕ÷ÏòÁ¿
+            ! è®¡ç®—ç‰¹å¾å€¼å’Œç‰¹å¾å‘é‡
             h0_k_=h0_k(:,:,ikx,iky)
             u_h0_k_=h0_k_
             call zheev('V','L',nb,u_h0_k_,nb,ev_h0_k_,ev_h0_k_lwork,nb*nb,ev_h0_k_rwork,info)
@@ -105,7 +105,7 @@ contains
         implicit none
         integer ix, iy
         ! U
-        ! ÄÜ´øÏÂ±êab, cd -> (a+(b-1)*nb, c+(d-1)*nb)
+        ! èƒ½å¸¦ä¸‹æ ‡ab, cd -> (a+(b-1)*nb, c+(d-1)*nb)
         ! real, dimension (nb*nb, nb*nb):: U_s, U_c, U_ud, U_uu
         U_ud = 0d0
         U_uu = 0d0
@@ -143,7 +143,7 @@ contains
         integer :: mu_history_file=9002, open_stat,i
 
         !rank=mpi_rank()
-        !¶ÁÈ¡
+        !è¯»å–
 #ifdef _DEBUG
         fileunit = 10
         open(fileunit, file='input_file')
@@ -157,7 +157,7 @@ contains
             return
         endif
 
-        ! ·µ»ØÈ¥ÖØĞÂ¶Á, ºóÃæµÄ¸ñÊ½²»¿É³ö´í
+        ! è¿”å›å»é‡æ–°è¯», åé¢çš„æ ¼å¼ä¸å¯å‡ºé”™
         rewind(fileunit)
         do while (.true.)
             read(fileunit, "(A)") text
@@ -167,7 +167,7 @@ contains
             endif
         enddo
 
-        ! w-sÔ­°ûµãÕóÉÏµÄ¹şÃÜ¶ÙÁ¿
+        ! w-såŸèƒç‚¹é˜µä¸Šçš„å“ˆå¯†é¡¿é‡
         ! write(stdout,*)eigen_value
         h0_r = complex_0
         do ib1 = 1, nb

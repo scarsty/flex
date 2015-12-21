@@ -20,7 +20,7 @@ contains
     end subroutine
 
 
-    ! ³õÊ¼»¯»ìºÏÆ÷
+    ! åˆå§‹åŒ–æ··åˆå™¨
     subroutine mixer_init()
         implicit none
         integer i
@@ -43,7 +43,7 @@ contains
 
         if (mixer_method==4) then
             Jacobian=complex_0
-            !ÕâÀïÎÒÒ²²»ÖªµÀÎªÊ²Ã´ÒªÓÃ¸º¶¨Õó, ×ÊÁÏÉÏ¸øµÄºÃÏñÊÇÕı¶¨
+            !è¿™é‡Œæˆ‘ä¹Ÿä¸çŸ¥é“ä¸ºä»€ä¹ˆè¦ç”¨è´Ÿå®šé˜µ, èµ„æ–™ä¸Šç»™çš„å¥½åƒæ˜¯æ­£å®š
             do i=1,total_grid
                 Jacobian(i,i)=-complex_1*mixer_beta
             enddo
@@ -66,8 +66,8 @@ contains
 
     end subroutine
 
-    ! pulay mixer Ïà¹Ø
-    ! ÒÆ¶¯Ö¸Õë
+    ! pulay mixer ç›¸å…³
+    ! ç§»åŠ¨æŒ‡é’ˆ
     function mixerIncPointer(p, n, max_value)
         implicit none
         integer mixerIncPointer, p, n, max_value
@@ -77,8 +77,8 @@ contains
         if (mixerIncPointer==0) mixerIncPointer=max_value
     end function
 
-    ! G_outÊÇĞÂµÄ, GÊÇÉÏÒ»²½
-    ! »ìºÏËã·¨
+    ! G_outæ˜¯æ–°çš„, Gæ˜¯ä¸Šä¸€æ­¥
+    ! æ··åˆç®—æ³•
     ! http://vergil.chemistry.gatech.edu/notes/diis/node2.html
     subroutine mixer_Pulay()
         implicit none
@@ -88,12 +88,12 @@ contains
         real(8) e, e0, max_error, mixer_beta2
         logical find_bigger
 
-        ! method.3 - Refined Pulay·½·¨, ²Ğ²î½ÏĞ¡µÄÊ±ºò¶¯Ì¬µ÷Õû»ìºÏ, Ôö¼ÓÊÕÁ²ËÙ¶È, Êµ¼ÊÉÏÃ»É¶ÓÃ
+        ! method.3 - Refined Pulayæ–¹æ³•, æ®‹å·®è¾ƒå°çš„æ—¶å€™åŠ¨æ€è°ƒæ•´æ··åˆ, å¢åŠ æ”¶æ•›é€Ÿåº¦, å®é™…ä¸Šæ²¡å•¥ç”¨
         mixer_order=min(mixer_order+1,mix_num)
 
         !prev_pointer=mixerIncPointer(mixer_pointer,-1)
 
-        ! Îó²îÊÇG_out-G, Õâ¸öÖµÔ½Ğ¡ÔòËµÃ÷GÊÇÒ»¸ö½Ó½üºÃµÄ½â, ¶ø·ÇG_out
+        ! è¯¯å·®æ˜¯G_out-G, è¿™ä¸ªå€¼è¶Šå°åˆ™è¯´æ˜Gæ˜¯ä¸€ä¸ªæ¥è¿‘å¥½çš„è§£, è€ŒéG_out
         mixer_error(:,:,:,:,:,mixer_pointer)=G-G_out
         if (mixer_beta==0) then
             call cal_best_mixer_beta()
@@ -132,7 +132,7 @@ contains
 
         n=mixer_order
         ! write(stderr,*) n
-        ! ÏµÊı¾ØÕóÊµ¼ÊÉÏ¶àÒ»ĞĞ
+        ! ç³»æ•°çŸ©é˜µå®é™…ä¸Šå¤šä¸€è¡Œ
         call dsysv('U', n+1, 1, mixer_A1, mix_num+1, ipiv, mixer_x, mix_num+1, lwork, 2*mix_num, info)
         !call zgesv(n, 1, Pulay_A1, mix_num+1, ipiv, Pulay_x, mix_num+1, info)
         G=complex_0
@@ -145,7 +145,7 @@ contains
         !if (n==1) stop
     end subroutine
 
-    !Î´Íê³É
+    !æœªå®Œæˆ
     subroutine mixer_Broyden()
         implicit none
         complex(8) fac, fac2
@@ -215,7 +215,7 @@ contains
         !            f_=minloc(error0)
         !            f=f_(1)
         !            if (f==2)then
-        !                !ÖĞ¼äµÄ×îĞ¡£¬½Ø¶Ï´óµÄÒ»±ß
+        !                !ä¸­é—´çš„æœ€å°ï¼Œæˆªæ–­å¤§çš„ä¸€è¾¹
         !                f_=maxloc(error0)
         !                f=f_(1)
         !                beta(f)=beta(2)
@@ -228,7 +228,7 @@ contains
         !                error0(2)=dznrm2(total_grid,G,1)
         !
         !            else
-        !                !ÖĞ¼äµÄ²»ÊÇ×îĞ¡£¬ÕÒĞ¡µÄ£¬ÍâÍÆ
+        !                !ä¸­é—´çš„ä¸æ˜¯æœ€å°ï¼Œæ‰¾å°çš„ï¼Œå¤–æ¨
         !                f_=minloc(error0)
         !                f=f_(1)
         !
@@ -274,8 +274,8 @@ contains
         end select
     end subroutine
 
-    ! ¶ş·Ö·¨, ±ØĞë±£Ö¤Í·Á½¸öÄÜ¹¹³ÉÇø¼ä, ·ñÔòÊ§°Ü
-    ! ÔÚÁíÍâÁ½¸ö·½·¨ÊıÖµÌøÔ¾µÄÊ±ºò, ´Ë·½·¨ÄÜÏŞÖÆ·¶Î§
+    ! äºŒåˆ†æ³•, å¿…é¡»ä¿è¯å¤´ä¸¤ä¸ªèƒ½æ„æˆåŒºé—´, å¦åˆ™å¤±è´¥
+    ! åœ¨å¦å¤–ä¸¤ä¸ªæ–¹æ³•æ•°å€¼è·³è·ƒçš„æ—¶å€™, æ­¤æ–¹æ³•èƒ½é™åˆ¶èŒƒå›´
     subroutine modify_mu_bisection()
         implicit none
         integer i
@@ -312,8 +312,8 @@ contains
         endif
     end subroutine
 
-    ! ĞŞ¸ÄµÄÅ£¶Ùµü´ú, Ê¹ÓÃÒÑ¾­µÃµ½µÄ½á¹ûÄâºÏÒ»¸ö¶àÏîÊ½, ÇóÆäµ¼Êı´úÈëÅ£¶Ùµü´ú
-    ! ×î¶à100´Î, 100´ÎÈÔ²»ÊÕÁ²±¨´í²»¹ÜÁË
+    ! ä¿®æ”¹çš„ç‰›é¡¿è¿­ä»£, ä½¿ç”¨å·²ç»å¾—åˆ°çš„ç»“æœæ‹Ÿåˆä¸€ä¸ªå¤šé¡¹å¼, æ±‚å…¶å¯¼æ•°ä»£å…¥ç‰›é¡¿è¿­ä»£
+    ! æœ€å¤š100æ¬¡, 100æ¬¡ä»ä¸æ”¶æ•›æŠ¥é”™ä¸ç®¡äº†
     subroutine modify_mu_newton()
         implicit none
         integer n, mu_pointer, i, info
@@ -323,7 +323,7 @@ contains
 
         mu_pointer=density_iter-1
         n=density_iter
-        ! Îó²îÊÇcur_density-target_density
+        ! è¯¯å·®æ˜¯cur_density-target_density
         mu_history(mu_pointer)=mu
         mu_b(mu_pointer)=cur_density-target_density
 
@@ -351,8 +351,8 @@ contains
 
     end subroutine
 
-    !Ê¹ÓÃPulay»ìºÏµÃµ½Ò»¸öĞÂµÄmu
-    !Èç¹û¶Ôµ¥Öµº¯ÊıÊ¹ÓÃPulay·½·¨, µÃµ½µÄÏµÊı¾ØÕóºÜ´ó¿ÉÄÜÊÇÆæÒìÕó, »áµ¼ÖÂ½á¹û²»ÕıÈ·, ·ÏÆú
+    !ä½¿ç”¨Pulayæ··åˆå¾—åˆ°ä¸€ä¸ªæ–°çš„mu
+    !å¦‚æœå¯¹å•å€¼å‡½æ•°ä½¿ç”¨Pulayæ–¹æ³•, å¾—åˆ°çš„ç³»æ•°çŸ©é˜µå¾ˆå¤§å¯èƒ½æ˜¯å¥‡å¼‚é˜µ, ä¼šå¯¼è‡´ç»“æœä¸æ­£ç¡®, åºŸå¼ƒ
     subroutine modify_mu_pulay()
         implicit none
         integer n, mu_pointer, i, info
@@ -363,7 +363,7 @@ contains
         mu_pointer=mod(density_iter,mu_num)
         if (mu_pointer==0) mu_pointer=mu_num
         n=min(density_iter,mu_num)
-        ! Îó²îÊÇcur_density-target_density
+        ! è¯¯å·®æ˜¯cur_density-target_density
         mu_error(mu_pointer)=cur_density-target_density
         mu_history(mu_pointer)=mu
 
