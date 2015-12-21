@@ -4,8 +4,8 @@ module functions_test
     use parameters2
 
 contains
-    ! æ£€æŸ¥sigmaæ”¶æ•›ç‚¹æ•°, æœªä½¿ç”¨, å› ä¸ºç”¨è‡ªèƒ½åˆ¤æ–­ä¸å¤ªå¯é 
-    ! ä¸¤ä¸ªç›¸åŒçš„è¾“å…¥Gä¼šå¯¼è‡´sigmaç›¸åŒ, ä½†æ˜¯æ­¤æ—¶ä¸èƒ½ä¿è¯Gæ”¶æ•›
+    ! ¼ì²ésigmaÊÕÁ²µãÊı, Î´Ê¹ÓÃ, ÒòÎªÓÃ×ÔÄÜÅĞ¶Ï²»Ì«¿É¿¿
+    ! Á½¸öÏàÍ¬µÄÊäÈëG»áµ¼ÖÂsigmaÏàÍ¬, µ«ÊÇ´ËÊ±²»ÄÜ±£Ö¤GÊÕÁ²
     subroutine sigma_convergence_test(conv)
 
         implicit none
@@ -71,7 +71,7 @@ contains
     subroutine testBand()
         implicit none
 
-        ! ç‚¹æ•°36: 1~11~21~36
+        ! µãÊı36: 1~11~21~36
         integer count_k, i, ik, ix, iy, fileunit
         complex(8) :: fac
         real(8) :: rdotk
@@ -89,8 +89,8 @@ contains
 
         ! ------------------------------------------------------------------------
 
-        ! æµ‹è¯•èƒ½å¸¦æ­£ç¡®æ€§
-        ! ç»„åˆä¸€ç»„é«˜å¯¹ç§°ç‚¹
+        ! ²âÊÔÄÜ´øÕıÈ·ĞÔ
+        ! ×éºÏÒ»×é¸ß¶Ô³Æµã
         k_band = 0d0
         count_k=0
         do i = 0,10
@@ -111,10 +111,10 @@ contains
 
         h0_k = complex_0
 
-        write(stdout,*) 'build k-points of band...'
+        !write(stdout,*) 'build k-points of band...'
 
-        ! åå‚…é‡Œå¶å˜æ¢åˆ°kç©ºé—´çš„èƒ½å¸¦
-        ! åœ¨æ¯ä¸ªkç‚¹ä¸Šå¯¹è§’åŒ–å¾—åˆ°èƒ½å¸¦ç‰¹å¾å€¼
+        ! ·´¸µÀïÒ¶±ä»»µ½k¿Õ¼äµÄÄÜ´ø
+        ! ÔÚÃ¿¸ökµãÉÏ¶Ô½Ç»¯µÃµ½ÄÜ´øÌØÕ÷Öµ
         do ik=1,36
             h0_k_band=complex_0
             do ix = -rx, rx
