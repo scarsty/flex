@@ -25,13 +25,11 @@ program flex_2d
 
     integer :: mu_history_file=9005
 
-    integer date0(8), date1(8)
 
     ! 变量段结束-------------------------------------------------------------------------------
 
-    call get_date(date0)
-    write (stdout,'(A,$)') ' begin at '
-    call output_date(date0,.true.)
+    write (stdout,*) 'begin at '
+    call output_date()
 
     call get_tick(start_time)
 
@@ -226,24 +224,18 @@ program flex_2d
     endif
 
 
-    write(stdout,*)
     write(stdout,*) 'final mu = ', mu
     write(stdout,*)
 
-    call get_date(date1)
-    write(stdout,'(A,$)') ' from '
-    call output_date(date0,.false.)
-    write(stdout,'(A,$)') ' to '
-    call output_date(date1,.true.)
+    write(stdout,*) 'end at'
+    call output_date()
 
     call get_tick(end_time)
-    write(stdout,*) 'elapsed time is ', end_time-start_time,' s'
+    write(stdout,*) 'elapsed time is', end_time-start_time,' s'
 
     write(stdout,*)
     write(stdout,*)
     write(stdout,*) 'good night.'
-    write(stdout,*)
-
 
     mpi_info = mpi_finalize1()
 

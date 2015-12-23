@@ -344,21 +344,12 @@ contains
         t=1d0*t1/clock_rate
     end subroutine
 
-    subroutine get_date(d)
+    subroutine output_date()
         implicit none
         integer d(8)
         call date_and_time(values=d)
-    end subroutine
-
-    subroutine output_date(d,wrap)
-        implicit none
-        integer d(8)
-        logical wrap
-        write (stdout,'(I4,A,I2.2,A,I2.2,A,I2.2,A,I2.2,A,I2.2,A,I3.3,$)') &
+        write (stdout,'(I5,A,I2.2,A,I2.2,A,I2.2,A,I2.2,A,I2.2,A,I3.3)') &
             d(1),'-',d(2),'-',d(3),'/',d(5),':',d(6),':',d(7),'.',d(8)
-        if (wrap) then
-            write(stdout,*)
-        endif
     end subroutine
 
 end module

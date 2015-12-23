@@ -144,14 +144,12 @@ contains
         enddo
 
         write(stdout,*)
-        write(stdout,*) 'temperature is ', T
-        write(stdout,*)
         write(stdout,'(A7,A20)') 'spin','eigenvalue'
         write(stdout,*) '------------------------------'
 
         do spin_state=1,3,2
             write(stdout,'(I7, F20.8)') spin_state, abs(real(lambda_list(spin_state)))
         enddo
-
+        write(stdout,*) 'temperature is ', T
     end subroutine
 end module
