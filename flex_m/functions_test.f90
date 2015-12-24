@@ -76,10 +76,10 @@ contains
         complex(8) :: fac
         real(8) :: rdotk
         real(8), dimension (2) :: temp
-        real(8), dimension (36, 2) :: k_band
-        complex(8), dimension (nb, nb, 36) :: h0_k_band
+        real(8), dimension (343, 2) :: k_band
+        complex(8), dimension (nb, nb, 343) :: h0_k_band
         complex(8), dimension (nb,nb) :: A, B
-        complex(8), dimension (nb, 36) :: ev_band
+        complex(8), dimension (nb, 343) :: ev_band
         complex(8), dimension (nb) :: alpha, beta
         complex(8), dimension (nb, nb) :: vl, vr
         complex(8), dimension (nb*2) :: work
@@ -93,20 +93,20 @@ contains
         ! 组合一组高对称点
         k_band = 0d0
         count_k=0
-        do i = 0,10
+        do i = 0,100
             count_k = count_k+1
             k_band(count_k, 1) = 0d0
-            k_band(count_k, 2) = i*0.5d0/10
+            k_band(count_k, 2) = i*0.5d0/100
         enddo
-        do i = 1,10
+        do i = 1,100
             count_k = count_k+1
-            k_band(count_k, 1) = i*0.5d0/10
+            k_band(count_k, 1) = i*0.5d0/100
             k_band(count_k, 2) = 0.5d0
         enddo
-        do i = 1,15
+        do i = 1,142
             count_k = count_k+1
-            k_band(count_k, 1) = 0.5d0-i*0.5d0/15
-            k_band(count_k, 2) = 0.5d0-i*0.5d0/15
+            k_band(count_k, 1) = 0.5d0-i*0.5d0/142
+            k_band(count_k, 2) = 0.5d0-i*0.5d0/142
         enddo
 
         h0_k = complex_0
@@ -115,7 +115,7 @@ contains
 
         ! 反傅里叶变换到k空间的能带
         ! 在每个k点上对角化得到能带特征值
-        do ik=1,36
+        do ik=1,343
             h0_k_band=complex_0
             do ix = -rx, rx
                 do iy = -ry, ry
@@ -141,7 +141,7 @@ contains
 
         fileunit = 9999
         open(fileunit, file='testband.dat')
-        do ik=1,36
+        do ik=1,343
             write(fileunit, '(I5,5F8.3)') ik, real(ev_band(:,ik))
         enddo
 
