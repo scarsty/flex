@@ -80,9 +80,9 @@ contains
         complex(8), dimension (nb, nb, 343) :: h0_k_band
         complex(8), dimension (nb,nb) :: A, B
         complex(8), dimension (nb, 343) :: ev_band
-        complex(8), dimension (nb) :: alpha, beta
+        complex(8), dimension (nb) :: ev, beta
         complex(8), dimension (nb, nb) :: vl, vr
-        complex(8), dimension (nb*2) :: work
+        complex(8), dimension (nb*2) :: lwork
         integer info
         real(8), dimension (nb*8) :: rwork
 
@@ -133,10 +133,11 @@ contains
             do i = 1,nb
                 B(i,i)=complex_1
             enddo
-            ! write(stdout,*) 'calling cggev...'
-            call zggev('N', 'N', nb, A, nb, B, nb, alpha, beta, vl, 1, vr, 1, work, 2*nb, rwork, info)
-            ! write(stdout,*) 'finish state ', info
-            ev_band(:,ik) = alpha/beta
+
+            !call zggev('N', 'N', nb, A, nb, B, nb, alpha, beta, vl, 1, vr, 1, work, 2*nb, rwork, info)
+            call zgeev('N', 'N', nb, A, nb, ev, vl, 1, vr, 1, lwork, 2*nb, rwork, info)
+
+            ev_band(:,ik) = ev
         enddo
 
         fileunit = 9999
