@@ -57,6 +57,7 @@ module parameters
     integer mpi_rank, mpi_size, mpi_info
     ! Timing variables
     real(8) start_time, end_time
+    real(8) start_cpu_time, end_cpu_time
     real(8) last_it_time, this_it_time
 
     integer alloc_error

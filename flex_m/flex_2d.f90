@@ -32,6 +32,7 @@ program flex_2d
     call output_date()
 
     call get_tick(start_time)
+    call cpu_time(start_cpu_time)
 
     mpi_info = mpi_init1()
     mpi_rank = mpi_rank1()
@@ -231,7 +232,9 @@ program flex_2d
     call output_date()
 
     call get_tick(end_time)
-    write(stdout,*) 'elapsed time is', end_time-start_time,' s'
+    call cpu_time(end_cpu_time)
+    write(stdout,*) 'wall time is', end_time-start_time,'s'
+    write(stdout,*) 'cpu  time is',end_cpu_time-start_cpu_time,'s'
 
     write(stdout,*)
     write(stdout,*)
