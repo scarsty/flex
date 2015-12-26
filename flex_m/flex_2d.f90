@@ -62,11 +62,11 @@ program flex_2d
     open(unit=mu_history_file, file='mu_history_new')
 
     ! 迭代部分---------------------------------------------------------------------------------
-    write(stdout, *) 'temperature in K = ', T
-    write(stdout, *) 'temperature in eV = ', T_eV
-    write(stdout, *) 'temperature in beta = ', T_beta
-    write(stdout, '(A,3I4)') ' k-grid', nkx,nky,nkz
-    write(stdout, '(A,I7)') ' positive fermic frequency count', nomega
+    write(stdout, *) 'temperature in K =', T
+    write(stdout, *) 'temperature in eV =', T_eV
+    write(stdout, *) 'temperature in beta =', T_beta
+    write(stdout, *) 'k-grid is', nkx,nky,nkz
+    write(stdout, *) 'positive fermionic frequency count is', nomega
     write(stdout, *)
     write(stdout, *) 'begin to calculate FLEX'
     total_iter = 1
@@ -110,7 +110,7 @@ program flex_2d
         !call testConvolution()
         !call testConvolution3()
         !call testConvolution3G()
-        write(stdout,*) 'current mu = ', mu
+        write(stdout,*) 'current mu =', mu
         ! base density
         density_base = 0d0
         do ib=1,nb; do ikx=1,nkx; do iky=1,nky
@@ -124,7 +124,7 @@ program flex_2d
         !        !$omp end parallel do
         density_base=density_base*2/nk
 
-        write(stdout, *) 'base density is ', density_base
+        write(stdout, *) 'base density =', density_base
 
         if (density_iter>mu_history_count) then
             G_iter = 1
@@ -184,7 +184,7 @@ program flex_2d
             mu=mu_history0(density_iter-1)
             cur_density=mu_density0(density_iter-1)
         endif
-        write(stdout,*) 'density and mu: ', cur_density,'/', mu
+        write(stdout,*) 'density / mu =', cur_density,'/', mu
         write(stdout,*)
         write(mu_history_file,*) mu, cur_density
 
@@ -224,16 +224,13 @@ program flex_2d
         call eliashberg_equ()
     endif
 
-
-    write(stdout,*) 'final mu = ', mu
     write(stdout,*)
-
     write(stdout,*) 'end at'
     call output_date()
 
     call get_tick(end_time)
     call cpu_time(end_cpu_time)
-    write(stdout,*) 'wall time is', end_time-start_time,'s'
+    write(stdout,*) 'wall time is',end_time-start_time,'s'
     write(stdout,*) 'cpu  time is',end_cpu_time-start_cpu_time,'s'
 
     write(stdout,*)
