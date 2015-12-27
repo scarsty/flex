@@ -185,6 +185,8 @@ program flex_2d
             cur_density=mu_density0(density_iter-1)
         endif
         write(stdout,*) 'density / mu =', cur_density,'/', mu
+        call get_tick(end_time)
+        write(stdout,*) 'now elapsed time is', end_time-start_time, 's'
         write(stdout,*)
         write(mu_history_file,*) mu, cur_density
 
