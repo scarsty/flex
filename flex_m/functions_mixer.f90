@@ -306,10 +306,8 @@ contains
                 mu=mu_history(0)-mu_error(0)*(mu_history(0)-mu_history(1))/(mu_error(0)-mu_error(1))
         end select
 
-        if (density_iter==1) then
-            mu=maxval(eigen_value)
-            !mu=mu+10d0
-        endif
+        call second_mu()
+
     end subroutine
 
     ! 修改的牛顿迭代, 使用已经得到的结果拟合一个多项式, 求其导数代入牛顿迭代
@@ -344,10 +342,7 @@ contains
 
         mu=mu-mu_b(mu_pointer)/d
 
-        if (density_iter==1) then
-            mu=maxval(eigen_value)
-            !mu=mu+10d0
-        endif
+        call second_mu()
 
     end subroutine
 
@@ -392,11 +387,19 @@ contains
             !write(stdout,*) mu_history(i),mu_x(i),mu_error(i)
         enddo
         !write(stdout,*) mu
-        if (density_iter==1) then
-            mu=maxval(eigen_value)
-            !mu=eigen_value(5)
-        endif
+        call second_mu()
 
+    end subroutine
+
+    subroutine second_mu()
+        implicit none
+        if (density_iter==1) then
+            if (cur_density>target_density) then
+                mu=minval(eigen_value)
+            else
+                mu=maxval(eigen_value)
+            end if
+        endif
     end subroutine
 
 end module
