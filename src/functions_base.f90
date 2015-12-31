@@ -191,6 +191,9 @@ contains
             if (l<r) then
                 call swap_r8(v(l),v(r))
             endif
+            ! 与key相等则多走一位, 注意是交换后的值
+            if (v(r)==key) l=l+1
+            if (v(l)==key) r=r-1
         enddo
         call quick_sort(v,n,s,l-1)
         call quick_sort(v,n,r+1,e)
