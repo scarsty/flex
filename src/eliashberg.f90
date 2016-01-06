@@ -127,17 +127,19 @@ contains
             write(stdout,*)
 
             ! output delta_nn (gap function)
-            write(stdout,*) 'gap function'
-            write(stdout,'(2A10,A28)') 'kx','ky','delta(real and imag)'
-            write(stdout,*) '---------------------------------------------------'
-            do ikx=1,nkx; do iky=1,nky
-                temp_complex=complex_0
-                do l1=1,nb
-                    temp_complex=temp_complex+delta(l1,l1,ikx,iky,1)
-                enddo
-                write(stdout, '(2F10.4,2F14.8)') k(ikx,iky,:), temp_complex
-            enddo; enddo
-
+            do l1=1,nb
+                write(stdout,*) 'gap function for band', l1
+                write(stdout,'(2A10,A28)') 'kx','ky','delta(real and imag)'
+                write(stdout,*) '---------------------------------------------------'
+                do ikx=1,nkx; do iky=1,nky
+                    temp_complex=complex_0
+                    do iomegak=minomegaf,maxomegaf
+                        temp_complex=temp_complex+delta(l1,l1,ikx,iky,iomegak)
+                    enddo
+                    write(stdout, '(2F10.4,2F14.8)') k(ikx,iky,:), temp_complex
+                enddo; enddo
+                write(stdout,*)
+            enddo
             !write(stdout,*) 'spin state', spin_state
             write(stdout,*) 'maximum eigenvalue =', lambda
             write(stdout,*)
