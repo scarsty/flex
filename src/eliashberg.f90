@@ -128,7 +128,7 @@ contains
 
             ! output delta_nn (gap function)
             do l1=1,nb
-                write(stdout,*) 'gap function for band', l1
+                write(stdout,'(A,I2,A,I2)') ' gap function for  spin', spin_state, '  band', l1
                 write(stdout,'(2A10,A28)') 'kx','ky','delta(real and imag)'
                 write(stdout,*) '---------------------------------------------------'
                 do ikx=1,nkx; do iky=1,nky
