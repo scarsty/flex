@@ -355,4 +355,25 @@ contains
             d(1),'-',d(2),'-',d(3),'/',d(5),':',d(6),':',d(7),'.',d(8)
     end subroutine
 
+    subroutine output_time_format(t)
+        implicit none
+        real(8) t
+        integer d,h,m,s0
+        real(8) s
+        s0=int(t)
+        d=s0/86400
+        s0=s0-d*86400
+        h=s0/3600
+        s0=s0-h*3600
+        m=s0/60
+        s0=s0-m*60
+        s=t-int(t)+s0
+        !write(stdout,*) d,h,m,s0,s
+        write (stdout, '(A,$)') '   '
+        if (d>0) write (stdout, '(I3,A,$)') d,'d '
+        if (h>0) write (stdout, '(I2,A,$)') h,'h '
+        if (m>0) write (stdout, '(I2,A,$)') m,'m '
+        write (stdout,'(F6.3,A)') s,'s'
+    end subroutine
+
 end module

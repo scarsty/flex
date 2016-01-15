@@ -12,7 +12,6 @@ program flex_2d
     use eliashberg
     implicit none
 
-
     ! 循环控制变量较多, 主要是为方便对照文献中公式
     integer ib
     integer ikx, iky
@@ -232,8 +231,10 @@ program flex_2d
 
     call get_tick(end_time)
     call cpu_time(end_cpu_time)
-    write(stdout,*) 'wall time is',end_time-start_time,'s'
-    write(stdout,*) 'cpu  time is',end_cpu_time-start_cpu_time,'s'
+    write(stdout,'(A,$)') ' wall time is'
+    call output_time_format(end_time-start_time)
+    write(stdout,'(A,$)') ' cpu  time is'
+    call output_time_format(end_cpu_time-start_cpu_time)
 
     write(stdout,*)
     write(stdout,*)
