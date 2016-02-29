@@ -3,7 +3,7 @@ program flex_2d
     !   Compute Green function for superconductive properties
     !   author  : Sun TY (scarsty@gmail.com)
     !   status  : constructing
-    !   version : none
+    !   version : Force
 
     use constants
     use functions
