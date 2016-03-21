@@ -147,7 +147,7 @@ contains
 
         write(stdout,*)
         write(stdout,*) 'final mu =', mu
-        write(stdout, *) 'temperature in K = ', T
+        write(stdout,*) 'temperature in K = ', T
         write(stdout,*)
         write(stdout,'(A7,A20)') 'spin','eigenvalue'
         write(stdout,*) '------------------------------'
