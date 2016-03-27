@@ -36,7 +36,7 @@ program flex_2d
     mpi_info = mpi_init1()
     mpi_rank = mpi_rank1()
     mpi_size = mpi_size1()
-
+    write (stdout,*) 'reading input file '
     call readin()
 
     if (test_band) then
