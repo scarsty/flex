@@ -1,0 +1,8 @@
+cmake_minimum_required (VERSION 2.6)
+project (ffff)
+enable_language (Fortran)
+  set (CMAKE_Fortran_FLAGS "-funroll-all-loops -fno-f2c -O3 -fopenmp -cpp -mcmodel=medium -fimplicit-none")
+link_directories(${PROJECT_SOURCE_DIR} ../lib)
+file( GLOB SRC_LIST *.f90 ) 
+add_executable (ffff ${SRC_LIST})
+target_link_libraries(ffff fftw3 openblas)
